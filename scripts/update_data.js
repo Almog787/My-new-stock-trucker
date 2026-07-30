@@ -243,7 +243,7 @@ async function fetchAndUpdatePrices() {
       // Generate README content
       const readmeContent = `# 📊 Portfolio Dashboard | מעקב תיק השקעות
 
-[🚀 **View Interactive Web Dashboard**](https://almog787.github.io/portfolio-dashboard/) *(Note: update "portfolio-dashboard" in the URL if your repository name is different)*
+[🚀 **View Interactive Web Dashboard**](https://almog787.github.io/My-new-stock-trucker-/)
 
 ![Total Value](https://img.shields.io/badge/Total_Value-₪${Math.round(totalCurrentILS).toLocaleString('en-US').replace(/,/g, '%2C')}-blue?style=for-the-badge&logo=cashapp) ![Daily Change](https://img.shields.io/badge/Daily_Change-${formatPercent(dailyChangePercent).replace('%', '%25')}-${dailyChangePercent >= 0 ? 'success' : 'critical'}?style=for-the-badge&logo=stocktwits) ![Total Profit](https://img.shields.io/badge/Total_Profit-${formatPercent(totalPnLPercent).replace('%', '%25')}-${totalPnLPercent >= 0 ? 'success' : 'critical'}?style=for-the-badge&logo=codeforces)
 

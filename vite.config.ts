@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: './',
+  base: '/My-new-stock-trucker-/',
   plugins: [react(), tailwindcss()],
   server: {
     host: '0.0.0.0',
