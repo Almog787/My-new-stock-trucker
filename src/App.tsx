@@ -14,7 +14,7 @@ import {
   BarChart,
   Bar
 } from 'recharts';
-import { TrendingUp, DollarSign, PieChart as PieChartIcon, Activity, BarChart3 } from 'lucide-react';
+import { TrendingUp, DollarSign, PieChart as PieChartIcon, Activity, BarChart3, ArrowLeftRight } from 'lucide-react';
 
 interface PortfolioItem {
   amount: number;
@@ -40,6 +40,7 @@ function App() {
   const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [loading, setLoading] = useState(true);
   const [chartView, setChartView] = useState<'value' | 'return'>('value');
+  const [mobileTab, setMobileTab] = useState<'charts' | 'holdings'>('charts');
 
   useEffect(() => {
     const loadData = async () => {
@@ -147,7 +148,7 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6 md:p-12 font-sans text-gray-900">
+    <div className="min-h-screen bg-gray-50 p-6 md:p-12 pb-24 md:pb-12 font-sans text-gray-900">
       <div className="max-w-7xl mx-auto space-y-8">
         
         {/* Header Section */}
@@ -172,10 +173,12 @@ function App() {
           </div>
         </header>
 
-        {/* Charts Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          
-          {/* Main Chart */}
+        {/* Charts Section */}
+        <div className={`space-y-8 ${mobileTab !== 'charts' ? 'hidden md:block' : ''}`}>
+          {/* Charts Grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            {/* Main Chart */}
           <div className="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
               <div className="flex items-center gap-2">
@@ -197,7 +200,7 @@ function App() {
                 </button>
               </div>
             </div>
-            <div className="h-[400px] w-full">
+            <div className="h-[400px] w-full" style={{ touchAction: 'pan-y' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
@@ -244,7 +247,7 @@ function App() {
               <PieChartIcon className="text-indigo-600" size={20} />
               <h3 className="text-lg font-semibold">הקצאת נכסים</h3>
             </div>
-            <div className="h-[300px] w-full">
+            <div className="h-[300px] w-full" style={{ touchAction: 'pan-y' }}>
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
@@ -280,7 +283,7 @@ function App() {
             <BarChart3 className="text-indigo-600" size={20} />
             <h3 className="text-lg font-semibold">רווח והפסד חודשי (P&L)</h3>
           </div>
-          <div className="h-[300px] w-full">
+          <div className="h-[300px] w-full" style={{ touchAction: 'pan-y' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={monthlyPnLData}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f3f4f6" />
@@ -329,13 +332,21 @@ function App() {
           </div>
         </div>
 
+        </div>
+
         {/* Holdings Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-          <div className="p-6 border-b border-gray-100 flex items-center gap-2">
-            <TrendingUp className="text-indigo-600" size={20} />
-            <h3 className="text-lg font-semibold">החזקות נוכחיות</h3>
+        <div className={`bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden relative ${mobileTab !== 'holdings' ? 'hidden md:block' : ''}`}>
+          <div className="p-6 border-b border-gray-100 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <TrendingUp className="text-indigo-600" size={20} />
+              <h3 className="text-lg font-semibold">החזקות נוכחיות</h3>
+            </div>
+            <div className="md:hidden flex items-center gap-1.5 text-xs font-medium text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-full">
+              <ArrowLeftRight size={14} />
+              <span>החלק לפרטים</span>
+            </div>
           </div>
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto touch-pan-x">
             <table className="w-full text-start border-collapse">
               <thead>
                 <tr className="bg-gray-50/50 text-gray-500 text-sm">
@@ -393,6 +404,24 @@ function App() {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Bottom Navigation for Mobile */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 flex justify-around p-3 z-50 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)] pb-[env(safe-area-inset-bottom)]">
+          <button
+            onClick={() => setMobileTab('charts')}
+            className={`flex flex-col items-center gap-1 flex-1 py-1 transition-colors ${mobileTab === 'charts' ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            <Activity size={24} />
+            <span className="text-xs font-medium">גרפים</span>
+          </button>
+          <button
+            onClick={() => setMobileTab('holdings')}
+            className={`flex flex-col items-center gap-1 flex-1 py-1 transition-colors ${mobileTab === 'holdings' ? 'text-indigo-600' : 'text-gray-400 hover:text-gray-600'}`}
+          >
+            <TrendingUp size={24} />
+            <span className="text-xs font-medium">החזקות</span>
+          </button>
         </div>
 
       </div>
