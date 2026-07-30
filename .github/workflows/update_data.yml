@@ -1,0 +1,35 @@
+name: Update Stock Data
+
+on:
+  schedule:
+    # Run every hour between 13:00 and 21:00 UTC (approx. 9:00 AM - 5:00 PM EST/EDT) on weekdays
+    - cron: '0 13-21 * * 1-5'
+  workflow_dispatch: # Allow manual triggering from GitHub Actions UI
+
+permissions:
+  contents: write
+
+jobs:
+  update-data:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Fetch stock data
+        run: node scripts/update_data.js
+
+      - name: Commit and push changes
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add public/data/stock_history.json
+          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update stock history [skip ci]" && git push)
