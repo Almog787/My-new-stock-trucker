@@ -67,8 +67,8 @@ function App() {
     const loadData = async () => {
       try {
         const [portfolioRes, historyRes] = await Promise.all([
-          fetch('/data/portfolio.json'),
-          fetch('/data/stock_history.json')
+          fetch('./data/portfolio.json'),
+          fetch('./data/stock_history.json')
         ]);
         
         const portfolioData = await portfolioRes.json();
