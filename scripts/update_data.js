@@ -13,6 +13,27 @@ const formatPercent = (val) => {
   return `${sign}${val.toFixed(2)}%`;
 };
 
+async function downloadQuickChart(chartConfig, outputPath) {
+  const url = 'https://quickchart.io/chart';
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      chart: chartConfig,
+      width: 800,
+      height: 400,
+      backgroundColor: 'white',
+      format: 'png',
+      devicePixelRatio: 2
+    })
+  });
+  if (!response.ok) {
+    throw new Error(`Failed to generate chart: ${response.statusText}`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  fs.writeFileSync(outputPath, Buffer.from(arrayBuffer));
+}
+
 async function fetchAndUpdatePrices() {
   try {
     console.log('Fetching stock prices...');
@@ -46,6 +67,8 @@ async function fetchAndUpdatePrices() {
     let totalPreviousUSD = 0;
     
     const holdingsRows = [];
+    const allocationLabels = [];
+    const allocationData = [];
 
     quotes.forEach(quote => {
       if (quote && quote.symbol && quote.regularMarketPrice) {
@@ -72,6 +95,9 @@ async function fetchAndUpdatePrices() {
         const pnlILS = (currentValueUSD - costBasisUSD) * usdIlsRate;
         
         const icon = pnlPercent >= 0 ? '🟢' : '🔴';
+        
+        allocationLabels.push(ticker);
+        allocationData.push(currentValueUSD);
         
         holdingsRows.push(`| ${ticker} | ${shares} | $${avgPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} | $${currentPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} | ${icon} ${formatPercent(pnlPercent)} | ₪${Math.round(pnlILS).toLocaleString('en-US')} |`);
       }
@@ -100,6 +126,79 @@ async function fetchAndUpdatePrices() {
          dailyChangePercent = ((totalCurrentUSD / totalPreviousUSD) - 1) * 100;
       }
       
+      // Generating Charts
+      console.log('Generating charts...');
+      const dataHubDir = path.join(process.cwd(), 'data_hub');
+      if (!fs.existsSync(dataHubDir)) {
+        fs.mkdirSync(dataHubDir, { recursive: true });
+      }
+
+      const allocationLabelsWithPercent = allocationLabels.map((label, i) => {
+        const percent = ((allocationData[i] / totalCurrentUSD) * 100).toFixed(1);
+        return `${label} (${percent}%)`;
+      });
+
+      const allocationConfig = {
+        type: 'doughnut',
+        data: {
+          labels: allocationLabelsWithPercent,
+          datasets: [{
+            data: allocationData,
+            backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'],
+            borderWidth: 2
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { position: 'right', labels: { font: { size: 14 } } },
+            datalabels: { display: false }
+          }
+        }
+      };
+
+      const historyValues = history.map(entry => {
+        let total = 0;
+        for (const [t, p] of Object.entries(entry.prices)) {
+           if (portfolio[t]) {
+             total += portfolio[t].amount * p;
+           }
+        }
+        const d = new Date(entry.timestamp);
+        return { date: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')}`, value: total };
+      });
+
+      const chartHistory = historyValues.slice(-30);
+      
+      const performanceConfig = {
+        type: 'line',
+        data: {
+          labels: chartHistory.map(h => h.date),
+          datasets: [{
+            label: 'Portfolio Value (USD)',
+            data: chartHistory.map(h => h.value),
+            borderColor: '#4f46e5',
+            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            pointRadius: 3
+          }]
+        },
+        options: {
+          plugins: {
+            legend: { display: false }
+          },
+          scales: {
+            y: {
+              beginAtZero: false
+            }
+          }
+        }
+      };
+
+      await downloadQuickChart(allocationConfig, path.join(dataHubDir, 'asset_allocation.png'));
+      await downloadQuickChart(performanceConfig, path.join(dataHubDir, 'portfolio_performance.png'));
+      console.log('Charts generated successfully.');
+
       // Formatting Date: DD/MM/YYYY HH:MM
       const now = new Date();
       const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
