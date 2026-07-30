@@ -242,6 +242,9 @@ async function fetchAndUpdatePrices() {
       
       // Generate README content
       const readmeContent = `# 📊 Portfolio Dashboard | מעקב תיק השקעות
+
+![Total Value](https://img.shields.io/badge/Total_Value-₪${Math.round(totalCurrentILS).toLocaleString('en-US').replace(/,/g, '%2C')}-blue?style=for-the-badge&logo=cashapp) ![Daily Change](https://img.shields.io/badge/Daily_Change-${formatPercent(dailyChangePercent).replace('%', '%25')}-${dailyChangePercent >= 0 ? 'success' : 'critical'}?style=for-the-badge&logo=stocktwits) ![Total Profit](https://img.shields.io/badge/Total_Profit-${formatPercent(totalPnLPercent).replace('%', '%25')}-${totalPnLPercent >= 0 ? 'success' : 'critical'}?style=for-the-badge&logo=codeforces)
+
 **Last Update:** ${formattedDate} | **USD/ILS:** ₪${usdIlsRate.toFixed(3)}
 
 ## 💰 Portfolio Summary | סיכום התיק
