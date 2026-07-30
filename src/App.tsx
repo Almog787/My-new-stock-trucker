@@ -14,7 +14,7 @@ import {
   BarChart,
   Bar
 } from 'recharts';
-import { TrendingUp, DollarSign, PieChart as PieChartIcon, Activity, BarChart3, ArrowLeftRight, Moon, Sun, ArrowUp, ArrowDown } from 'lucide-react';
+import { TrendingUp, DollarSign, PieChart as PieChartIcon, Activity, BarChart3, ArrowLeftRight, Moon, Sun, ArrowUp, ArrowDown, Smile, Info } from 'lucide-react';
 
 interface PortfolioItem {
   amount: number;
@@ -43,6 +43,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [chartView, setChartView] = useState<'value' | 'return'>('value');
   const [mobileTab, setMobileTab] = useState<'charts' | 'holdings'>('charts');
+  const [dashboardTab, setDashboardTab] = useState<'simple' | 'pro'>('simple');
   const [darkMode, setDarkMode] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'asc' | 'desc' }>({ key: 'value', direction: 'desc' });
 
@@ -232,8 +233,107 @@ function App() {
           </div>
         </header>
 
+        {/* Tab Switcher */}
+        <div className="flex bg-gray-100 dark:bg-gray-800 p-1.5 rounded-xl w-fit shadow-inner mx-auto md:mx-0">
+          <button 
+            onClick={() => setDashboardTab('simple')}
+            className={`px-6 py-2 text-sm font-semibold rounded-lg transition-all ${dashboardTab === 'simple' ? 'bg-white dark:bg-gray-600 text-indigo-700 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+          >
+            תצוגה פשוטה (למתחילים)
+          </button>
+          <button 
+            onClick={() => setDashboardTab('pro')}
+            className={`px-6 py-2 text-sm font-semibold rounded-lg transition-all ${dashboardTab === 'pro' ? 'bg-white dark:bg-gray-600 text-indigo-700 dark:text-indigo-300 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200'}`}
+          >
+            תצוגה מקצועית (Pro)
+          </button>
+        </div>
+
+        {dashboardTab === 'simple' && (
+          <div className="space-y-8 animate-in fade-in duration-500">
+            <div className="bg-indigo-50 dark:bg-indigo-900/20 p-6 md:p-8 rounded-2xl border border-indigo-100 dark:border-indigo-800/50 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10">
+                <Smile size={100} />
+              </div>
+              <h2 className="text-2xl font-bold text-indigo-900 dark:text-indigo-100 mb-4 flex items-center gap-2 relative z-10">
+                <Smile className="text-indigo-500" size={28} />
+                שלום! בואו נבין יחד את הכסף שלכם
+              </h2>
+              <p className="text-indigo-800 dark:text-indigo-200 text-lg leading-relaxed max-w-3xl relative z-10">
+                הכסף שהשקעתם בבורסה נמצא כרגע בשווי של <strong className="font-bold text-indigo-900 dark:text-white">₪{(portfolioTotal * USD_TO_ILS).toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>. 
+                זה אומר שאם הייתם מוכרים עכשיו הכל, זה הסכום שהייתם מקבלים. 
+                {monthlyPnLData.length > 0 && monthlyPnLData[monthlyPnLData.length - 1].isPositive ? ' החדשות הטובות הן שהכסף שלכם צמח לאחרונה! 🎉' : ' שוק ההון זז למעלה ולמטה, וזה בסדר גמור לאורך זמן.'}
+              </p>
+            </div>
+            
+            {/* Simple Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">כמה כסף הרווחתם?</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">זהו הסכום שנוסף להשקעה המקורית שלכם בזכות העליות בבורסה.</p>
+                  </div>
+                  <div className="p-3 bg-emerald-50 dark:bg-emerald-900/30 rounded-xl text-emerald-500">
+                    <TrendingUp size={24} />
+                  </div>
+                </div>
+                {chartData.length > 0 && (
+                  <div className="text-4xl font-bold text-emerald-500 flex items-center gap-2 mt-2" dir="ltr">
+                    +₪{((portfolioTotal - chartData[0]?.total) * USD_TO_ILS).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                  </div>
+                )}
+              </div>
+              
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <div className="flex items-start justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">במה הכסף מושקע?</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">קניתם חלקים (מניות) של חברות. החלק הגדול ביותר שלכם נמצא ב:</p>
+                  </div>
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-500">
+                    <PieChartIcon size={24} />
+                  </div>
+                </div>
+                <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-2">
+                  {sortedPortfolioData.length > 0 ? sortedPortfolioData[0].name : ''}
+                </div>
+              </div>
+            </div>
+
+            {/* Simple Explanation List */}
+            <div className="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700">
+                <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                  <Info className="text-indigo-500" />
+                  פירוט החברות שיש לכם
+                </h3>
+                <div className="space-y-4">
+                  {sortedPortfolioData.map((asset, i) => {
+                    const isPositive = asset.returnPct >= 0;
+                    return (
+                      <div key={asset.name} className="flex flex-col sm:flex-row sm:items-center justify-between p-5 bg-gray-50 dark:bg-gray-700/30 rounded-xl transition-colors hover:bg-gray-100 dark:hover:bg-gray-700/50">
+                        <div className="flex items-center gap-4 mb-3 sm:mb-0">
+                          <div className="w-12 h-12 rounded-full flex items-center justify-center font-bold text-white shadow-sm text-lg" style={{ backgroundColor: COLORS[i % COLORS.length] }}>
+                            {asset.name.substring(0, 2)}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-gray-900 dark:text-white text-lg">{asset.name}</h4>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">יש לכם כרגע מניות בשווי של ₪{(asset.value * USD_TO_ILS).toLocaleString(undefined, { maximumFractionDigits: 0 })} בחברה זו</p>
+                          </div>
+                        </div>
+                        <div className={`text-sm font-semibold px-4 py-2 rounded-full w-fit flex items-center gap-1.5 ${isPositive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400'}`}>
+                          {isPositive ? 'החברה צומחת 🎉' : 'החברה בירידה קלה 📉'}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+            </div>
+          </div>
+        )}
+
         {/* Charts Section */}
-        <div className={`space-y-8 ${mobileTab !== 'charts' ? 'hidden md:block' : ''}`}>
+        <div className={`space-y-8 ${dashboardTab !== 'pro' ? 'hidden' : ''} ${mobileTab !== 'charts' ? 'hidden md:block' : ''}`}>
           {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
@@ -402,7 +502,7 @@ function App() {
         </div>
 
         {/* Holdings Table */}
-        <div className={`bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden relative ${mobileTab !== 'holdings' ? 'hidden md:block' : ''}`}>
+        <div className={`bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden relative ${dashboardTab !== 'pro' ? 'hidden' : ''} ${mobileTab !== 'holdings' ? 'hidden md:block' : ''}`}>
           <div className="p-6 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <TrendingUp className="text-indigo-600 dark:text-indigo-400" size={20} />
@@ -486,7 +586,7 @@ function App() {
         </div>
 
         {/* Bottom Navigation for Mobile */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-around p-3 z-50 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)] pb-[env(safe-area-inset-bottom)]">
+        <div className={`md:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex justify-around p-3 z-50 shadow-[0_-4px_6px_-1px_rgb(0,0,0,0.05)] pb-[env(safe-area-inset-bottom)] ${dashboardTab !== 'pro' ? 'hidden' : ''}`}>
           <button
             onClick={() => setMobileTab('charts')}
             className={`flex flex-col items-center gap-1 flex-1 py-1 transition-colors ${mobileTab === 'charts' ? 'text-indigo-600 dark:text-indigo-400' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
