@@ -1,27 +1,38 @@
-# 📊 Portfolio Dashboard | מעקב תיק השקעות
-**Last Update:** 30/07/2026 02:02 | **USD/ILS:** ₪3.079
+# 📊 Stock Portfolio Dashboard | לוח בקרה לתיק השקעות
 
-## 💰 Portfolio Summary | סיכום התיק
-| Metric | Value | נתון |
-| :--- | :--- | :--- |
-| **Current Value** | `₪171,085` | **שווי נוכחי** |
-| **Total Invested** | `₪132,009` | **סך השקעה** |
-| **Total Profit/Loss** | `+29.60%` (₪39,076) | **רווח/הפסד כולל** |
-| **Daily Change** | `-1.44%` | **שינוי יומי** |
+אפליקציית רשת (Web App) אינטראקטיבית למעקב אחר תיק ההשקעות. המערכת מציגה ניתוח ביצועים, הקצאת נכסים בזמן אמת והיסטוריית רווח/הפסד בצורה ויזואלית ומתקדמת.
 
-## 📜 Holdings | פירוט החזקות
-| Ticker | Shares | Avg. Cost | Current Price | P&L % | P&L ILS |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| GOOGL | 48 | $187.99 | $336.67 | 🟢 +79.09% | ₪21,975 |
-| ASML | 4 | $934.51 | $1,549.45 | 🟢 +65.80% | ₪7,574 |
-| XOM | 2 | $126.08 | $156.81 | 🟢 +24.37% | ₪189 |
-| NVDA | 57 | $148.62 | $190.06 | 🟢 +27.88% | ₪7,273 |
-| TSLA | 20 | $436.45 | $298.35 | 🔴 -31.64% | ₪-8,505 |
-| VOO | 24 | $527.38 | $670.40 | 🟢 +27.12% | ₪10,569 |
+A modern, interactive web application for tracking your stock portfolio, visualizing performance, asset allocation, and historical P&L.
 
-## 📈 Charts | גרפים
-![Performance](./data_hub/portfolio_performance.png)
-![Allocation](./data_hub/asset_allocation.png)
+## ✨ תכונות מרכזיות | Key Features
+* **לוח בקרה אינטראקטיבי:** תצוגה מודרנית ונקייה המציגה את כלל ההחזקות.
+* **מעקב שווי בזמן אמת:** חישוב עדכני של שווי התיק הכולל על בסיס מחירי המניות.
+* **גרפים מתקדמים (Charts):** הצגת פילוח נכסים בגרף עוגה והיסטוריית התיק בגרף קווים.
+* **תמיכה מלאה בעברית:** ממשק משתמש מותאם מימין לשמאל (RTL).
+* **עיצוב רספונסיבי:** מותאם באופן מלא למכשירים ניידים ומסכי מחשב.
+
+## 🛠️ טכנולוגיות | Tech Stack
+* **Frontend:** React 18 + Vite, TypeScript
+* **Styling:** Tailwind CSS
+* **Charts:** Recharts
+* **Icons:** Lucide React
+
+## 🚀 איך להריץ את הפרויקט | How to Run
+1. ודאו שמותקן אצלכם Node.js.
+2. התקינו את ספריות הפרויקט (Dependencies):
+   ```bash
+   npm install
+   ```
+3. הריצו את שרת הפיתוח:
+   ```bash
+   npm run dev
+   ```
+4. פתחו את הדפדפן בכתובת המקומית (לרוב `http://localhost:3000`).
+
+## 📁 מבנה הנתונים | Data Structure
+האפליקציה קוראת את נתוני התיק בזמן אמת מתיקיית `public/data/`:
+* `portfolio.json`: מכיל את פרטי ההחזקות שלכם (כמות מניות ומחיר קנייה ממוצע לכל חברה).
+* `stock_history.json`: מכיל את היסטוריית המחירים ההיסטורית לצורך הצגת התפתחות התיק לאורך זמן.
 
 ---
 📂 *Created by Almog787*
