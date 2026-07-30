@@ -24,7 +24,8 @@ async function downloadQuickChart(chartConfig, outputPath) {
       height: 400,
       backgroundColor: 'white',
       format: 'png',
-      devicePixelRatio: 2
+      devicePixelRatio: 2,
+      version: '3'
     })
   });
   if (!response.ok) {
@@ -145,22 +146,37 @@ async function fetchAndUpdatePrices() {
           datasets: [{
             data: allocationData,
             backgroundColor: ['#4f46e5', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#f97316'],
-            borderWidth: 2
+            borderWidth: 2,
+            borderColor: '#ffffff'
           }]
         },
         options: {
+          layout: { padding: 20 },
           plugins: {
-            legend: { position: 'right', labels: { font: { size: 14 } } },
-            datalabels: { display: false }
+            legend: { 
+              position: 'right', 
+              labels: { font: { size: 14, family: 'sans-serif' }, padding: 15, usePointStyle: true, pointStyle: 'circle' } 
+            },
+            datalabels: { display: false },
+            title: {
+              display: true,
+              text: 'Asset Allocation',
+              font: { size: 20, family: 'sans-serif', weight: 'bold' },
+              padding: { bottom: 20 }
+            }
           }
         }
       };
 
+      let lastKnownPrices = {};
       const historyValues = history.map(entry => {
         let total = 0;
         for (const [t, p] of Object.entries(entry.prices)) {
-           if (portfolio[t]) {
-             total += portfolio[t].amount * p;
+           lastKnownPrices[t] = p;
+        }
+        for (const [t, amount] of Object.entries(portfolio)) {
+           if (lastKnownPrices[t]) {
+             total += amount.amount * lastKnownPrices[t];
            }
         }
         const d = new Date(entry.timestamp);
@@ -178,18 +194,39 @@ async function fetchAndUpdatePrices() {
             data: chartHistory.map(h => h.value),
             borderColor: '#4f46e5',
             backgroundColor: 'rgba(79, 70, 229, 0.1)',
-            borderWidth: 2,
+            borderWidth: 3,
             fill: true,
-            pointRadius: 3
+            pointRadius: 4,
+            pointBackgroundColor: '#ffffff',
+            pointBorderColor: '#4f46e5',
+            pointBorderWidth: 2,
+            tension: 0.4
           }]
         },
         options: {
+          layout: { padding: 20 },
           plugins: {
-            legend: { display: false }
+            legend: { display: false },
+            datalabels: { display: false },
+            title: {
+              display: true,
+              text: 'Portfolio Performance (30 Days)',
+              font: { size: 20, family: 'sans-serif', weight: 'bold' },
+              padding: { bottom: 20 }
+            }
           },
           scales: {
             y: {
-              beginAtZero: false
+              beginAtZero: false,
+              grid: { color: '#f3f4f6', drawBorder: false },
+              ticks: { 
+                font: { size: 12, family: 'sans-serif' },
+                callback: 'function(val) { return "$" + val.toLocaleString(); }'
+              }
+            },
+            x: {
+              grid: { display: false, drawBorder: false },
+              ticks: { font: { size: 12, family: 'sans-serif' }, maxTicksLimit: 10 }
             }
           }
         }
