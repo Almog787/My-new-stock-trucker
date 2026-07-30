@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
-import yahooFinance from 'yahoo-finance2';
+import YahooFinance from 'yahoo-finance2';
+
+const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey'] });
 
 const portfolioPath = path.join(process.cwd(), 'public', 'data', 'portfolio.json');
 const historyPath = path.join(process.cwd(), 'public', 'data', 'stock_history.json');
