@@ -53,7 +53,19 @@ async function fetchAndUpdatePrices() {
 
     // Fetch ILS=X separately
     const ilsQuote = await yahooFinance.quote('ILS=X').catch(() => ({ regularMarketPrice: 3.7 }));
-    const usdIlsRate = ilsQuote.regularMarketPrice;
+    const realUsdIlsRate = ilsQuote.regularMarketPrice;
+    
+    // The broker applies a spread to the exchange rate. 
+    // From reverse engineering the screenshots: current rate ~2.998, broker rate ~3.006.
+    // That's a ~0.8 agorot difference (or about 0.26% spread).
+    const BROKER_SPREAD = 0.008; 
+    const usdIlsRate = realUsdIlsRate + BROKER_SPREAD;
+    const brokerRate = usdIlsRate; // Alias for clarity
+    
+    // Save to meta.json for the React app to use
+    const dataDir = path.join(process.cwd(), 'public', 'data');
+    const metaPath = path.join(dataDir, 'meta.json');
+    fs.writeFileSync(metaPath, JSON.stringify({ usdIlsRate: brokerRate, lastUpdate: new Date().toISOString() }, null, 2));
 
     const quotes = await Promise.all(
       tickers.map(ticker => yahooFinance.quote(ticker).catch(err => {
@@ -93,7 +105,7 @@ async function fetchAndUpdatePrices() {
         totalPreviousUSD += previousValueUSD;
         
         const pnlPercent = ((currentPrice / avgPrice) - 1) * 100;
-        const pnlILS = (currentValueUSD - costBasisUSD) * usdIlsRate;
+        const pnlILS = pnlPercent * costBasisUSD * brokerRate / 100; // or just (currentValueUSD - costBasisUSD) * brokerRate
         
         const icon = pnlPercent >= 0 ? '🟢' : '🔴';
         
@@ -116,9 +128,9 @@ async function fetchAndUpdatePrices() {
       fs.writeFileSync(historyPath, JSON.stringify(history, null, 2));
       console.log(`Successfully updated stock history with ${Object.keys(prices).length} prices.`);
       
-      // Calculate totals for README
-      const totalInvestedILS = totalInvestedUSD * usdIlsRate;
-      const totalCurrentILS = totalCurrentUSD * usdIlsRate;
+      // Calculate totals for README using the dynamic broker rate
+      const totalInvestedILS = totalInvestedUSD * brokerRate;
+      const totalCurrentILS = totalCurrentUSD * brokerRate;
       const totalPnLILS = totalCurrentILS - totalInvestedILS;
       const totalPnLPercent = ((totalCurrentILS / totalInvestedILS) - 1) * 100;
       

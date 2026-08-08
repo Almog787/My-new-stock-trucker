@@ -33,13 +33,13 @@ interface HistoryPoint {
 }
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
-const USD_TO_ILS = 3.079;
 
 type SortKey = 'name' | 'amount' | 'avg_price' | 'current_price' | 'value' | 'pnl' | 'returnPct';
 
 function App() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [history, setHistory] = useState<HistoryPoint[]>([]);
+  const [usdToIls, setUsdToIls] = useState<number>(3.006); // Default fallback, dynamically updated
   const [loading, setLoading] = useState(true);
   const [chartView, setChartView] = useState<'value' | 'return'>('value');
   const [mobileTab, setMobileTab] = useState<'charts' | 'holdings'>('charts');
@@ -67,13 +67,21 @@ function App() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [portfolioRes, historyRes] = await Promise.all([
+        const [portfolioRes, historyRes, metaRes] = await Promise.all([
           fetch('./data/portfolio.json'),
-          fetch('./data/stock_history.json')
+          fetch('./data/stock_history.json'),
+          fetch('./data/meta.json').catch(() => null) // Optional fetch, fallback if missing
         ]);
         
         const portfolioData = await portfolioRes.json();
         const historyData = await historyRes.json();
+
+        if (metaRes && metaRes.ok) {
+          const metaData = await metaRes.json();
+          if (metaData.usdIlsRate) {
+            setUsdToIls(metaData.usdIlsRate);
+          }
+        }
 
         setPortfolio(portfolioData);
         setHistory(historyData);
@@ -225,7 +233,7 @@ function App() {
                 <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
                   <span dir="ltr">${portfolioTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                   <span className="text-lg text-gray-500 dark:text-gray-400 font-normal" dir="ltr">
-                    (₪{(portfolioTotal * USD_TO_ILS).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
+                    (₪{(portfolioTotal * usdToIls).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })})
                   </span>
                 </h2>
               </div>
@@ -260,7 +268,7 @@ function App() {
                 שלום! בואו נבין יחד את הכסף שלכם
               </h2>
               <p className="text-indigo-800 dark:text-indigo-200 text-lg leading-relaxed max-w-3xl relative z-10">
-                הכסף שהשקעתם בבורסה נמצא כרגע בשווי של <strong className="font-bold text-indigo-900 dark:text-white">₪{(portfolioTotal * USD_TO_ILS).toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>. 
+                הכסף שהשקעתם בבורסה נמצא כרגע בשווי של <strong className="font-bold text-indigo-900 dark:text-white">₪{(portfolioTotal * usdToIls).toLocaleString(undefined, { maximumFractionDigits: 0 })}</strong>. 
                 זה אומר שאם הייתם מוכרים עכשיו הכל, זה הסכום שהייתם מקבלים. 
                 {monthlyPnLData.length > 0 && monthlyPnLData[monthlyPnLData.length - 1].isPositive ? ' החדשות הטובות הן שהכסף שלכם צמח לאחרונה! 🎉' : ' שוק ההון זז למעלה ולמטה, וזה בסדר גמור לאורך זמן.'}
               </p>
@@ -280,7 +288,7 @@ function App() {
                 </div>
                 {chartData.length > 0 && (
                   <div className="text-4xl font-bold text-emerald-500 flex items-center gap-2 mt-2" dir="ltr">
-                    +₪{((portfolioTotal - chartData[0]?.total) * USD_TO_ILS).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    +₪{((portfolioTotal - chartData[0]?.total) * usdToIls).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                   </div>
                 )}
               </div>
@@ -318,7 +326,7 @@ function App() {
                           </div>
                           <div>
                             <h4 className="font-bold text-gray-900 dark:text-white text-lg">{asset.name}</h4>
-                            <p className="text-sm text-gray-500 dark:text-gray-400">יש לכם כרגע מניות בשווי של ₪{(asset.value * USD_TO_ILS).toLocaleString(undefined, { maximumFractionDigits: 0 })} בחברה זו</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">יש לכם כרגע מניות בשווי של ₪{(asset.value * usdToIls).toLocaleString(undefined, { maximumFractionDigits: 0 })} בחברה זו</p>
                           </div>
                         </div>
                         <div className={`text-sm font-semibold px-4 py-2 rounded-full w-fit flex items-center gap-1.5 ${isPositive ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-400' : 'bg-rose-100 text-rose-700 dark:bg-rose-900/40 dark:text-rose-400'}`}>
@@ -384,7 +392,7 @@ function App() {
                     formatter={(value: any) => {
                       const num = Number(value) || 0;
                       if (chartView === 'value') {
-                        return [`$${num.toFixed(2)} (₪${(num * USD_TO_ILS).toFixed(2)})`, 'שווי כולל'];
+                        return [`$${num.toFixed(2)} (₪${(num * usdToIls).toFixed(2)})`, 'שווי כולל'];
                       }
                       return [`${num.toFixed(2)}%`, 'תשואה מצטברת'];
                     }}
@@ -432,7 +440,7 @@ function App() {
                     itemStyle={{ color: darkMode ? '#e5e7eb' : '#374151' }}
                     formatter={(value: any) => {
                       const num = Number(value) || 0;
-                      return [`$${num.toFixed(2)} (₪${(num * USD_TO_ILS).toFixed(2)})`, 'שווי'];
+                      return [`$${num.toFixed(2)} (₪${(num * usdToIls).toFixed(2)})`, 'שווי'];
                     }}
                   />
                   <Legend verticalAlign="bottom" height={36} iconType="circle" wrapperStyle={{ color: darkMode ? '#e5e7eb' : '#374151' }} />
@@ -476,7 +484,7 @@ function App() {
                           {props.payload.isPositive ? '+' : '-'}${Math.abs(num).toFixed(2)}
                         </span>
                         <span className="text-xs text-gray-500 dark:text-gray-400">
-                          (₪{(num * USD_TO_ILS).toFixed(2)})
+                          (₪{(num * usdToIls).toFixed(2)})
                         </span>
                       </div>, 
                       'רווח/הפסד'
@@ -552,22 +560,22 @@ function App() {
                       <td className="py-4 px-6 text-gray-600 dark:text-gray-300" dir="ltr" style={{ textAlign: "right" }}>{asset.amount}</td>
                       <td className="py-4 px-6 text-gray-600 dark:text-gray-300" dir="ltr" style={{ textAlign: "right" }}>
                         <div>${asset.avg_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                        <div className="text-xs text-gray-400 dark:text-gray-500">₪{(asset.avg_price * USD_TO_ILS).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        <div className="text-xs text-gray-400 dark:text-gray-500">₪{(asset.avg_price * usdToIls).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                       </td>
                       <td className="py-4 px-6 text-gray-900 dark:text-gray-100 font-medium" dir="ltr" style={{ textAlign: "right" }}>
                         <div>${asset.current_price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">₪{(asset.current_price * USD_TO_ILS).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">₪{(asset.current_price * usdToIls).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                       </td>
                       <td className="py-4 px-6 text-gray-900 dark:text-gray-100 font-medium" dir="ltr" style={{ textAlign: "right" }}>
                         <div>${asset.value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">₪{(asset.value * USD_TO_ILS).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                        <div className="text-xs text-gray-500 dark:text-gray-400">₪{(asset.value * usdToIls).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
                       </td>
                       <td className="py-4 px-6 text-gray-900 dark:text-gray-100 font-medium" dir="ltr" style={{ textAlign: "right" }}>
                         <div className={isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
                           {isPositive ? '+' : '-'}${Math.abs(asset.pnl).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {isPositive ? '+' : '-'}₪{Math.abs(asset.pnl * USD_TO_ILS).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {isPositive ? '+' : '-'}₪{Math.abs(asset.pnl * usdToIls).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                         </div>
                       </td>
                       <td className="py-4 px-6 text-end" dir="ltr" style={{ textAlign: "left" }}>
