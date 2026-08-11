@@ -4,7 +4,7 @@
 
 ![Total Value](https://img.shields.io/badge/Total_Value-₪180%2C845-blue?style=for-the-badge&logo=cashapp) ![Daily Change](https://img.shields.io/badge/Daily_Change--0.68%25-critical?style=for-the-badge&logo=stocktwits) ![Total Profit](https://img.shields.io/badge/Total_Profit-+40.13%25-success?style=for-the-badge&logo=codeforces)
 
-**Last Update:** 11/08/2026 20:46 | **USD/ILS:** ₪3.010
+**Last Update:** 11/08/2026 21:50 | **USD/ILS:** ₪3.010
 
 ## 💰 Portfolio Summary | סיכום התיק
 | Metric | Value | נתון |
