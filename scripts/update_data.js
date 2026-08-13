@@ -121,7 +121,8 @@ async function fetchAndUpdatePrices() {
       
       const newEntry = {
         timestamp: new Date().toISOString(),
-        prices
+        prices,
+        exchangeRate: brokerRate
       };
       
       history.push(newEntry);

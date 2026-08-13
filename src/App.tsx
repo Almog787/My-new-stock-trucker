@@ -30,6 +30,7 @@ interface HistoryPoint {
   prices: {
     [ticker: string]: number;
   };
+  exchangeRate?: number;
 }
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
@@ -138,7 +139,9 @@ function App() {
         const price = point.prices[ticker] || data.avg_price;
         pointTotal += price * data.amount;
       });
+      const historicalRate = point.exchangeRate || usdToIls; // Fallback to current if missing
       item.total = pointTotal;
+      item.totalILS = pointTotal * historicalRate;
       item.returnPct = ((pointTotal - costBase) / costBase) * 100;
       return item;
     });
@@ -389,10 +392,11 @@ function App() {
                   <Tooltip 
                     contentStyle={tooltipStyles}
                     itemStyle={{ color: darkMode ? '#e5e7eb' : '#374151' }}
-                    formatter={(value: any) => {
+                    formatter={(value: any, _name: any, props: any) => {
                       const num = Number(value) || 0;
                       if (chartView === 'value') {
-                        return [`$${num.toFixed(2)} (₪${(num * usdToIls).toFixed(2)})`, 'שווי כולל'];
+                        const ilsValue = props?.payload?.totalILS || (num * usdToIls);
+                        return [`$${num.toFixed(2)} (₪${ilsValue.toFixed(2)})`, 'שווי כולל'];
                       }
                       return [`${num.toFixed(2)}%`, 'תשואה מצטברת'];
                     }}
