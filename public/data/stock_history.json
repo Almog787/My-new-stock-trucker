@@ -11217,327 +11217,39 @@
     "exchangeRate": 2.9708
   },
   {
-    "timestamp": "2026-08-13T19:04:20.880Z",
+    "timestamp": "2026-08-18T19:25:41.501Z",
     "prices": {
-      "GOOGL": 345.87,
-      "ASML": 1865.89,
-      "XOM": 158.33,
-      "NVDA": 225.79,
-      "TSLA": 340.0401,
-      "VOO": 715.02
+      "GOOGL": 344.06,
+      "ASML": 1793,
+      "XOM": 165.22,
+      "NVDA": 219.24,
+      "TSLA": 336.6699,
+      "VOO": 706.06
     },
-    "exchangeRate": 2.9703
+    "exchangeRate": 2.9998
   },
   {
-    "timestamp": "2026-08-13T20:44:43.956Z",
+    "timestamp": "2026-08-18T19:29:55.455Z",
     "prices": {
-      "GOOGL": 346.36,
-      "ASML": 1847.9,
-      "XOM": 158.61,
-      "NVDA": 225.3,
-      "TSLA": 339.96,
-      "VOO": 714.95
+      "GOOGL": 343.98,
+      "ASML": 1796.42,
+      "XOM": 165.22,
+      "NVDA": 219.2701,
+      "TSLA": 336.56,
+      "VOO": 706.02
     },
-    "exchangeRate": 2.9703
+    "exchangeRate": 2.9996
   },
   {
-    "timestamp": "2026-08-13T21:47:21.831Z",
+    "timestamp": "2026-08-18T19:31:21.286Z",
     "prices": {
-      "GOOGL": 346.36,
-      "ASML": 1847.9,
-      "XOM": 158.61,
-      "NVDA": 225.3,
-      "TSLA": 339.96,
-      "VOO": 714.95
+      "GOOGL": 344.18,
+      "ASML": 1794.558,
+      "XOM": 165.255,
+      "NVDA": 219.2,
+      "TSLA": 336.97,
+      "VOO": 706.09
     },
-    "exchangeRate": 2.9653
-  },
-  {
-    "timestamp": "2026-08-14T14:16:06.019Z",
-    "prices": {
-      "GOOGL": 348.18,
-      "ASML": 1845.28,
-      "XOM": 160.55,
-      "NVDA": 225.645,
-      "TSLA": 347.94,
-      "VOO": 715.32
-    },
-    "exchangeRate": 2.9609
-  },
-  {
-    "timestamp": "2026-08-14T15:53:25.826Z",
-    "prices": {
-      "GOOGL": 345.17,
-      "ASML": 1827.61,
-      "XOM": 160.715,
-      "NVDA": 225.115,
-      "TSLA": 337.82,
-      "VOO": 713.43
-    },
-    "exchangeRate": 2.9618
-  },
-  {
-    "timestamp": "2026-08-14T16:54:45.713Z",
-    "prices": {
-      "GOOGL": 344.9,
-      "ASML": 1827.5,
-      "XOM": 160.99,
-      "NVDA": 225.05,
-      "TSLA": 339.28,
-      "VOO": 713.16
-    },
-    "exchangeRate": 2.9632
-  },
-  {
-    "timestamp": "2026-08-14T17:54:35.896Z",
-    "prices": {
-      "GOOGL": 344.71,
-      "ASML": 1822.68,
-      "XOM": 160.75,
-      "NVDA": 225.3743,
-      "TSLA": 341.05,
-      "VOO": 713.08
-    },
-    "exchangeRate": 2.9632
-  },
-  {
-    "timestamp": "2026-08-14T18:56:17.821Z",
-    "prices": {
-      "GOOGL": 345.44,
-      "ASML": 1825.184,
-      "XOM": 160.47,
-      "NVDA": 225.0032,
-      "TSLA": 341.445,
-      "VOO": 713.5658
-    },
-    "exchangeRate": 2.9647
-  },
-  {
-    "timestamp": "2026-08-14T19:50:04.316Z",
-    "prices": {
-      "GOOGL": 345.47,
-      "ASML": 1829.33,
-      "XOM": 159.945,
-      "NVDA": 225.51,
-      "TSLA": 341.98,
-      "VOO": 713.54
-    },
-    "exchangeRate": 2.9637000000000002
-  },
-  {
-    "timestamp": "2026-08-14T20:32:40.433Z",
-    "prices": {
-      "GOOGL": 345.9,
-      "ASML": 1844.08,
-      "XOM": 160.1,
-      "NVDA": 225.16,
-      "TSLA": 342.27,
-      "VOO": 713.61
-    },
-    "exchangeRate": 2.9628
-  },
-  {
-    "timestamp": "2026-08-14T21:26:41.608Z",
-    "prices": {
-      "GOOGL": 345.9,
-      "ASML": 1844.08,
-      "XOM": 160.1,
-      "NVDA": 225.16,
-      "TSLA": 342.27,
-      "VOO": 713.61
-    },
-    "exchangeRate": 2.9646
-  },
-  {
-    "timestamp": "2026-08-17T13:39:58.266Z",
-    "prices": {
-      "GOOGL": 345.31,
-      "ASML": 1865,
-      "XOM": 159.795,
-      "NVDA": 225.4532,
-      "TSLA": 338.3901,
-      "VOO": 712.8423
-    },
-    "exchangeRate": 2.96805
-  },
-  {
-    "timestamp": "2026-08-17T14:29:33.008Z",
-    "prices": {
-      "GOOGL": 343.6,
-      "ASML": 1872.99,
-      "XOM": 160.72,
-      "NVDA": 226.35,
-      "TSLA": 339.53,
-      "VOO": 712.65
-    },
-    "exchangeRate": 2.97255
-  },
-  {
-    "timestamp": "2026-08-17T15:26:33.736Z",
-    "prices": {
-      "GOOGL": 343.88,
-      "ASML": 1883.0035,
-      "XOM": 160.57,
-      "NVDA": 227.52,
-      "TSLA": 340.21,
-      "VOO": 712.94
-    },
-    "exchangeRate": 2.971
-  },
-  {
-    "timestamp": "2026-08-17T16:29:14.029Z",
-    "prices": {
-      "GOOGL": 344.475,
-      "ASML": 1885.285,
-      "XOM": 160.9031,
-      "NVDA": 226.955,
-      "TSLA": 339.83,
-      "VOO": 712.62
-    },
-    "exchangeRate": 2.9724
-  },
-  {
-    "timestamp": "2026-08-17T17:27:37.967Z",
-    "prices": {
-      "GOOGL": 343.235,
-      "ASML": 1879.62,
-      "XOM": 161.63,
-      "NVDA": 225.895,
-      "TSLA": 339.195,
-      "VOO": 711.01
-    },
-    "exchangeRate": 2.9754
-  },
-  {
-    "timestamp": "2026-08-17T18:41:19.161Z",
-    "prices": {
-      "GOOGL": 344.23,
-      "ASML": 1891.46,
-      "XOM": 162.23,
-      "NVDA": 225.565,
-      "TSLA": 339.69,
-      "VOO": 710.95
-    },
-    "exchangeRate": 2.9785
-  },
-  {
-    "timestamp": "2026-08-17T19:29:28.014Z",
-    "prices": {
-      "GOOGL": 343.88,
-      "ASML": 1885.87,
-      "XOM": 161.26,
-      "NVDA": 225.64,
-      "TSLA": 340.99,
-      "VOO": 710.77
-    },
-    "exchangeRate": 2.9785
-  },
-  {
-    "timestamp": "2026-08-17T20:28:44.055Z",
-    "prices": {
-      "GOOGL": 344,
-      "ASML": 1883.12,
-      "XOM": 161.46,
-      "NVDA": 225.01,
-      "TSLA": 339.3,
-      "VOO": 710.27
-    },
-    "exchangeRate": 2.9785
-  },
-  {
-    "timestamp": "2026-08-17T21:27:15.533Z",
-    "prices": {
-      "GOOGL": 344,
-      "ASML": 1883.12,
-      "XOM": 161.46,
-      "NVDA": 225.01,
-      "TSLA": 339.3,
-      "VOO": 710.27
-    },
-    "exchangeRate": 2.98
-  },
-  {
-    "timestamp": "2026-08-18T13:43:13.038Z",
-    "prices": {
-      "GOOGL": 342.015,
-      "ASML": 1812.26,
-      "XOM": 163.845,
-      "NVDA": 221.3217,
-      "TSLA": 338.365,
-      "VOO": 707.065
-    },
-    "exchangeRate": 2.99472
-  },
-  {
-    "timestamp": "2026-08-18T14:35:05.148Z",
-    "prices": {
-      "GOOGL": 343.51,
-      "ASML": 1801.185,
-      "XOM": 163.96,
-      "NVDA": 220.24,
-      "TSLA": 336.965,
-      "VOO": 706.68
-    },
-    "exchangeRate": 3.003
-  },
-  {
-    "timestamp": "2026-08-18T15:33:16.224Z",
-    "prices": {
-      "GOOGL": 342.68,
-      "ASML": 1785.32,
-      "XOM": 165.175,
-      "NVDA": 219.6967,
-      "TSLA": 337.2,
-      "VOO": 705.74
-    },
-    "exchangeRate": 3.0025
-  },
-  {
-    "timestamp": "2026-08-18T16:33:03.424Z",
-    "prices": {
-      "GOOGL": 343.74,
-      "ASML": 1795.05,
-      "XOM": 164.61,
-      "NVDA": 219.68,
-      "TSLA": 337.36,
-      "VOO": 706.215
-    },
-    "exchangeRate": 3.0004
-  },
-  {
-    "timestamp": "2026-08-18T17:28:36.759Z",
-    "prices": {
-      "GOOGL": 343.16,
-      "ASML": 1792.085,
-      "XOM": 164.82,
-      "NVDA": 220.165,
-      "TSLA": 336.9,
-      "VOO": 706.0999
-    },
-    "exchangeRate": 3.0004
-  },
-  {
-    "timestamp": "2026-08-18T18:39:40.125Z",
-    "prices": {
-      "GOOGL": 343.695,
-      "ASML": 1795.1306,
-      "XOM": 165.05,
-      "NVDA": 220.06,
-      "TSLA": 335.84,
-      "VOO": 706.27
-    },
-    "exchangeRate": 3.0015
-  },
-  {
-    "timestamp": "2026-08-18T19:28:42.138Z",
-    "prices": {
-      "GOOGL": 343.9101,
-      "ASML": 1796.9661,
-      "XOM": 165.26,
-      "NVDA": 219.3199,
-      "TSLA": 336.55,
-      "VOO": 706.05
-    },
-    "exchangeRate": 3.0003
+    "exchangeRate": 2.9996
   }
 ]

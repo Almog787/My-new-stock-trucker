@@ -181,22 +181,29 @@ async function fetchAndUpdatePrices() {
         }
       };
 
+      // Group history entries by date (YYYY-MM-DD) to take the last snapshot of each day
+      const dailyMap = new Map();
       let lastKnownPrices = {};
-      const historyValues = history.map(entry => {
-        let total = 0;
+      
+      history.forEach(entry => {
         for (const [t, p] of Object.entries(entry.prices)) {
            lastKnownPrices[t] = p;
         }
+        let total = 0;
         for (const [t, amount] of Object.entries(portfolio)) {
            if (lastKnownPrices[t]) {
              total += amount.amount * lastKnownPrices[t];
            }
         }
         const d = new Date(entry.timestamp);
-        return { date: `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth()+1).padStart(2, '0')}`, value: total };
+        const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        const displayDate = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}`;
+        
+        dailyMap.set(dateKey, { date: displayDate, value: total });
       });
 
-      const chartHistory = historyValues.slice(-30);
+      const dailyValues = Array.from(dailyMap.values());
+      const chartHistory = dailyValues.slice(-30);
       
       const performanceConfig = {
         type: 'line',
