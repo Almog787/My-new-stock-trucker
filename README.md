@@ -1,6 +1,6 @@
 # 📊 Portfolio Dashboard | מעקב תיק השקעות
 
-[🚀 **View Interactive Web Dashboard**](https://almog787.github.io/My-new-stock-trucker-/)
+[🚀 **View Interactive Web Dashboard**](https://almog787.github.io/My-new-stock-trucker/)
 
 ![Total Value](https://img.shields.io/badge/Total_Value-₪180%2C640-blue?style=for-the-badge&logo=cashapp) ![Daily Change](https://img.shields.io/badge/Daily_Change--1.32%25-critical?style=for-the-badge&logo=stocktwits) ![Total Profit](https://img.shields.io/badge/Total_Profit-+40.47%25-success?style=for-the-badge&logo=codeforces)
 
