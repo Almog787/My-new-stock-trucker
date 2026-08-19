@@ -166,8 +166,19 @@ function App() {
     }
 
     const latestSnapshot = history[history.length - 1];
-    const previousSnapshot = history.length > 1 ? history[history.length - 2] : history[0];
     const latestPrices = latestSnapshot.prices;
+
+    // To calculate the true "Daily" change, we must find the last snapshot from a previous trading day.
+    // If the system updates hourly, history[history.length - 2] is just the previous hour.
+    const today = new Date(latestSnapshot.timestamp).toLocaleDateString('en-US');
+    let previousSnapshot = history[0];
+    for (let i = history.length - 1; i >= 0; i--) {
+      const snapDate = new Date(history[i].timestamp).toLocaleDateString('en-US');
+      if (snapDate !== today) {
+        previousSnapshot = history[i];
+        break;
+      }
+    }
     const previousPrices = previousSnapshot.prices;
 
     let currentTotalUSD = 0;
