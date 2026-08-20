@@ -2,27 +2,27 @@
 
 [🚀 **View Interactive Web Dashboard**](https://almog787.github.io/My-new-stock-trucker/)
 
-![Total Value](https://img.shields.io/badge/Total_Value-₪180%2C033-blue?style=for-the-badge&logo=cashapp) ![Daily Change](https://img.shields.io/badge/Daily_Change--0.78%25-critical?style=for-the-badge&logo=stocktwits) ![Total Profit](https://img.shields.io/badge/Total_Profit-+39.49%25-success?style=for-the-badge&logo=codeforces)
+![Total Value](https://img.shields.io/badge/Total_Value-₪179%2C905-blue?style=for-the-badge&logo=cashapp) ![Daily Change](https://img.shields.io/badge/Daily_Change--0.83%25-critical?style=for-the-badge&logo=stocktwits) ![Total Profit](https://img.shields.io/badge/Total_Profit-+39.42%25-success?style=for-the-badge&logo=codeforces)
 
-**Last Update:** 20/08/2026 19:32 | **USD/ILS:** ₪3.010
+**Last Update:** 20/08/2026 20:29 | **USD/ILS:** ₪3.010
 
 ## 💰 Portfolio Summary | סיכום התיק
 | Metric | Value | נתון |
 | :--- | :--- | :--- |
-| **Current Value** | `₪180,033` | **שווי נוכחי** |
-| **Total Invested** | `₪129,064` | **סך השקעה** |
-| **Total Profit/Loss** | `+39.49%` (₪50,969) | **רווח/הפסד כולל** |
-| **Daily Change** | `-0.78%` | **שינוי יומי** |
+| **Current Value** | `₪179,905` | **שווי נוכחי** |
+| **Total Invested** | `₪129,034` | **סך השקעה** |
+| **Total Profit/Loss** | `+39.42%` (₪50,871) | **רווח/הפסד כולל** |
+| **Daily Change** | `-0.83%` | **שינוי יומי** |
 
 ## 📜 Holdings | פירוט החזקות
 | Ticker | Shares | Avg. Cost | Current Price | P&L % | P&L ILS |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| GOOGL | 48 | $187.99 | $341.15 | 🟢 +81.47% | ₪22,132 |
-| ASML | 4 | $934.51 | $1,748.39 | 🟢 +87.09% | ₪9,801 |
-| XOM | 2 | $126.08 | $166.63 | 🟢 +32.16% | ₪244 |
-| NVDA | 57 | $148.62 | $217.23 | 🟢 +46.16% | ₪11,773 |
-| TSLA | 20 | $436.45 | $343.88 | 🔴 -21.21% | ₪-5,574 |
-| VOO | 24 | $527.38 | $701.66 | 🟢 +33.05% | ₪12,592 |
+| GOOGL | 48 | $187.99 | $340.67 | 🟢 +81.22% | ₪22,058 |
+| ASML | 4 | $934.51 | $1,750.31 | 🟢 +87.30% | ₪9,822 |
+| XOM | 2 | $126.08 | $166.15 | 🟢 +31.78% | ₪241 |
+| NVDA | 57 | $148.62 | $216.85 | 🟢 +45.91% | ₪11,705 |
+| TSLA | 20 | $436.45 | $345.13 | 🔴 -20.92% | ₪-5,497 |
+| VOO | 24 | $527.38 | $701.01 | 🟢 +32.92% | ₪12,542 |
 
 ## 📈 Charts | גרפים
 ![Performance](./data_hub/portfolio_performance.png)
