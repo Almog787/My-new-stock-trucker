@@ -41,7 +41,9 @@ import {
   Calendar,
   Coins,
   CalendarDays,
-  FileText
+  FileText,
+  Download,
+  AlertCircle
 } from 'lucide-react';
 
 interface PortfolioItem {
@@ -117,26 +119,33 @@ function App() {
   
   // Export to PDF state
   const [isExporting, setIsExporting] = useState(false);
+  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
 
   const exportToPDF = async () => {
     const element = document.getElementById('pdf-export-content');
     if (!element) return;
     
     setIsExporting(true);
+    setExportError(null);
     
     try {
+      window.scrollTo(0, 0);
+
       // Show pdf-specific elements for the capture
       const pdfElements = document.querySelectorAll('.pdf-showtext');
       pdfElements.forEach(el => el.classList.remove('hidden'));
 
-      // Small delay to ensure any UI states update if needed
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Small delay to ensure Recharts and UI states fully update and render
+      await new Promise(resolve => setTimeout(resolve, 500));
       
       const canvas = await html2canvas(element, {
-        scale: 1.5,
+        scale: window.innerWidth < 768 ? 1 : 1.5, // lower scale on mobile for performance
         useCORS: true,
-        logging: false,
+        logging: true,
         backgroundColor: darkMode ? '#0b0f19' : '#f8fafc',
+        windowWidth: document.documentElement.offsetWidth,
+        windowHeight: document.documentElement.offsetHeight,
       });
       
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
@@ -149,12 +158,10 @@ function App() {
       let heightLeft = pdfHeight;
       let position = 0;
       
-      // Add first page
       pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
       heightLeft -= pdf.internal.pageSize.getHeight();
       
-      // Add subsequent pages if content exceeds one page
-      while (heightLeft >= 0) {
+      while (heightLeft > 0) {
         position = heightLeft - pdfHeight;
         pdf.addPage();
         pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
@@ -162,9 +169,19 @@ function App() {
       }
       
       const dateStr = new Date().toISOString().split('T')[0];
-      pdf.save(`Portfolio-Report-${dateStr}.pdf`);
-    } catch (err) {
+      const filename = `Portfolio-Report-${dateStr}.pdf`;
+      
+      // Attempt direct download - this might be blocked by iframe sandboxes
+      pdf.save(filename);
+
+      // Provide the manual fallback via Blob URL just in case
+      const blob = pdf.output('blob');
+      const blobUrl = URL.createObjectURL(blob);
+      setPdfBlobUrl(blobUrl);
+
+    } catch (err: any) {
       console.error('Failed to export PDF:', err);
+      setExportError(err.message || 'שגיאה ביצירת הקובץ. אנא נסה שוב.');
     } finally {
       // Hide pdf-specific elements again
       const pdfElements = document.querySelectorAll('.pdf-showtext');
@@ -834,7 +851,47 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 transition-colors font-sans antialiased" dir="rtl">
+    <>
+      {/* PDF Ready Preview Modal */}
+      {pdfBlobUrl && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 sm:p-6" dir="rtl">
+          <div className="bg-white dark:bg-[#111827] rounded-2xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 relative">
+            <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-lg">
+                  <FileText size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">הדוח מוכן! (PDF)</h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">ניתן להציג תצוגה מקדימה או לשמור את הקובץ</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3" dir="ltr">
+                <button onClick={() => setPdfBlobUrl(null)} className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                  סגור תצוגה
+                </button>
+                <a href={pdfBlobUrl} download={`Portfolio-Report-${new Date().toISOString().split('T')[0]}.pdf`} className="flex items-center gap-2 px-5 py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors shadow-md">
+                  <Download size={16} />
+                  שמור קובץ
+                </a>
+              </div>
+            </div>
+            
+            {exportError && (
+              <div className="p-4 bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 border-b border-rose-200 dark:border-rose-800/50 flex items-center gap-2 text-sm font-medium">
+                <AlertCircle size={16} />
+                {exportError}
+              </div>
+            )}
+
+            <div className="flex-1 w-full bg-slate-200/50 dark:bg-[#0b0f19] p-2 sm:p-4 overflow-hidden relative">
+              <iframe src={pdfBlobUrl} className="w-full h-full rounded border-0 shadow-sm bg-white" title="PDF Preview" />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 transition-colors font-sans antialiased" dir="rtl">
       
       {/* Top Professional Navigation Bar */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
@@ -2007,6 +2064,7 @@ function App() {
       </footer>
 
     </div>
+    </>
   );
 }
 
