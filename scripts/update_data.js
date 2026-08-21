@@ -521,9 +521,17 @@ ${enhancedHoldingsRows.join('\n')}
 
 ## 📈 3. גרפים ומגמות (Visual Analytics)
 
-| ביצועי תיק 30 ימים (Portfolio Performance) | התפלגות נכסים (Asset Allocation) |
-| :---: | :---: |
-| ![Performance](./data_hub/portfolio_performance.png) | ![Allocation](./data_hub/asset_allocation.png) |
+<div align="center">
+
+### 📊 ביצועי תיק ב-30 הימים האחרונים (Portfolio Performance)
+<img src="data_hub/portfolio_performance.png" alt="Portfolio Performance (30 Days)" width="900" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);" />
+
+<br/><br/>
+
+### 🥧 התפלגות והקצאת נכסים בתיק (Asset Allocation)
+<img src="data_hub/asset_allocation.png" alt="Asset Allocation" width="900" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);" />
+
+</div>
 
 ---
 
