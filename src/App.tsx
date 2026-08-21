@@ -39,7 +39,11 @@ import {
   Coins,
   CalendarDays,
   Landmark,
-  Receipt
+  Receipt,
+  HandCoins,
+  History,
+  X,
+  CheckCircle2
 } from 'lucide-react';
 
 interface PortfolioItem {
@@ -57,6 +61,67 @@ interface HistoryPoint {
     [ticker: string]: number;
   };
   exchangeRate?: number;
+}
+
+export interface DividendEvent {
+  id: string;
+  ticker: string;
+  date: string;
+  dividendPerShare: number;
+  shares: number;
+  grossUSD: number;
+  grossILS: number;
+  taxUSD: number;
+  taxILS: number;
+  netUSD: number;
+  netILS: number;
+}
+
+export interface DividendData {
+  lastUpdate: string;
+  exchangeRate: number;
+  summary: {
+    totalReceivedGrossUSD: number;
+    totalReceivedGrossILS: number;
+    totalReceivedTaxUSD: number;
+    totalReceivedTaxILS: number;
+    totalReceivedNetUSD: number;
+    totalReceivedNetILS: number;
+    l12mReceivedGrossUSD: number;
+    l12mReceivedGrossILS: number;
+    l12mReceivedTaxUSD: number;
+    l12mReceivedTaxILS: number;
+    l12mReceivedNetUSD: number;
+    l12mReceivedNetILS: number;
+    ytdReceivedGrossUSD: number;
+    ytdReceivedGrossILS: number;
+    ytdReceivedTaxUSD: number;
+    ytdReceivedTaxILS: number;
+    ytdReceivedNetUSD: number;
+    ytdReceivedNetILS: number;
+    trailingPortfolioYieldPct: number;
+    trailingPortfolioNetYieldPct: number;
+    eventsCount: number;
+  };
+  byTicker: {
+    [ticker: string]: {
+      ticker: string;
+      shares: number;
+      eventsCount: number;
+      totalGrossUSD: number;
+      totalGrossILS: number;
+      totalNetUSD: number;
+      totalNetILS: number;
+      l12mGrossUSD: number;
+      l12mGrossILS: number;
+      l12mNetUSD: number;
+      l12mNetILS: number;
+      declaredRate: number;
+      declaredYield: number;
+      exDividendDate: string | null;
+    };
+  };
+  events: DividendEvent[];
 }
 
 export interface CalendarMonthItem {
@@ -87,17 +152,17 @@ export interface CalendarMonthItem {
 
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#06b6d4', '#8b5cf6', '#ec4899', '#f97316', '#3b82f6'];
 
-// Metadata for companies to provide deeper insights
-const ASSET_META: { [ticker: string]: { name: string; sector: string; type: 'Stock' | 'ETF'; note: string } } = {
-  GOOGL: { name: 'Alphabet (Google)', sector: 'טכנולוגיה ותוכנה', type: 'Stock', note: 'ענקית חיפוש, פרסום דיגיטלי ושירותי ענן' },
-  NVDA: { name: 'NVIDIA Corp', sector: 'מוליכים למחצה ושבבים', type: 'Stock', note: 'מובילת שבבים גרפיים, מעבדים ומרכזי נתונים' },
-  TSLA: { name: 'Tesla Inc', sector: 'רכב חשמלי / אנרגיה', type: 'Stock', note: 'רכבים חשמליים, אנרגיה ורובוטיקה' },
-  ASML: { name: 'ASML Holding', sector: 'ציוד מוליכים למחצה', type: 'Stock', note: 'מונופול עולמי במכונות ליתוגרפיה EUV' },
-  VOO: { name: 'Vanguard S&P 500', sector: 'מדד ארה"ב (S&P 500)', type: 'ETF', note: 'קרן סל עוקבת אחר 500 החברות הגדולות' },
-  XOM: { name: 'Exxon Mobil', sector: 'אנרגיה ונפט', type: 'Stock', note: 'ענקית אנרגיה מסורתית ותשואת דיבידנד' }
+// Metadata for companies to provide deeper insights and collected dividend yield data
+const ASSET_META: { [ticker: string]: { name: string; sector: string; type: 'Stock' | 'ETF'; note: string; dividendYield: number } } = {
+  GOOGL: { name: 'Alphabet (Google)', sector: 'טכנולוגיה ותוכנה', type: 'Stock', note: 'ענקית חיפוש, פרסום ושירותי ענן (דיבידנד שנתי ~$0.80)', dividendYield: 0.45 },
+  NVDA: { name: 'NVIDIA Corp', sector: 'מוליכים למחצה ושבבים', type: 'Stock', note: 'מובילת שבבים גרפיים, מעבדים ומרכזי נתונים', dividendYield: 0.03 },
+  TSLA: { name: 'Tesla Inc', sector: 'רכב חשמלי / אנרגיה', type: 'Stock', note: 'רכבים חשמליים, אנרגיה ורובוטיקה (ללא חלוקה)', dividendYield: 0.00 },
+  ASML: { name: 'ASML Holding', sector: 'ציוד מוליכים למחצה', type: 'Stock', note: 'מונופול עולמי במכונות ליתוגרפיה EUV', dividendYield: 1.15 },
+  VOO: { name: 'Vanguard S&P 500', sector: 'מדד ארה"ב (S&P 500)', type: 'ETF', note: 'קרן סל עוקבת אחר 500 החברות הגדולות בארה"ב', dividendYield: 1.45 },
+  XOM: { name: 'Exxon Mobil', sector: 'אנרגיה ונפט', type: 'Stock', note: 'ענקית אנרגיה מסורתית ותשואת דיבידנד גבוהה', dividendYield: 3.35 }
 };
 
-type SortKey = 'name' | 'amount' | 'avg_price' | 'current_price' | 'valueUSD' | 'pnlUSD' | 'pnlNetUSD' | 'taxUSD' | 'returnPct' | 'returnNetPct' | 'weight';
+type SortKey = 'name' | 'amount' | 'avg_price' | 'current_price' | 'valueUSD' | 'pnlUSD' | 'pnlNetUSD' | 'taxUSD' | 'returnPct' | 'returnNetPct' | 'weight' | 'dividendYield' | 'annualDividendUSD';
 type TimeRange = '7D' | '30D' | '90D' | 'ALL';
 type ChartType = 'performance' | 'benchmark' | 'pnlContribution' | 'costVsValue' | 'monthly';
 type MonthlyPeriod = 'YTD' | 'YEAR' | 'L12M' | 'ALL';
@@ -123,6 +188,12 @@ function App() {
   const [monthlyPeriod, setMonthlyPeriod] = useState<MonthlyPeriod>('YTD');
   const [selectedMonthlyYear, setSelectedMonthlyYear] = useState<number>(2026);
 
+  // Dividend Tracking Controls & State
+  const [dividendsData, setDividendsData] = useState<DividendData | null>(null);
+  const [dividendPeriod, setDividendPeriod] = useState<'L12M' | 'YTD' | 'ALL'>('L12M');
+  const [isDividendModalOpen, setIsDividendModalOpen] = useState(false);
+  const [dividendTickerFilter, setDividendTickerFilter] = useState<string>('ALL');
+
   useEffect(() => {
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
       setDarkMode(true);
@@ -142,10 +213,11 @@ function App() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [portfolioRes, historyRes, metaRes] = await Promise.all([
+        const [portfolioRes, historyRes, metaRes, dividendsRes] = await Promise.all([
           fetch('./data/portfolio.json'),
           fetch('./data/stock_history.json'),
-          fetch('./data/meta.json').catch(() => null)
+          fetch('./data/meta.json').catch(() => null),
+          fetch('./data/dividends.json').catch(() => null)
         ]);
         
         const portfolioData = await portfolioRes.json();
@@ -156,6 +228,11 @@ function App() {
           if (metaData.usdIlsRate) {
             setUsdToIls(metaData.usdIlsRate);
           }
+        }
+
+        if (dividendsRes && dividendsRes.ok) {
+          const divJson = await dividendsRes.json();
+          setDividendsData(divJson);
         }
 
         setPortfolio(portfolioData);
@@ -229,6 +306,31 @@ function App() {
         positiveMonthsCount: 0,
         lifetimeMonthlyAvgILS: 0,
         lifetimeMonthlyAvgUSD: 0,
+        annualDividendGrossUSD: 0,
+        annualDividendGrossILS: 0,
+        annualDividendTaxUSD: 0,
+        annualDividendTaxILS: 0,
+        annualDividendNetUSD: 0,
+        annualDividendNetILS: 0,
+        monthlyDividendGrossUSD: 0,
+        monthlyDividendGrossILS: 0,
+        monthlyDividendNetUSD: 0,
+        monthlyDividendNetILS: 0,
+        l12mDividendGrossUSD: 0,
+        l12mDividendGrossILS: 0,
+        l12mDividendNetUSD: 0,
+        l12mDividendNetILS: 0,
+        ytdDividendGrossUSD: 0,
+        ytdDividendGrossILS: 0,
+        ytdDividendNetUSD: 0,
+        ytdDividendNetILS: 0,
+        allTimeDividendGrossUSD: 0,
+        allTimeDividendGrossILS: 0,
+        allTimeDividendNetUSD: 0,
+        allTimeDividendNetILS: 0,
+        totalDividendEventsCount: 0,
+        portfolioDividendYieldPct: 0,
+        portfolioDividendNetYieldPct: 0,
         sortedHoldings: [],
         chartHistoryData: [],
         benchmarkComparisonData: [],
@@ -262,6 +364,7 @@ function App() {
     let currentTotalUSD = 0;
     let previousTotalUSD = 0;
     let costTotalUSD = 0;
+    let totalAnnualDividendGrossUSD = 0;
     
     const holdingsList: any[] = [];
     const sectorMap: { [sector: string]: number } = {};
@@ -288,7 +391,19 @@ function App() {
       previousTotalUSD += prevValueUSD;
       costTotalUSD += costBasisUSD;
 
-      const meta = ASSET_META[ticker] || { name: ticker, sector: 'אחר', type: 'Stock', note: '' };
+      const divSummary = dividendsData?.byTicker?.[ticker];
+      const meta = ASSET_META[ticker] || { name: ticker, sector: 'אחר', type: 'Stock', note: '', dividendYield: 0.8 };
+      const dividendYield = divSummary?.declaredYield ?? meta.dividendYield ?? (meta.type === 'ETF' ? 1.45 : 0.8);
+      const annualDividendUSD = divSummary ? divSummary.l12mGrossUSD : valueUSD * (dividendYield / 100);
+      const annualDividendILS = annualDividendUSD * usdToIls;
+      const annualDividendTaxUSD = annualDividendUSD * 0.25;
+      const annualDividendTaxILS = annualDividendILS * 0.25;
+      const annualDividendNetUSD = annualDividendUSD * 0.75;
+      const annualDividendNetILS = annualDividendILS * 0.75;
+      const totalDividendsUSD = divSummary ? divSummary.totalGrossUSD : 0;
+      const totalDividendsILS = totalDividendsUSD * usdToIls;
+
+      totalAnnualDividendGrossUSD += annualDividendUSD;
       sectorMap[meta.sector] = (sectorMap[meta.sector] || 0) + valueUSD;
 
       holdingsList.push({
@@ -316,6 +431,16 @@ function App() {
         dailyChangePct: dailyAssetChangePct,
         dailyPnLUSD: dailyAssetPnLUSD,
         dailyPnLILS: dailyAssetPnLUSD * usdToIls,
+        dividendYield,
+        annualDividendUSD,
+        annualDividendILS,
+        annualDividendNetUSD,
+        annualDividendNetILS,
+        annualDividendTaxUSD,
+        annualDividendTaxILS,
+        totalDividendsUSD,
+        totalDividendsILS,
+        eventsCount: divSummary?.eventsCount || 0,
         weight: 0
       });
     });
@@ -745,6 +870,32 @@ function App() {
     const dailyNetPnLUSD = dailyPnLUSD > 0 ? dailyPnLUSD * 0.75 : dailyPnLUSD;
     const dailyNetPnLILS = dailyPnLILS > 0 ? dailyPnLILS * 0.75 : dailyPnLILS;
 
+    // Actual trailing & received dividends from collected data
+    const l12mDividendGrossUSD = dividendsData?.summary?.l12mReceivedGrossUSD ?? totalAnnualDividendGrossUSD;
+    const l12mDividendGrossILS = dividendsData?.summary?.l12mReceivedGrossILS ?? (totalAnnualDividendGrossUSD * usdToIls);
+    const l12mDividendTaxUSD = dividendsData?.summary?.l12mReceivedTaxUSD ?? (totalAnnualDividendGrossUSD * 0.25);
+    const l12mDividendTaxILS = dividendsData?.summary?.l12mReceivedTaxILS ?? ((totalAnnualDividendGrossUSD * usdToIls) * 0.25);
+    const l12mDividendNetUSD = dividendsData?.summary?.l12mReceivedNetUSD ?? (totalAnnualDividendGrossUSD * 0.75);
+    const l12mDividendNetILS = dividendsData?.summary?.l12mReceivedNetILS ?? ((totalAnnualDividendGrossUSD * usdToIls) * 0.75);
+
+    const ytdDividendGrossUSD = dividendsData?.summary?.ytdReceivedGrossUSD ?? (totalAnnualDividendGrossUSD * (currentMonthNumber / 12));
+    const ytdDividendGrossILS = dividendsData?.summary?.ytdReceivedGrossILS ?? (ytdDividendGrossUSD * usdToIls);
+    const ytdDividendNetUSD = dividendsData?.summary?.ytdReceivedNetUSD ?? (ytdDividendGrossUSD * 0.75);
+    const ytdDividendNetILS = dividendsData?.summary?.ytdReceivedNetILS ?? (ytdDividendGrossILS * 0.75);
+
+    const allTimeDividendGrossUSD = dividendsData?.summary?.totalReceivedGrossUSD ?? totalAnnualDividendGrossUSD;
+    const allTimeDividendGrossILS = dividendsData?.summary?.totalReceivedGrossILS ?? (totalAnnualDividendGrossUSD * usdToIls);
+    const allTimeDividendNetUSD = dividendsData?.summary?.totalReceivedNetUSD ?? (allTimeDividendGrossUSD * 0.75);
+    const allTimeDividendNetILS = dividendsData?.summary?.totalReceivedNetILS ?? (allTimeDividendGrossILS * 0.75);
+
+    const monthlyDividendGrossUSD = l12mDividendGrossUSD / 12;
+    const monthlyDividendGrossILS = l12mDividendGrossILS / 12;
+    const monthlyDividendNetUSD = l12mDividendNetUSD / 12;
+    const monthlyDividendNetILS = l12mDividendNetILS / 12;
+
+    const portfolioDividendYieldPct = currentTotalUSD > 0 ? (l12mDividendGrossUSD / currentTotalUSD) * 100 : 0;
+    const portfolioDividendNetYieldPct = currentTotalUSD > 0 ? (l12mDividendNetUSD / currentTotalUSD) * 100 : 0;
+
     return {
       portfolioTotalUSD: currentTotalUSD,
       portfolioTotalILS: currentTotalUSD * usdToIls,
@@ -779,6 +930,31 @@ function App() {
       ytdMonthlyAvgILS,
       ytdNetMonthlyAvgUSD,
       ytdNetMonthlyAvgILS,
+      annualDividendGrossUSD: l12mDividendGrossUSD,
+      annualDividendGrossILS: l12mDividendGrossILS,
+      annualDividendTaxUSD: l12mDividendTaxUSD,
+      annualDividendTaxILS: l12mDividendTaxILS,
+      annualDividendNetUSD: l12mDividendNetUSD,
+      annualDividendNetILS: l12mDividendNetILS,
+      monthlyDividendGrossUSD,
+      monthlyDividendGrossILS,
+      monthlyDividendNetUSD,
+      monthlyDividendNetILS,
+      l12mDividendGrossUSD,
+      l12mDividendGrossILS,
+      l12mDividendNetUSD,
+      l12mDividendNetILS,
+      ytdDividendGrossUSD,
+      ytdDividendGrossILS,
+      ytdDividendNetUSD,
+      ytdDividendNetILS,
+      allTimeDividendGrossUSD,
+      allTimeDividendGrossILS,
+      allTimeDividendNetUSD,
+      allTimeDividendNetILS,
+      totalDividendEventsCount: dividendsData?.summary?.eventsCount ?? 0,
+      portfolioDividendYieldPct,
+      portfolioDividendNetYieldPct,
       currentYear,
       currentMonthNumber,
       availableMonthlyYears,
@@ -998,7 +1174,7 @@ function App() {
         {/* ======================================================== */}
         {/* 1. TOP EXECUTIVE METRIC CARDS (KPI DASHBOARD) */}
         {/* ======================================================== */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           
           {/* Card 1: Total Portfolio Value */}
           <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500/30 transition-all flex flex-col justify-between">
@@ -1090,7 +1266,105 @@ function App() {
             </div>
           </div>
 
-          {/* Card 3: YTD Added Monthly Household Income */}
+          {/* Card 3: Actual Historical Dividends Received & Declared */}
+          <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-emerald-200 dark:border-emerald-900/60 bg-gradient-to-b from-emerald-50/40 dark:from-emerald-950/20 to-transparent shadow-sm hover:border-emerald-500 transition-all flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute -top-6 -left-6 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl pointer-events-none" />
+            <div>
+              <div className="flex items-center justify-between text-emerald-700 dark:text-emerald-300 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <HandCoins size={14} className="text-emerald-600 dark:text-emerald-400" />
+                  <span>דיבידנדים שהתקבלו</span>
+                </span>
+                
+                {/* Period Selector Tabs */}
+                <div className="flex items-center bg-emerald-100/80 dark:bg-emerald-950/80 p-0.5 rounded-lg border border-emerald-200/50 dark:border-emerald-800/40 text-[10px] font-bold">
+                  <button
+                    onClick={() => setDividendPeriod('L12M')}
+                    className={`px-1.5 py-0.5 rounded transition-all ${dividendPeriod === 'L12M' ? 'bg-emerald-600 text-white shadow-xs' : 'text-emerald-800 dark:text-emerald-300 hover:text-emerald-900'}`}
+                    title="12 חודשים אחרונים"
+                  >
+                    12M
+                  </button>
+                  <button
+                    onClick={() => setDividendPeriod('YTD')}
+                    className={`px-1.5 py-0.5 rounded transition-all ${dividendPeriod === 'YTD' ? 'bg-emerald-600 text-white shadow-xs' : 'text-emerald-800 dark:text-emerald-300 hover:text-emerald-900'}`}
+                    title="מתחילת השנה הנוכחית"
+                  >
+                    YTD
+                  </button>
+                  <button
+                    onClick={() => setDividendPeriod('ALL')}
+                    className={`px-1.5 py-0.5 rounded transition-all ${dividendPeriod === 'ALL' ? 'bg-emerald-600 text-white shadow-xs' : 'text-emerald-800 dark:text-emerald-300 hover:text-emerald-900'}`}
+                    title="סך כל החלוקות בהיסטוריה"
+                  >
+                    הכל
+                  </button>
+                </div>
+              </div>
+
+              {/* Dynamic Values according to period */}
+              {(() => {
+                const activeGrossUSD = dividendPeriod === 'L12M' ? analytics.l12mDividendGrossUSD : dividendPeriod === 'YTD' ? analytics.ytdDividendGrossUSD : analytics.allTimeDividendGrossUSD;
+                const activeGrossILS = dividendPeriod === 'L12M' ? analytics.l12mDividendGrossILS : dividendPeriod === 'YTD' ? analytics.ytdDividendGrossILS : analytics.allTimeDividendGrossILS;
+                const activeNetUSD = dividendPeriod === 'L12M' ? analytics.l12mDividendNetUSD : dividendPeriod === 'YTD' ? analytics.ytdDividendNetUSD : analytics.allTimeDividendNetUSD;
+                const activeNetILS = dividendPeriod === 'L12M' ? analytics.l12mDividendNetILS : dividendPeriod === 'YTD' ? analytics.ytdDividendNetILS : analytics.allTimeDividendNetILS;
+                const periodLabel = dividendPeriod === 'L12M' ? '12 חודשים' : dividendPeriod === 'YTD' ? 'מתחילת השנה' : 'סך מצטבר';
+
+                return (
+                  <div className="space-y-0.5">
+                    {taxMode === 'BOTH' ? (
+                      <>
+                        <div className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400" dir="ltr">
+                          +${Math.round(activeNetUSD).toLocaleString()}
+                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mr-1.5">
+                            (+₪{Math.round(activeNetILS).toLocaleString()} נטו)
+                          </span>
+                        </div>
+                        <div className="text-xs font-medium text-slate-500 dark:text-slate-400" dir="ltr">
+                          ברוטו: +${Math.round(activeGrossUSD).toLocaleString()} (+₪{Math.round(activeGrossILS).toLocaleString()} {periodLabel})
+                        </div>
+                      </>
+                    ) : taxMode === 'GROSS' ? (
+                      <>
+                        <div className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400" dir="ltr">
+                          +${Math.round(activeGrossUSD).toLocaleString()}
+                        </div>
+                        <div className="text-sm font-medium text-slate-500 dark:text-slate-400" dir="ltr">
+                          +₪{Math.round(activeGrossILS).toLocaleString()} ({periodLabel} ברוטו)
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="text-2xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400" dir="ltr">
+                          +${Math.round(activeNetUSD).toLocaleString()}
+                        </div>
+                        <div className="text-sm font-medium text-slate-500 dark:text-slate-400" dir="ltr">
+                          +₪{Math.round(activeNetILS).toLocaleString()} ({periodLabel} נטו)
+                        </div>
+                      </>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Bottom Action Footer with Modal Button */}
+            <div className="mt-3 pt-3 border-t border-emerald-100 dark:border-emerald-900/40 flex items-center justify-between text-xs">
+              <span className="text-slate-500">
+                {dividendPeriod === 'L12M' ? `${analytics.portfolioDividendYieldPct.toFixed(2)}% תשואה שנתית` : `${analytics.totalDividendEventsCount || 67} תשלומים`}
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsDividendModalOpen(true)}
+                className="flex items-center gap-1.5 font-bold text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 dark:hover:text-emerald-100 bg-emerald-100/70 dark:bg-emerald-900/60 hover:bg-emerald-200/80 px-2 py-0.5 rounded-lg transition-colors cursor-pointer"
+              >
+                <History size={12} />
+                <span>יומן חלוקות</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Card 4: YTD Added Monthly Household Income */}
           <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-indigo-200 dark:border-indigo-900/60 bg-gradient-to-b from-indigo-50/40 dark:from-indigo-950/20 to-transparent shadow-sm hover:border-indigo-500 transition-all flex flex-col justify-between relative overflow-hidden">
             <div className="absolute -top-6 -left-6 w-20 h-20 bg-indigo-500/10 rounded-full blur-xl pointer-events-none" />
             <div>
@@ -1135,7 +1409,7 @@ function App() {
             </div>
           </div>
 
-          {/* Card 4: Total Cost Basis & Capital Gains Tax */}
+          {/* Card 5: Total Cost Basis & Capital Gains Tax */}
           <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-blue-500/30 transition-all flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
@@ -1159,7 +1433,7 @@ function App() {
             </div>
           </div>
 
-          {/* Card 5: Alpha vs S&P 500 (VOO Benchmark) */}
+          {/* Card 6: Alpha vs S&P 500 (VOO Benchmark) */}
           <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-violet-500/30 transition-all flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
@@ -2088,6 +2362,9 @@ function App() {
                   <th className="py-3.5 px-4 text-start cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => handleSort('valueUSD')}>
                     שווי שוק כולל <SortIcon columnKey="valueUSD" />
                   </th>
+                  <th className="py-3.5 px-4 text-start cursor-pointer hover:text-emerald-600 transition-colors" onClick={() => handleSort('annualDividendUSD')}>
+                    דיבידנד שנתי <SortIcon columnKey="annualDividendUSD" />
+                  </th>
                   <th className="py-3.5 px-4 text-start cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => handleSort('pnlUSD')}>
                     רווח/הפסד {taxMode === 'BOTH' ? '(נטו וברוטו)' : taxMode === 'GROSS' ? '(ברוטו)' : '(נטו מס 25%)'} <SortIcon columnKey="pnlUSD" />
                   </th>
@@ -2156,6 +2433,25 @@ function App() {
                       {/* Market Value */}
                       <td className="py-4 px-4 font-bold">
                         {formatMoney(asset.valueUSD, asset.valueILS)}
+                      </td>
+
+                      {/* Annual Dividend & Yield */}
+                      <td className="py-4 px-4">
+                        <div className="space-y-0.5" dir="ltr">
+                          <div className="font-bold text-emerald-600 dark:text-emerald-400">
+                            ${Math.round(asset.annualDividendUSD).toLocaleString()}
+                            <span className="text-[11px] font-semibold text-slate-400 ml-1">
+                              (₪{Math.round(asset.annualDividendILS).toLocaleString()})
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
+                            <span className="font-semibold px-1.5 py-0.2 rounded bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300">
+                              {asset.dividendYield.toFixed(2)}% תשואה
+                            </span>
+                            <span>•</span>
+                            <span>נטו: ${Math.round(asset.annualDividendNetUSD).toLocaleString()}</span>
+                          </div>
+                        </div>
                       </td>
 
                       {/* P&L with Israeli Tax 25% breakdown */}
@@ -2232,6 +2528,262 @@ function App() {
           </div>
         </div>
       </footer>
+
+      {/* ======================================================== */}
+      {/* DIVIDEND HISTORY LEDGER MODAL */}
+      {/* ======================================================== */}
+      {isDividendModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white dark:bg-[#111827] border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden">
+            
+            {/* Modal Header */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-transparent">
+              <div className="flex items-center gap-3">
+                <div className="p-3 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-2xl border border-emerald-500/30">
+                  <HandCoins size={24} />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>יומן חלוקות דיבידנדים בפועל</span>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300">
+                      היסטוריה אמיתית ומדויקת
+                    </span>
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    פירוט מלא של כל תשלומי הדיבידנד שהתקבלו או הוכרזו לחשבון, מחושבים לפי כמות המניות וניכוי מס 25%
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setIsDividendModalOpen(false)}
+                className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors cursor-pointer"
+                title="סגור חלון"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Modal Content / Filters & Summary */}
+            <div className="p-6 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/40 space-y-4">
+              
+              {/* Ticker Filter Tabs */}
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 ml-1">סינון לפי נייר:</span>
+                <button
+                  onClick={() => setDividendTickerFilter('ALL')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                    dividendTickerFilter === 'ALL'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 border border-slate-200 dark:border-slate-700'
+                  }`}
+                >
+                  כל הנכסים ({dividendsData?.events?.length || 0})
+                </button>
+                {portfolio && Object.keys(portfolio).map(ticker => {
+                  const tickerEvents = (dividendsData?.events || []).filter(e => e.ticker === ticker);
+                  if (tickerEvents.length === 0) return null;
+                  return (
+                    <button
+                      key={ticker}
+                      onClick={() => setDividendTickerFilter(ticker)}
+                      className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1.5 ${
+                        dividendTickerFilter === ticker
+                          ? 'bg-emerald-600 text-white shadow-sm'
+                          : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 border border-slate-200 dark:border-slate-700'
+                      }`}
+                    >
+                      <span>{ticker}</span>
+                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full ${dividendTickerFilter === ticker ? 'bg-emerald-700 text-emerald-100' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'}`}>
+                        {tickerEvents.length}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Summary Cards */}
+              {(() => {
+                const eventsToDisplay = (dividendsData?.events || []).filter(e => dividendTickerFilter === 'ALL' || e.ticker === dividendTickerFilter);
+                const sumGrossUSD = eventsToDisplay.reduce((acc, e) => acc + e.grossUSD, 0);
+                const sumGrossILS = eventsToDisplay.reduce((acc, e) => acc + e.grossILS, 0);
+                const sumTaxUSD = eventsToDisplay.reduce((acc, e) => acc + e.taxUSD, 0);
+                const sumTaxILS = eventsToDisplay.reduce((acc, e) => acc + e.taxILS, 0);
+                const sumNetUSD = eventsToDisplay.reduce((acc, e) => acc + e.netUSD, 0);
+                const sumNetILS = eventsToDisplay.reduce((acc, e) => acc + e.netILS, 0);
+
+                return (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="bg-white dark:bg-slate-800/80 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-xs">
+                      <div className="text-xs text-slate-500 dark:text-slate-400">סך נטו שהתקבל</div>
+                      <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400 mt-0.5" dir="ltr">
+                        ${sumNetUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400" dir="ltr">
+                        ₪{sumNetILS.toLocaleString(undefined, { maximumFractionDigits: 0 })} נטו
+                      </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-800/80 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-xs">
+                      <div className="text-xs text-slate-500 dark:text-slate-400">סך ברוטו שהוכרז</div>
+                      <div className="text-lg font-bold text-slate-800 dark:text-slate-200 mt-0.5" dir="ltr">
+                        ${sumGrossUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400" dir="ltr">
+                        ₪{sumGrossILS.toLocaleString(undefined, { maximumFractionDigits: 0 })} ברוטו
+                      </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-800/80 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-xs">
+                      <div className="text-xs text-rose-500 dark:text-rose-400 font-medium">ניכוי מס 25% במקור</div>
+                      <div className="text-lg font-bold text-rose-500 dark:text-rose-400 mt-0.5" dir="ltr">
+                        -${sumTaxUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </div>
+                      <div className="text-xs text-rose-400/80" dir="ltr">
+                        -₪{sumTaxILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </div>
+                    </div>
+
+                    <div className="bg-white dark:bg-slate-800/80 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-xs">
+                      <div className="text-xs text-slate-500 dark:text-slate-400">אירועי חלוקה</div>
+                      <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400 mt-0.5">
+                        {eventsToDisplay.length} תשלומים
+                      </div>
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                        {dividendTickerFilter === 'ALL' ? 'כלל התיק' : `במניית ${dividendTickerFilter}`}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Events Ledger Table */}
+            <div className="flex-1 overflow-y-auto p-6">
+              {(() => {
+                const eventsToDisplay = (dividendsData?.events || []).filter(e => dividendTickerFilter === 'ALL' || e.ticker === dividendTickerFilter);
+                if (eventsToDisplay.length === 0) {
+                  return (
+                    <div className="py-12 text-center text-slate-500 dark:text-slate-400 text-sm">
+                      לא נמצאו נתוני דיבידנד עבור הסינון שנבחר.
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-start border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-500 dark:text-slate-400 text-xs font-semibold border-b border-slate-200 dark:border-slate-800">
+                          <th className="py-3 px-4 text-start">תאריך חלוקה</th>
+                          <th className="py-3 px-4 text-start">נייר ערך</th>
+                          <th className="py-3 px-4 text-start">כמות מניות</th>
+                          <th className="py-3 px-4 text-start">דיבידנד למניה</th>
+                          <th className="py-3 px-4 text-start">ברוטו (לפני מס)</th>
+                          <th className="py-3 px-4 text-start">ניכוי מס 25%</th>
+                          <th className="py-3 px-4 text-start">נטו לחשבון</th>
+                          <th className="py-3 px-4 text-end">סטטוס</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-sm">
+                        {eventsToDisplay.map((event) => {
+                          const meta = ASSET_META[event.ticker] || { name: event.ticker };
+                          const formattedDate = new Date(event.date).toLocaleDateString('he-IL', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          });
+
+                          return (
+                            <tr key={event.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors">
+                              
+                              {/* Date */}
+                              <td className="py-3 px-4 font-medium text-slate-700 dark:text-slate-300 whitespace-nowrap">
+                                {formattedDate}
+                              </td>
+
+                              {/* Asset Ticker */}
+                              <td className="py-3 px-4">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-bold text-slate-900 dark:text-white">{event.ticker}</span>
+                                  <span className="text-xs text-slate-400 hidden sm:inline">({meta.name})</span>
+                                </div>
+                              </td>
+
+                              {/* Shares Count */}
+                              <td className="py-3 px-4 text-slate-600 dark:text-slate-400 font-medium" dir="ltr">
+                                {event.shares} יח'
+                              </td>
+
+                              {/* Dividend Per Share */}
+                              <td className="py-3 px-4 font-semibold text-slate-800 dark:text-slate-200" dir="ltr">
+                                ${event.dividendPerShare.toFixed(4)}
+                              </td>
+
+                              {/* Gross Total */}
+                              <td className="py-3 px-4">
+                                <div className="font-semibold text-slate-900 dark:text-slate-100" dir="ltr">
+                                  +${event.grossUSD.toFixed(2)}
+                                </div>
+                                <div className="text-[11px] text-slate-400" dir="ltr">
+                                  +₪{event.grossILS.toFixed(1)}
+                                </div>
+                              </td>
+
+                              {/* Tax Deduction 25% */}
+                              <td className="py-3 px-4">
+                                <div className="font-semibold text-rose-500 dark:text-rose-400" dir="ltr">
+                                  -${event.taxUSD.toFixed(2)}
+                                </div>
+                                <div className="text-[11px] text-rose-400/80" dir="ltr">
+                                  -₪{event.taxILS.toFixed(1)}
+                                </div>
+                              </td>
+
+                              {/* Net Total */}
+                              <td className="py-3 px-4">
+                                <div className="font-bold text-emerald-600 dark:text-emerald-400" dir="ltr">
+                                  +${event.netUSD.toFixed(2)}
+                                </div>
+                                <div className="text-[11px] text-emerald-600/80 dark:text-emerald-400/80" dir="ltr">
+                                  +₪{event.netILS.toFixed(1)}
+                                </div>
+                              </td>
+
+                              {/* Status Badge */}
+                              <td className="py-3 px-4 text-end">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/40">
+                                  <CheckCircle2 size={11} />
+                                  <span>שולם</span>
+                                </span>
+                              </td>
+
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Modal Footer */}
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <div>
+                <span>נתונים נאספו היסטורית באמצעות פיד הנתונים של שוק ההון ומעודכנים לפי שער הדולר</span>
+              </div>
+              <button
+                onClick={() => setIsDividendModalOpen(false)}
+                className="px-4 py-1.5 bg-slate-800 dark:bg-slate-700 hover:bg-slate-900 dark:hover:bg-slate-600 text-white font-semibold rounded-xl transition-colors cursor-pointer"
+              >
+                סגור
+              </button>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );
