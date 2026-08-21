@@ -94,6 +94,7 @@ const ASSET_META: { [ticker: string]: { name: string; sector: string; type: 'Sto
 type SortKey = 'name' | 'amount' | 'avg_price' | 'current_price' | 'valueUSD' | 'pnlUSD' | 'returnPct' | 'weight';
 type TimeRange = '7D' | '30D' | '90D' | 'ALL';
 type ChartType = 'performance' | 'benchmark' | 'pnlContribution' | 'costVsValue' | 'monthly';
+type MonthlyPeriod = 'YTD' | 'YEAR' | 'L12M' | 'ALL';
 
 function App() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
@@ -110,6 +111,10 @@ function App() {
   const [filterType, setFilterType] = useState<'ALL' | 'PROFIT' | 'LOSS'>('ALL');
   const [darkMode, setDarkMode] = useState(false);
   const [sortConfig, setSortConfig] = useState<{ key: SortKey; direction: 'asc' | 'desc' }>({ key: 'valueUSD', direction: 'desc' });
+  
+  // Interactive Monthly Income Controls
+  const [monthlyPeriod, setMonthlyPeriod] = useState<MonthlyPeriod>('YTD');
+  const [selectedMonthlyYear, setSelectedMonthlyYear] = useState<number>(2026);
 
   useEffect(() => {
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -180,7 +185,15 @@ function App() {
         ytdMonthlyAvgILS: 0,
         currentYear: new Date().getFullYear(),
         currentMonthNumber: new Date().getMonth() + 1,
+        availableMonthlyYears: [new Date().getFullYear()] as number[],
         calendarMonthlyList: [] as CalendarMonthItem[],
+        activePeriodTitle: 'מתחילת השנה (YTD)',
+        activePeriodSubtitle: 'מתחילת השנה הנוכחית',
+        activePeriodMonthsCount: 1,
+        activePeriodTotalGainUSD: 0,
+        activePeriodTotalGainILS: 0,
+        activePeriodMonthlyAvgUSD: 0,
+        activePeriodMonthlyAvgILS: 0,
         bestMonthYTD: null as CalendarMonthItem | null,
         worstMonthYTD: null as CalendarMonthItem | null,
         positiveMonthsCount: 0,
@@ -452,13 +465,18 @@ function App() {
     const dailyChangePct = previousTotalUSD > 0 ? ((currentTotalUSD - previousTotalUSD) / previousTotalUSD) * 100 : 0;
 
     // ========================================================
-    // YEAR-TO-DATE (YTD) & CALENDAR MONTH HOUSEHOLD INCOME MATH
+    // CALENDAR MONTH & HOUSEHOLD INCOME MATH (INTERACTIVE ENGINE)
     // ========================================================
     const latestDate = new Date(latestSnapshot.timestamp);
     const currentYear = latestDate.getFullYear();
     const currentMonthNumber = latestDate.getMonth() + 1; // 1-12
 
-    // Baseline at start of current year
+    // Extract all available years from history (sorted descending)
+    const availableMonthlyYears = Array.from(
+      new Set(history.map(h => new Date(h.timestamp).getFullYear()))
+    ).sort((a, b) => b - a);
+
+    // 1. Standard YTD Baseline (for Top Executive KPI Card)
     const pointsPriorToCurrentYear = history.filter(h => new Date(h.timestamp).getFullYear() < currentYear);
     let startOfYearUSD = costTotalUSD;
 
@@ -491,48 +509,152 @@ function App() {
       'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'
     ];
 
-    let prevMonthValUSD = startOfYearUSD;
-    let cumulativeYTDGainUSD = 0;
+    // 2. Interactive Monthly Breakdown (Dynamic by monthlyPeriod & selectedMonthlyYear)
+    let targetMonthSlots: { year: number; monthIndex: number; monthKey: string; monthName: string }[] = [];
+    let periodBaselineUSD = costTotalUSD;
+    let periodTitle = `שנת ${currentYear} (מתחילת השנה - YTD)`;
+    let periodSubtitle = `מתחילת שנת ${currentYear} (${currentMonthNumber} חודשים)`;
+
+    if (monthlyPeriod === 'YTD') {
+      periodBaselineUSD = startOfYearUSD;
+      periodTitle = `שנת ${currentYear} (מתחילת השנה - YTD)`;
+      periodSubtitle = `מתחילת שנת ${currentYear} (${currentMonthNumber} חודשים)`;
+      for (let m = 1; m <= currentMonthNumber; m++) {
+        const formattedKey = `${currentYear}-${String(m).padStart(2, '0')}`;
+        targetMonthSlots.push({
+          year: currentYear,
+          monthIndex: m,
+          monthKey: formattedKey,
+          monthName: monthNamesHebrew[m - 1]
+        });
+      }
+    } else if (monthlyPeriod === 'YEAR') {
+      const yr = selectedMonthlyYear;
+      const pointsPriorToSelectedYear = history.filter(h => new Date(h.timestamp).getFullYear() < yr);
+      if (pointsPriorToSelectedYear.length > 0) {
+        const lastPt = pointsPriorToSelectedYear[pointsPriorToSelectedYear.length - 1];
+        let val = 0;
+        Object.entries(portfolio).forEach(([ticker, data]) => {
+          val += (lastPt.prices[ticker] || data.avg_price) * data.amount;
+        });
+        periodBaselineUSD = val;
+      } else {
+        periodBaselineUSD = costTotalUSD;
+      }
+
+      const monthsInThatYear = history
+        .filter(h => new Date(h.timestamp).getFullYear() === yr)
+        .map(h => new Date(h.timestamp).getMonth() + 1);
+      const minM = monthsInThatYear.length > 0 ? Math.min(...monthsInThatYear) : 1;
+      const maxM = (yr === currentYear) ? currentMonthNumber : 12;
+
+      periodTitle = `שנת ${yr}`;
+      periodSubtitle = `שנת ${yr} (${maxM - minM + 1} חודשים פעילים)`;
+
+      for (let m = minM; m <= maxM; m++) {
+        const formattedKey = `${yr}-${String(m).padStart(2, '0')}`;
+        targetMonthSlots.push({
+          year: yr,
+          monthIndex: m,
+          monthKey: formattedKey,
+          monthName: monthNamesHebrew[m - 1]
+        });
+      }
+    } else if (monthlyPeriod === 'L12M') {
+      const allUniqueKeys = Array.from(allMonthEndMap.keys()).sort();
+      const last12Keys = allUniqueKeys.slice(-12);
+      const firstKey = last12Keys[0];
+      const priorKeys = allUniqueKeys.filter(k => k < firstKey);
+      if (priorKeys.length > 0) {
+        periodBaselineUSD = allMonthEndMap.get(priorKeys[priorKeys.length - 1]) || costTotalUSD;
+      } else {
+        periodBaselineUSD = costTotalUSD;
+      }
+
+      periodTitle = '12 חודשים אחרונים (L12M)';
+      periodSubtitle = '12 החודשים הקלנדריים האחרונים ברצף';
+
+      last12Keys.forEach(k => {
+        const [yStr, mStr] = k.split('-');
+        const y = Number(yStr);
+        const m = Number(mStr);
+        targetMonthSlots.push({
+          year: y,
+          monthIndex: m,
+          monthKey: k,
+          monthName: monthNamesHebrew[m - 1]
+        });
+      });
+    } else if (monthlyPeriod === 'ALL') {
+      const allUniqueKeys = Array.from(allMonthEndMap.keys()).sort();
+      periodBaselineUSD = costTotalUSD;
+      periodTitle = 'כל הזמנים (מתחילת הפעילות)';
+      periodSubtitle = `כל ${allUniqueKeys.length} החודשים הקלנדריים`;
+
+      allUniqueKeys.forEach(k => {
+        const [yStr, mStr] = k.split('-');
+        const y = Number(yStr);
+        const m = Number(mStr);
+        targetMonthSlots.push({
+          year: y,
+          monthIndex: m,
+          monthKey: k,
+          monthName: monthNamesHebrew[m - 1]
+        });
+      });
+    }
+
+    let prevMonthValUSD = periodBaselineUSD;
+    let cumulativeGainUSD = 0;
     const calendarMonthlyList: CalendarMonthItem[] = [];
 
-    for (let m = 1; m <= currentMonthNumber; m++) {
-      const mKey = `${currentYear}-${String(m).padStart(2, '0')}`;
-      const endValUSD = allMonthEndMap.get(mKey) ?? (m === currentMonthNumber ? currentTotalUSD : prevMonthValUSD);
+    targetMonthSlots.forEach((slot, idx) => {
+      const isCurrent = slot.year === currentYear && slot.monthIndex === currentMonthNumber;
+      const endValUSD = isCurrent
+        ? currentTotalUSD
+        : (allMonthEndMap.get(slot.monthKey) ?? prevMonthValUSD);
+
       const monthGainUSD = endValUSD - prevMonthValUSD;
       const monthGainILS = monthGainUSD * usdToIls;
-      
-      cumulativeYTDGainUSD += monthGainUSD;
-      const cumulativeYTDGainILS = cumulativeYTDGainUSD * usdToIls;
-      
-      const runningMonthlyAvgUSD = cumulativeYTDGainUSD / m;
-      const runningMonthlyAvgILS = cumulativeYTDGainILS / m;
-      
+
+      cumulativeGainUSD += monthGainUSD;
+      const cumulativeGainILS = cumulativeGainUSD * usdToIls;
+
+      const runningMonthlyAvgUSD = cumulativeGainUSD / (idx + 1);
+      const runningMonthlyAvgILS = cumulativeGainILS / (idx + 1);
+
       const growthPct = prevMonthValUSD > 0 ? (monthGainUSD / prevMonthValUSD) * 100 : 0;
 
       calendarMonthlyList.push({
-        monthIndex: m,
-        monthKey: mKey,
-        monthName: monthNamesHebrew[m - 1],
-        year: currentYear,
+        monthIndex: slot.monthIndex,
+        monthKey: slot.monthKey,
+        monthName: slot.monthName,
+        year: slot.year,
         monthGainUSD,
         monthGainILS,
-        cumulativeYTDUSD: cumulativeYTDGainUSD,
-        cumulativeYTDILS: cumulativeYTDGainILS,
+        cumulativeYTDUSD: cumulativeGainUSD,
+        cumulativeYTDILS: cumulativeGainILS,
         runningMonthlyAvgUSD,
         runningMonthlyAvgILS,
         endValueUSD: endValUSD,
         endValueILS: endValUSD * usdToIls,
         growthPct,
-        isCurrentMonth: m === currentMonthNumber,
+        isCurrentMonth: isCurrent,
         isPositive: monthGainUSD >= 0
       });
 
       prevMonthValUSD = endValUSD;
-    }
+    });
+
+    const activePeriodMonthsCount = calendarMonthlyList.length || 1;
+    const activePeriodTotalGainUSD = cumulativeGainUSD;
+    const activePeriodTotalGainILS = cumulativeGainUSD * usdToIls;
+    const activePeriodMonthlyAvgUSD = activePeriodTotalGainUSD / activePeriodMonthsCount;
+    const activePeriodMonthlyAvgILS = activePeriodTotalGainILS / activePeriodMonthsCount;
 
     const positiveMonthsCount = calendarMonthlyList.filter(m => m.isPositive).length;
-    const bestMonthYTD = [...calendarMonthlyList].sort((a, b) => b.monthGainUSD - a.monthGainUSD)[0] || null;
-    const worstMonthYTD = [...calendarMonthlyList].sort((a, b) => a.monthGainUSD - b.monthGainUSD)[0] || null;
+    const bestMonthPeriod = [...calendarMonthlyList].sort((a, b) => b.monthGainUSD - a.monthGainUSD)[0] || null;
+    const worstMonthPeriod = [...calendarMonthlyList].sort((a, b) => a.monthGainUSD - b.monthGainUSD)[0] || null;
 
     const firstDate = new Date(history[0].timestamp);
     const totalDaysLifetime = Math.max(1, (latestDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
@@ -558,9 +680,17 @@ function App() {
       ytdMonthlyAvgILS,
       currentYear,
       currentMonthNumber,
+      availableMonthlyYears,
       calendarMonthlyList,
-      bestMonthYTD,
-      worstMonthYTD,
+      activePeriodTitle: periodTitle,
+      activePeriodSubtitle: periodSubtitle,
+      activePeriodMonthsCount,
+      activePeriodTotalGainUSD,
+      activePeriodTotalGainILS,
+      activePeriodMonthlyAvgUSD,
+      activePeriodMonthlyAvgILS,
+      bestMonthYTD: bestMonthPeriod,
+      worstMonthYTD: worstMonthPeriod,
       positiveMonthsCount,
       lifetimeMonthlyAvgILS,
       lifetimeMonthlyAvgUSD,
@@ -581,7 +711,7 @@ function App() {
       },
       alphaVsBenchmark
     };
-  }, [portfolio, history, sortConfig, usdToIls, timeRange]);
+  }, [portfolio, history, sortConfig, usdToIls, timeRange, monthlyPeriod, selectedMonthlyYear]);
 
   // Filtered Holdings
   const filteredHoldings = useMemo(() => {
@@ -1218,60 +1348,126 @@ function App() {
         </section>
 
         {/* ======================================================== */}
-        {/* 3. CALENDAR MONTHLY HOUSEHOLD INCOME BREAKDOWN (YTD)     */}
+        {/* 3. CALENDAR MONTHLY HOUSEHOLD INCOME BREAKDOWN (INTERACTIVE) */}
         {/* ======================================================== */}
         <section className="bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm space-y-6">
           
-          {/* Section Header */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl text-white shadow-md shadow-indigo-500/20">
+          {/* Section Header with Controls */}
+          <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-5 pb-5 border-b border-slate-100 dark:border-slate-800">
+            
+            {/* Title & Description */}
+            <div className="flex items-start sm:items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl text-white shadow-md shadow-indigo-500/20 shrink-0">
                 <Wallet size={24} className="stroke-[2.2]" />
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-xl font-bold text-slate-900 dark:text-white">
-                    תוספת להכנסת משק הבית – חלוקה לפי חודש קלנדרי ({analytics.currentYear})
+                    תוספת להכנסת משק הבית – חלוקה לפי חודש קלנדרי
                   </h2>
                   <span className="px-2.5 py-0.5 text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 rounded-full border border-emerald-200 dark:border-emerald-800/60">
                     הכנסה פסיבית
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  כמה כסף נוסף לתקציב משק הבית בכל חודש קלנדרי, ומהי התוספת החודשית הממוצעת שנצברה מתחילת השנה
+                  בחר טווח זמן אינטראקטיבי לניתוח כמה הניב התיק בכל חודש ומה ממוצע התוספת לתקציב משק הבית ({analytics.activePeriodTitle})
                 </p>
               </div>
             </div>
 
-            {/* Quick Summary Pill Badge */}
-            <div className="flex items-center gap-3 bg-indigo-50/80 dark:bg-indigo-950/50 px-4 py-2.5 rounded-2xl border border-indigo-100 dark:border-indigo-800/60 self-start md:self-auto">
-              <div className="text-right">
-                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">ממוצע תוספת חודשית (YTD):</div>
-                <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400" dir="ltr">
-                  +₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()} <span className="text-xs font-normal text-slate-400">/חודש</span>
+            {/* Interactive Period Toolbar & Quick Summary Pill */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 self-start xl:self-auto w-full xl:w-auto">
+              
+              {/* Period Segmented Buttons */}
+              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200 dark:border-slate-700/60 overflow-x-auto">
+                <button
+                  type="button"
+                  onClick={() => setMonthlyPeriod('YTD')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap flex items-center gap-1.5 ${
+                    monthlyPeriod === 'YTD'
+                      ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  <Sparkles size={13} className={monthlyPeriod === 'YTD' ? 'text-indigo-500 dark:text-indigo-200' : ''} />
+                  מתחילת השנה (YTD)
+                </button>
+
+                {/* Specific Years Buttons */}
+                {analytics.availableMonthlyYears.map(yr => (
+                  <button
+                    key={yr}
+                    type="button"
+                    onClick={() => {
+                      setSelectedMonthlyYear(yr);
+                      setMonthlyPeriod('YEAR');
+                    }}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                      monthlyPeriod === 'YEAR' && selectedMonthlyYear === yr
+                        ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                    }`}
+                  >
+                    שנת {yr}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => setMonthlyPeriod('L12M')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                    monthlyPeriod === 'L12M'
+                      ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  12 חודשים אחרונים
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setMonthlyPeriod('ALL')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+                    monthlyPeriod === 'ALL'
+                      ? 'bg-white dark:bg-indigo-600 text-indigo-600 dark:text-white shadow-sm'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                  }`}
+                >
+                  כל הזמנים
+                </button>
+              </div>
+
+              {/* Quick Summary Pill Badge */}
+              <div className="flex items-center justify-between sm:justify-end gap-3 bg-indigo-50/80 dark:bg-indigo-950/50 px-4 py-2.5 rounded-2xl border border-indigo-100 dark:border-indigo-800/60 shrink-0">
+                <div className="text-right">
+                  <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">ממוצע לתקופה:</div>
+                  <div className="text-base font-bold text-indigo-600 dark:text-indigo-400" dir="ltr">
+                    +₪{Math.round(analytics.activePeriodMonthlyAvgILS).toLocaleString()} <span className="text-[10px] font-normal text-slate-400">/חודש</span>
+                  </div>
+                </div>
+                <div className="h-7 w-px bg-indigo-200 dark:bg-indigo-800/60" />
+                <div className="text-right">
+                  <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">סה"כ רווח:</div>
+                  <div className={`text-base font-bold ${analytics.activePeriodTotalGainILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                    {analytics.activePeriodTotalGainILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodTotalGainILS).toLocaleString()}
+                  </div>
                 </div>
               </div>
-              <div className="h-8 w-px bg-indigo-200 dark:bg-indigo-800/60" />
-              <div className="text-right">
-                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">סה"כ רווח מצטבר השנה:</div>
-                <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400" dir="ltr">
-                  +₪{Math.round(analytics.ytdPnLILS).toLocaleString()}
-                </div>
-              </div>
+
             </div>
           </div>
 
-          {/* 4 Summary Highlight KPI Badges */}
+          {/* 4 Summary Highlight KPI Badges for Active Period */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             
             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">תוספת חודשית ממוצעת</span>
-                <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400" dir="ltr">
-                  +₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()}
+                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">תוספת חודשית ממוצעת לתקופה</span>
+                <span className={`text-xl font-bold ${analytics.activePeriodMonthlyAvgILS >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                  {analytics.activePeriodMonthlyAvgILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodMonthlyAvgILS).toLocaleString()}
                 </span>
                 <span className="text-[11px] text-slate-400 block" dir="ltr">
-                  (+${Math.round(analytics.ytdMonthlyAvgUSD).toLocaleString()}/mo)
+                  ({analytics.activePeriodMonthlyAvgUSD >= 0 ? '+' : ''}${Math.round(analytics.activePeriodMonthlyAvgUSD).toLocaleString()}/mo)
                 </span>
               </div>
               <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/60 rounded-xl text-indigo-600 dark:text-indigo-300">
@@ -1281,12 +1477,12 @@ function App() {
 
             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">סה"כ רווח שנצבר ב-{analytics.currentYear}</span>
-                <span className={`text-xl font-bold ${analytics.ytdPnLILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                  {analytics.ytdPnLILS >= 0 ? '+' : ''}₪{Math.round(analytics.ytdPnLILS).toLocaleString()}
+                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">סה"כ רווח שנצבר ({analytics.activePeriodMonthsCount} חודשים)</span>
+                <span className={`text-xl font-bold ${analytics.activePeriodTotalGainILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                  {analytics.activePeriodTotalGainILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodTotalGainILS).toLocaleString()}
                 </span>
                 <span className="text-[11px] text-slate-400 block" dir="ltr">
-                  ({analytics.ytdPnLUSD >= 0 ? '+' : ''}${Math.round(analytics.ytdPnLUSD).toLocaleString()})
+                  ({analytics.activePeriodTotalGainUSD >= 0 ? '+' : ''}${Math.round(analytics.activePeriodTotalGainUSD).toLocaleString()})
                 </span>
               </div>
               <div className="p-2.5 bg-emerald-100 dark:bg-emerald-900/60 rounded-xl text-emerald-600 dark:text-emerald-300">
@@ -1296,9 +1492,9 @@ function App() {
 
             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">חודש השיא של השנה</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">חודש השיא בתקופה זו</span>
                 <span className="text-xl font-bold text-slate-900 dark:text-white">
-                  {analytics.bestMonthYTD?.monthName || '–'}
+                  {analytics.bestMonthYTD ? `${analytics.bestMonthYTD.monthName} ${analytics.bestMonthYTD.year}` : '–'}
                 </span>
                 <span className="text-[11px] text-emerald-600 dark:text-emerald-400 block font-semibold" dir="ltr">
                   +₪{Math.round(analytics.bestMonthYTD?.monthGainILS || 0).toLocaleString()} (+${Math.round(analytics.bestMonthYTD?.monthGainUSD || 0).toLocaleString()})
@@ -1311,12 +1507,12 @@ function App() {
 
             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">חודשים חיוביים השנה</span>
+                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">חודשים חיוביים בתקופה</span>
                 <span className="text-xl font-bold text-slate-900 dark:text-white">
-                  {analytics.positiveMonthsCount} מתוך {analytics.currentMonthNumber}
+                  {analytics.positiveMonthsCount} מתוך {analytics.activePeriodMonthsCount}
                 </span>
                 <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">
-                  {Math.round((analytics.positiveMonthsCount / (analytics.currentMonthNumber || 1)) * 100)}% חודשים ברווח
+                  {Math.round((analytics.positiveMonthsCount / (analytics.activePeriodMonthsCount || 1)) * 100)}% חודשים ברווח
                 </span>
               </div>
               <div className="p-2.5 bg-violet-100 dark:bg-violet-900/60 rounded-xl text-violet-600 dark:text-violet-300">
@@ -1326,7 +1522,7 @@ function App() {
 
           </div>
 
-          {/* Calendar Months Cards Grid (Jan through Current Month) */}
+          {/* Calendar Months Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {analytics.calendarMonthlyList.map((month) => {
               const maxAbsGain = Math.max(...analytics.calendarMonthlyList.map(m => Math.abs(m.monthGainUSD)), 1);
@@ -1386,15 +1582,15 @@ function App() {
                   {/* Cumulative and Average Footnote in Card */}
                   <div className="pt-2.5 border-t border-slate-200/80 dark:border-slate-700/60 space-y-1 text-xs">
                     <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
-                      <span>רווח מצטבר השנה:</span>
+                      <span>מצטבר בתקופה:</span>
                       <span className={`font-semibold ${month.cumulativeYTDILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
                         {month.cumulativeYTDILS >= 0 ? '+' : ''}₪{Math.round(month.cumulativeYTDILS).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
                       <span>ממוצע עד חודש זה:</span>
-                      <span className="font-bold text-indigo-600 dark:text-indigo-400" dir="ltr">
-                        ₪{Math.round(month.runningMonthlyAvgILS).toLocaleString()}/חודש
+                      <span className={`font-bold ${month.runningMonthlyAvgILS >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-500'}`} dir="ltr">
+                        {month.runningMonthlyAvgILS >= 0 ? '+' : ''}₪{Math.round(month.runningMonthlyAvgILS).toLocaleString()}/חודש
                       </span>
                     </div>
                   </div>
@@ -1410,7 +1606,7 @@ function App() {
               <Coins size={16} />
             </div>
             <div className="leading-relaxed">
-              <strong>הסבר חישוב תוספת להכנסה חודשית למשק הבית:</strong> מתחילת שנת {analytics.currentYear}, תיק ההשקעות ייצר רווח הון מצטבר של <span className="font-bold text-emerald-600 dark:text-emerald-400">₪{Math.round(analytics.ytdPnLILS).toLocaleString()}</span> (או ${Math.round(analytics.ytdPnLUSD).toLocaleString()}). בחלוקה ל-{analytics.currentMonthNumber} חודשים קלנדריים שחלפו, התיק הוסיף בממוצע <span className="font-bold text-indigo-600 dark:text-indigo-400">₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()} בכל חודש</span> כהכנסה פסיבית נטו לתקציב משק הבית.
+              <strong>הסבר חישוב תוספת להכנסה חודשית למשק הבית:</strong> עבור <strong>{analytics.activePeriodSubtitle}</strong>, תיק ההשקעות ייצר רווח הון מצטבר של <span className={`font-bold ${analytics.activePeriodTotalGainILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{analytics.activePeriodTotalGainILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodTotalGainILS).toLocaleString()}</span> ({analytics.activePeriodTotalGainUSD >= 0 ? '+' : ''}${Math.round(analytics.activePeriodTotalGainUSD).toLocaleString()}). בחלוקה ל-<strong>{analytics.activePeriodMonthsCount} חודשים קלנדריים</strong>, התיק הוסיף בממוצע <span className="font-bold text-indigo-600 dark:text-indigo-400">₪{Math.round(analytics.activePeriodMonthlyAvgILS).toLocaleString()} בכל חודש</span> כהכנסה פסיבית נטו לתקציב משק הבית.
             </div>
           </div>
 
