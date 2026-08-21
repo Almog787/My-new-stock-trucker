@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import {
   AreaChart,
   Area,
@@ -38,7 +40,8 @@ import {
   Wallet,
   Calendar,
   Coins,
-  CalendarDays
+  CalendarDays,
+  FileText
 } from 'lucide-react';
 
 interface PortfolioItem {
@@ -111,6 +114,65 @@ function App() {
   // Interactive Monthly Income Controls
   const [monthlyPeriod, setMonthlyPeriod] = useState<MonthlyPeriod>('YTD');
   const [selectedMonthlyYear, setSelectedMonthlyYear] = useState<number>(2026);
+  
+  // Export to PDF state
+  const [isExporting, setIsExporting] = useState(false);
+
+  const exportToPDF = async () => {
+    const element = document.getElementById('pdf-export-content');
+    if (!element) return;
+    
+    setIsExporting(true);
+    
+    try {
+      // Show pdf-specific elements for the capture
+      const pdfElements = document.querySelectorAll('.pdf-showtext');
+      pdfElements.forEach(el => el.classList.remove('hidden'));
+
+      // Small delay to ensure any UI states update if needed
+      await new Promise(resolve => setTimeout(resolve, 100));
+      
+      const canvas = await html2canvas(element, {
+        scale: 1.5,
+        useCORS: true,
+        logging: false,
+        backgroundColor: darkMode ? '#0b0f19' : '#f8fafc',
+      });
+      
+      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      
+      // A4 size: 210 x 297 mm
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      
+      let heightLeft = pdfHeight;
+      let position = 0;
+      
+      // Add first page
+      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pdf.internal.pageSize.getHeight();
+      
+      // Add subsequent pages if content exceeds one page
+      while (heightLeft >= 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pdf.internal.pageSize.getHeight();
+      }
+      
+      const dateStr = new Date().toISOString().split('T')[0];
+      pdf.save(`Portfolio-Report-${dateStr}.pdf`);
+    } catch (err) {
+      console.error('Failed to export PDF:', err);
+    } finally {
+      // Hide pdf-specific elements again
+      const pdfElements = document.querySelectorAll('.pdf-showtext');
+      pdfElements.forEach(el => el.classList.add('hidden'));
+      
+      setIsExporting(false);
+    }
+  };
 
   useEffect(() => {
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -826,6 +888,25 @@ function App() {
               </button>
             </div>
 
+            {/* Export PDF Button */}
+            <button
+              onClick={exportToPDF}
+              disabled={isExporting}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors border ${
+                isExporting 
+                  ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 border-transparent cursor-not-allowed' 
+                  : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-400 border-slate-200 dark:border-slate-700 shadow-sm'
+              }`}
+              title="ייצוא דוח ל-PDF / Export PDF"
+            >
+              {isExporting ? (
+                <div className="animate-spin h-4 w-4 border-2 border-indigo-500 border-t-transparent rounded-full" />
+              ) : (
+                <FileText size={16} />
+              )}
+              <span className="text-xs font-bold hidden sm:inline">ייצוא דוח</span>
+            </button>
+
             {/* Dark Mode Toggle */}
             <button
               onClick={() => setDarkMode(!darkMode)}
@@ -840,8 +921,16 @@ function App() {
       </header>
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main id="pdf-export-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
+        {/* PDF Export Header (Visible only in exported PDF, or conditionally if we want, but since html2canvas captures screen, we can add a print-only visible header, though html2canvas doesn't respect @media print by default unless we pass window. We'll just add a clean bilingual title at the top of the main content) */}
+        <div className="hidden pdf-showtext text-center mb-6">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">דוח תיק השקעות מקיף | Comprehensive Portfolio Report</h2>
+          <p className="text-slate-500 dark:text-slate-400 mt-1">
+            הופק בתאריך: {new Date().toLocaleDateString('he-IL')} | Generated: {new Date().toLocaleDateString('en-US')}
+          </p>
+        </div>
+
         {/* ======================================================== */}
         {/* 1. TOP EXECUTIVE METRIC CARDS (KPI DASHBOARD) */}
         {/* ======================================================== */}
