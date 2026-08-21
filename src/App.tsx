@@ -30,7 +30,6 @@ import {
   ArrowUp,
   ArrowDown,
   Layers,
-  ShieldCheck,
   Sparkles,
   Percent,
   Briefcase,
@@ -991,7 +990,7 @@ function App() {
         {/* ======================================================== */}
         {/* 1. TOP EXECUTIVE METRIC CARDS (KPI DASHBOARD) */}
         {/* ======================================================== */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
           
           {/* Card 1: Total Portfolio Value */}
           <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500/30 transition-all flex flex-col justify-between">
@@ -1117,30 +1116,6 @@ function App() {
               <span className="text-slate-500">סטטוס:</span>
               <span className="font-bold text-violet-600 dark:text-violet-400">
                 {analytics.alphaVsBenchmark >= 0 ? '🏆 מכה את המדד' : 'מפגר אחרי המדד'}
-              </span>
-            </div>
-          </div>
-
-          {/* Card 6: Concentration & Diversification */}
-          <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-amber-500/30 transition-all flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider">מדד ריכוזיות סיכון</span>
-                <ShieldCheck size={18} className="text-amber-500" />
-              </div>
-              <div className="space-y-0.5">
-                <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                  <span>{analytics.concentrationMetric.riskLevel}</span>
-                </div>
-                <div className="text-xs text-slate-500 dark:text-slate-400">
-                  נכס מוביל: <strong className="text-slate-700 dark:text-slate-300">{analytics.concentrationMetric.topAsset}</strong> ({analytics.concentrationMetric.topWeight.toFixed(1)}%)
-                </div>
-              </div>
-            </div>
-            <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-500">נכסים פעילים:</span>
-              <span className="font-bold text-slate-700 dark:text-slate-300">
-                {analytics.sortedHoldings.length} פוזיציות
               </span>
             </div>
           </div>
