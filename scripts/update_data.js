@@ -135,6 +135,24 @@ async function fetchAndUpdatePrices() {
       const totalPnLILS = totalCurrentILS - totalInvestedILS;
       const totalPnLPercent = ((totalCurrentILS / totalInvestedILS) - 1) * 100;
       
+      // Calculate YTD Added Monthly Income (for household income)
+      const currentYear = new Date().getFullYear();
+      const currentMonthNumber = new Date().getMonth() + 1; // 1-12
+      const pointsPriorToYear = history.filter(h => new Date(h.timestamp).getFullYear() < currentYear);
+      let startOfYearUSD = totalInvestedUSD;
+      if (pointsPriorToYear.length > 0) {
+        const lastPriorPoint = pointsPriorToYear[pointsPriorToYear.length - 1];
+        let val = 0;
+        for (const [t, d] of Object.entries(portfolio)) {
+          val += (lastPriorPoint.prices[t] || d.avg_price) * d.amount;
+        }
+        startOfYearUSD = val;
+      }
+      const ytdPnLUSD = totalCurrentUSD - startOfYearUSD;
+      const ytdPnLILS = ytdPnLUSD * brokerRate;
+      const ytdMonthlyAvgILS = ytdPnLILS / currentMonthNumber;
+      const ytdMonthlyAvgUSD = ytdPnLUSD / currentMonthNumber;
+
       let dailyChangePercent = 0;
       if (totalPreviousUSD > 0) {
          dailyChangePercent = ((totalCurrentUSD / totalPreviousUSD) - 1) * 100;
@@ -265,7 +283,7 @@ async function fetchAndUpdatePrices() {
 
 [🚀 **View Interactive Web Dashboard**](https://almog787.github.io/My-new-stock-trucker/)
 
-![Total Value](https://img.shields.io/badge/Total_Value-₪${Math.round(totalCurrentILS).toLocaleString('en-US').replace(/,/g, '%2C')}-blue?style=for-the-badge&logo=cashapp) ![Daily Change](https://img.shields.io/badge/Daily_Change-${formatPercent(dailyChangePercent).replace('%', '%25')}-${dailyChangePercent >= 0 ? 'success' : 'critical'}?style=for-the-badge&logo=stocktwits) ![Total Profit](https://img.shields.io/badge/Total_Profit-${formatPercent(totalPnLPercent).replace('%', '%25')}-${totalPnLPercent >= 0 ? 'success' : 'critical'}?style=for-the-badge&logo=codeforces)
+![Total Value](https://img.shields.io/badge/Total_Value-₪${Math.round(totalCurrentILS).toLocaleString('en-US').replace(/,/g, '%2C')}-blue?style=for-the-badge&logo=cashapp) ![Monthly Income](https://img.shields.io/badge/Monthly_Income-+₪${Math.round(ytdMonthlyAvgILS).toLocaleString('en-US').replace(/,/g, '%2C')}%2Fmo-indigo?style=for-the-badge&logo=cashapp) ![Daily Change](https://img.shields.io/badge/Daily_Change-${formatPercent(dailyChangePercent).replace('%', '%25')}-${dailyChangePercent >= 0 ? 'success' : 'critical'}?style=for-the-badge&logo=stocktwits) ![Total Profit](https://img.shields.io/badge/Total_Profit-${formatPercent(totalPnLPercent).replace('%', '%25')}-${totalPnLPercent >= 0 ? 'success' : 'critical'}?style=for-the-badge&logo=codeforces)
 
 **Last Update:** ${formattedDate} | **USD/ILS:** ₪${usdIlsRate.toFixed(3)}
 
@@ -275,6 +293,7 @@ async function fetchAndUpdatePrices() {
 | **Current Value** | \`₪${Math.round(totalCurrentILS).toLocaleString('en-US')}\` | **שווי נוכחי** |
 | **Total Invested** | \`₪${Math.round(totalInvestedILS).toLocaleString('en-US')}\` | **סך השקעה** |
 | **Total Profit/Loss** | \`${formatPercent(totalPnLPercent)}\` (₪${Math.round(totalPnLILS).toLocaleString('en-US')}) | **רווח/הפסד כולל** |
+| **YTD Monthly Income** | \`${ytdMonthlyAvgILS >= 0 ? '+' : ''}₪${Math.round(ytdMonthlyAvgILS).toLocaleString('en-US')}/חודש\` (סה"כ YTD: \`₪${Math.round(ytdPnLILS).toLocaleString('en-US')}\`) | **תוספת חודשית ממוצעת (מתחילת השנה)** |
 | **Daily Change** | \`${formatPercent(dailyChangePercent)}\` | **שינוי יומי** |
 
 ## 📜 Holdings | פירוט החזקות

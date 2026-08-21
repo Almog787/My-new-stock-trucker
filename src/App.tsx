@@ -37,7 +37,11 @@ import {
   Scale,
   Search,
   Zap,
-  Globe
+  Globe,
+  Wallet,
+  Calendar,
+  Coins,
+  CalendarDays
 } from 'lucide-react';
 
 interface PortfolioItem {
@@ -55,6 +59,24 @@ interface HistoryPoint {
     [ticker: string]: number;
   };
   exchangeRate?: number;
+}
+
+export interface CalendarMonthItem {
+  monthIndex: number;
+  monthKey: string;
+  monthName: string;
+  year: number;
+  monthGainUSD: number;
+  monthGainILS: number;
+  cumulativeYTDUSD: number;
+  cumulativeYTDILS: number;
+  runningMonthlyAvgUSD: number;
+  runningMonthlyAvgILS: number;
+  endValueUSD: number;
+  endValueILS: number;
+  growthPct: number;
+  isCurrentMonth: boolean;
+  isPositive: boolean;
 }
 
 const COLORS = ['#4f46e5', '#10b981', '#f59e0b', '#06b6d4', '#8b5cf6', '#ec4899', '#f97316', '#3b82f6'];
@@ -151,6 +173,19 @@ function App() {
         dailyPnLUSD: 0,
         dailyPnLILS: 0,
         dailyChangePct: 0,
+        ytdPnLUSD: 0,
+        ytdPnLILS: 0,
+        ytdReturnPct: 0,
+        ytdMonthlyAvgUSD: 0,
+        ytdMonthlyAvgILS: 0,
+        currentYear: new Date().getFullYear(),
+        currentMonthNumber: new Date().getMonth() + 1,
+        calendarMonthlyList: [] as CalendarMonthItem[],
+        bestMonthYTD: null as CalendarMonthItem | null,
+        worstMonthYTD: null as CalendarMonthItem | null,
+        positiveMonthsCount: 0,
+        lifetimeMonthlyAvgILS: 0,
+        lifetimeMonthlyAvgUSD: 0,
         sortedHoldings: [],
         chartHistoryData: [],
         benchmarkComparisonData: [],
@@ -160,7 +195,7 @@ function App() {
         sectorAllocation: [],
         topPerformer: null,
         worstPerformer: null,
-        concentrationMetric: { topAsset: '', topWeight: 0, hhi: 0, riskLevel: 'מאוזן' },
+        concentrationMetric: { topAsset: '', topWeight: 0, hhi: 0, riskLevel: 'מאוזן' as const },
         alphaVsBenchmark: 0
       };
     }
@@ -266,11 +301,14 @@ function App() {
     const topPerformer = sortedByReturn[0] || null;
     const worstPerformer = sortedByReturn[sortedByReturn.length - 1] || null;
 
-    // Daily Grouping of History
+    // Daily Grouping of Full History
     const dailyMap = new Map();
+    const allMonthEndMap = new Map<string, number>();
+
     history.forEach(point => {
       const d = new Date(point.timestamp);
       const dateKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+      const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       const displayDate = d.toLocaleDateString('he-IL', { day: '2-digit', month: '2-digit' });
       
       let pointTotal = 0;
@@ -288,6 +326,7 @@ function App() {
 
       dailyMap.set(dateKey, {
         dateKey,
+        monthKey,
         timestamp: displayDate,
         rawDate: point.timestamp,
         totalUSD: pointTotal,
@@ -297,11 +336,14 @@ function App() {
         rate: historicalRate,
         ...assetValues
       });
+
+      allMonthEndMap.set(monthKey, pointTotal);
     });
 
-    let fullDailyHistory = Array.from(dailyMap.values());
+    const fullUnfilteredDailyHistory = Array.from(dailyMap.values());
+    let fullDailyHistory = [...fullUnfilteredDailyHistory];
 
-    // Filter by TimeRange
+    // Filter by TimeRange for charts
     if (timeRange === '7D') {
       fullDailyHistory = fullDailyHistory.slice(-7);
     } else if (timeRange === '30D') {
@@ -357,9 +399,9 @@ function App() {
       }))
       .sort((a, b) => b.valueUSD - a.valueUSD);
 
-    // Monthly Grouping
+    // Monthly Grouping from full history
     const monthlyMap = new Map();
-    fullDailyHistory.forEach(point => {
+    fullUnfilteredDailyHistory.forEach(point => {
       const d = new Date(point.rawDate);
       const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
       monthlyMap.set(monthKey, point);
@@ -409,6 +451,95 @@ function App() {
     const dailyPnLILS = dailyPnLUSD * usdToIls;
     const dailyChangePct = previousTotalUSD > 0 ? ((currentTotalUSD - previousTotalUSD) / previousTotalUSD) * 100 : 0;
 
+    // ========================================================
+    // YEAR-TO-DATE (YTD) & CALENDAR MONTH HOUSEHOLD INCOME MATH
+    // ========================================================
+    const latestDate = new Date(latestSnapshot.timestamp);
+    const currentYear = latestDate.getFullYear();
+    const currentMonthNumber = latestDate.getMonth() + 1; // 1-12
+
+    // Baseline at start of current year
+    const pointsPriorToCurrentYear = history.filter(h => new Date(h.timestamp).getFullYear() < currentYear);
+    let startOfYearUSD = costTotalUSD;
+
+    if (pointsPriorToCurrentYear.length > 0) {
+      const lastPointPriorYear = pointsPriorToCurrentYear[pointsPriorToCurrentYear.length - 1];
+      let val = 0;
+      Object.entries(portfolio).forEach(([ticker, data]) => {
+        val += (lastPointPriorYear.prices[ticker] || data.avg_price) * data.amount;
+      });
+      startOfYearUSD = val;
+    } else {
+      const firstPointCurrentYear = history.find(h => new Date(h.timestamp).getFullYear() === currentYear);
+      if (firstPointCurrentYear) {
+        let val = 0;
+        Object.entries(portfolio).forEach(([ticker, data]) => {
+          val += (firstPointCurrentYear.prices[ticker] || data.avg_price) * data.amount;
+        });
+        startOfYearUSD = val;
+      }
+    }
+
+    const ytdPnLUSD = currentTotalUSD - startOfYearUSD;
+    const ytdPnLILS = ytdPnLUSD * usdToIls;
+    const ytdReturnPct = startOfYearUSD > 0 ? (ytdPnLUSD / startOfYearUSD) * 100 : 0;
+    const ytdMonthlyAvgUSD = ytdPnLUSD / (currentMonthNumber || 1);
+    const ytdMonthlyAvgILS = ytdPnLILS / (currentMonthNumber || 1);
+
+    const monthNamesHebrew = [
+      'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
+      'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר'
+    ];
+
+    let prevMonthValUSD = startOfYearUSD;
+    let cumulativeYTDGainUSD = 0;
+    const calendarMonthlyList: CalendarMonthItem[] = [];
+
+    for (let m = 1; m <= currentMonthNumber; m++) {
+      const mKey = `${currentYear}-${String(m).padStart(2, '0')}`;
+      const endValUSD = allMonthEndMap.get(mKey) ?? (m === currentMonthNumber ? currentTotalUSD : prevMonthValUSD);
+      const monthGainUSD = endValUSD - prevMonthValUSD;
+      const monthGainILS = monthGainUSD * usdToIls;
+      
+      cumulativeYTDGainUSD += monthGainUSD;
+      const cumulativeYTDGainILS = cumulativeYTDGainUSD * usdToIls;
+      
+      const runningMonthlyAvgUSD = cumulativeYTDGainUSD / m;
+      const runningMonthlyAvgILS = cumulativeYTDGainILS / m;
+      
+      const growthPct = prevMonthValUSD > 0 ? (monthGainUSD / prevMonthValUSD) * 100 : 0;
+
+      calendarMonthlyList.push({
+        monthIndex: m,
+        monthKey: mKey,
+        monthName: monthNamesHebrew[m - 1],
+        year: currentYear,
+        monthGainUSD,
+        monthGainILS,
+        cumulativeYTDUSD: cumulativeYTDGainUSD,
+        cumulativeYTDILS: cumulativeYTDGainILS,
+        runningMonthlyAvgUSD,
+        runningMonthlyAvgILS,
+        endValueUSD: endValUSD,
+        endValueILS: endValUSD * usdToIls,
+        growthPct,
+        isCurrentMonth: m === currentMonthNumber,
+        isPositive: monthGainUSD >= 0
+      });
+
+      prevMonthValUSD = endValUSD;
+    }
+
+    const positiveMonthsCount = calendarMonthlyList.filter(m => m.isPositive).length;
+    const bestMonthYTD = [...calendarMonthlyList].sort((a, b) => b.monthGainUSD - a.monthGainUSD)[0] || null;
+    const worstMonthYTD = [...calendarMonthlyList].sort((a, b) => a.monthGainUSD - b.monthGainUSD)[0] || null;
+
+    const firstDate = new Date(history[0].timestamp);
+    const totalDaysLifetime = Math.max(1, (latestDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24));
+    const totalMonthsLifetime = Math.max(1, totalDaysLifetime / 30.4375);
+    const lifetimeMonthlyAvgUSD = totalPnLUSD / totalMonthsLifetime;
+    const lifetimeMonthlyAvgILS = totalPnLILS / totalMonthsLifetime;
+
     return {
       portfolioTotalUSD: currentTotalUSD,
       portfolioTotalILS: currentTotalUSD * usdToIls,
@@ -420,6 +551,19 @@ function App() {
       dailyPnLUSD,
       dailyPnLILS,
       dailyChangePct,
+      ytdPnLUSD,
+      ytdPnLILS,
+      ytdReturnPct,
+      ytdMonthlyAvgUSD,
+      ytdMonthlyAvgILS,
+      currentYear,
+      currentMonthNumber,
+      calendarMonthlyList,
+      bestMonthYTD,
+      worstMonthYTD,
+      positiveMonthsCount,
+      lifetimeMonthlyAvgILS,
+      lifetimeMonthlyAvgUSD,
       sortedHoldings,
       chartHistoryData: fullDailyHistory,
       benchmarkComparisonData,
@@ -576,20 +720,22 @@ function App() {
         {/* ======================================================== */}
         {/* 1. TOP EXECUTIVE METRIC CARDS (KPI DASHBOARD) */}
         {/* ======================================================== */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           
           {/* Card 1: Total Portfolio Value */}
-          <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500/30 transition-all">
-            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">שווי תיק כולל</span>
-              <DollarSign size={18} className="text-indigo-500" />
-            </div>
-            <div className="space-y-1">
-              <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white" dir="ltr">
-                ${analytics.portfolioTotalUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500/30 transition-all flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider">שווי תיק כולל</span>
+                <DollarSign size={18} className="text-indigo-500" />
               </div>
-              <div className="text-sm font-medium text-slate-500 dark:text-slate-400" dir="ltr">
-                ₪{analytics.portfolioTotalILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              <div className="space-y-0.5">
+                <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white" dir="ltr">
+                  ${analytics.portfolioTotalUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-sm font-medium text-slate-500 dark:text-slate-400" dir="ltr">
+                  ₪{analytics.portfolioTotalILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </div>
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
@@ -597,89 +743,127 @@ function App() {
               <span className={`font-semibold flex items-center gap-0.5 ${analytics.dailyChangePct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
                 {analytics.dailyChangePct >= 0 ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
                 {analytics.dailyChangePct >= 0 ? '+' : ''}{analytics.dailyChangePct.toFixed(2)}%
-                <span className="text-[11px] opacity-80">(${Math.abs(analytics.dailyPnLUSD).toFixed(0)})</span>
               </span>
             </div>
           </div>
 
           {/* Card 2: Unrealized P&L & Total Return */}
-          <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-emerald-500/30 transition-all">
-            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">רווח כולל (P&L)</span>
-              <TrendingUp size={18} className="text-emerald-500" />
-            </div>
-            <div className="space-y-1">
-              <div className={`text-2xl font-bold tracking-tight ${analytics.totalPnLUSD >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                {analytics.totalPnLUSD >= 0 ? '+' : ''}${analytics.totalPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-emerald-500/30 transition-all flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider">רווח כולל (P&L)</span>
+                <TrendingUp size={18} className="text-emerald-500" />
               </div>
-              <div className={`text-sm font-medium ${analytics.totalPnLUSD >= 0 ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-rose-600/80 dark:text-rose-400/80'}`} dir="ltr">
-                {analytics.totalPnLILS >= 0 ? '+' : ''}₪{analytics.totalPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              <div className="space-y-0.5">
+                <div className={`text-2xl font-bold tracking-tight ${analytics.totalPnLUSD >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                  {analytics.totalPnLUSD >= 0 ? '+' : ''}${analytics.totalPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className={`text-sm font-medium ${analytics.totalPnLUSD >= 0 ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-rose-600/80 dark:text-rose-400/80'}`} dir="ltr">
+                  {analytics.totalPnLILS >= 0 ? '+' : ''}₪{analytics.totalPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </div>
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-500">תשואה כוללת:</span>
+              <span className="text-slate-500">תשואה:</span>
               <span className={`px-2 py-0.5 rounded-full font-bold text-xs ${analytics.totalReturnPct >= 0 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400'}`} dir="ltr">
                 {analytics.totalReturnPct >= 0 ? '+' : ''}{analytics.totalReturnPct.toFixed(2)}%
               </span>
             </div>
           </div>
 
-          {/* Card 3: Total Cost Basis & Multiplier */}
-          <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-blue-500/30 transition-all">
-            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">סך השקעה מקורית</span>
-              <Scale size={18} className="text-blue-500" />
-            </div>
-            <div className="space-y-1">
-              <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white" dir="ltr">
-                ${analytics.totalCostUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          {/* Card 3: YTD Added Monthly Household Income */}
+          <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-indigo-200 dark:border-indigo-900/60 bg-gradient-to-b from-indigo-50/40 dark:from-indigo-950/20 to-transparent shadow-sm hover:border-indigo-500 transition-all flex flex-col justify-between relative overflow-hidden">
+            <div className="absolute -top-6 -left-6 w-20 h-20 bg-indigo-500/10 rounded-full blur-xl pointer-events-none" />
+            <div>
+              <div className="flex items-center justify-between text-indigo-700 dark:text-indigo-300 mb-2">
+                <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
+                  <Coins size={14} className="text-indigo-600 dark:text-indigo-400" />
+                  תוספת חודשית (YTD)
+                </span>
+                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300">
+                  משק בית
+                </span>
               </div>
-              <div className="text-sm font-medium text-slate-500 dark:text-slate-400" dir="ltr">
-                ₪{analytics.totalCostILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+              <div className="space-y-0.5">
+                <div className={`text-2xl font-bold tracking-tight ${analytics.ytdMonthlyAvgILS >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                  {analytics.ytdMonthlyAvgILS >= 0 ? '+' : ''}₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()}
+                  <span className="text-xs font-normal text-slate-500 dark:text-slate-400 mr-1">/חודש</span>
+                </div>
+                <div className="text-sm font-medium text-slate-500 dark:text-slate-400" dir="ltr">
+                  {analytics.ytdMonthlyAvgUSD >= 0 ? '+' : ''}${Math.round(analytics.ytdMonthlyAvgUSD).toLocaleString()}/mo
+                </div>
+              </div>
+            </div>
+            <div className="mt-3 pt-3 border-t border-indigo-100 dark:border-indigo-900/40 flex items-center justify-between text-xs">
+              <span className="text-slate-500">רווח השנה ({analytics.currentMonthNumber} חודשים):</span>
+              <span className="font-bold text-indigo-600 dark:text-indigo-300" dir="ltr">
+                ₪{Math.round(analytics.ytdPnLILS).toLocaleString()}
+              </span>
+            </div>
+          </div>
+
+          {/* Card 4: Total Cost Basis & Multiplier */}
+          <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-blue-500/30 transition-all flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider">סך השקעה מקורית</span>
+                <Scale size={18} className="text-blue-500" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white" dir="ltr">
+                  ${analytics.totalCostUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-sm font-medium text-slate-500 dark:text-slate-400" dir="ltr">
+                  ₪{analytics.totalCostILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                </div>
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-500">מכפיל הון (MOIC):</span>
+              <span className="text-slate-500">מכפיל הון:</span>
               <span className="font-bold text-indigo-600 dark:text-indigo-400">
                 {(analytics.portfolioTotalUSD / (analytics.totalCostUSD || 1)).toFixed(2)}x
               </span>
             </div>
           </div>
 
-          {/* Card 4: Alpha vs S&P 500 (VOO Benchmark) */}
-          <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-violet-500/30 transition-all">
-            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">אלפא מול S&P 500</span>
-              <Sparkles size={18} className="text-violet-500" />
-            </div>
-            <div className="space-y-1">
-              <div className={`text-2xl font-bold tracking-tight ${analytics.alphaVsBenchmark >= 0 ? 'text-violet-600 dark:text-violet-400' : 'text-amber-500'}`} dir="ltr">
-                {analytics.alphaVsBenchmark >= 0 ? '+' : ''}{analytics.alphaVsBenchmark.toFixed(2)}%
+          {/* Card 5: Alpha vs S&P 500 (VOO Benchmark) */}
+          <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-violet-500/30 transition-all flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider">אלפא מול S&P 500</span>
+                <Sparkles size={18} className="text-violet-500" />
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">
-                התיק הניב {analytics.totalReturnPct.toFixed(1)}% מול {(analytics.totalReturnPct - analytics.alphaVsBenchmark).toFixed(1)}% של ה-S&P 500
+              <div className="space-y-0.5">
+                <div className={`text-2xl font-bold tracking-tight ${analytics.alphaVsBenchmark >= 0 ? 'text-violet-600 dark:text-violet-400' : 'text-amber-500'}`} dir="ltr">
+                  {analytics.alphaVsBenchmark >= 0 ? '+' : ''}{analytics.alphaVsBenchmark.toFixed(2)}%
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  {analytics.alphaVsBenchmark >= 0 ? 'עודף על המדד' : 'תת ביצוע מול המדד'}
+                </div>
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-500">סטטוס ביצועים:</span>
+              <span className="text-slate-500">סטטוס:</span>
               <span className="font-bold text-violet-600 dark:text-violet-400">
                 {analytics.alphaVsBenchmark >= 0 ? '🏆 מכה את המדד' : 'מפגר אחרי המדד'}
               </span>
             </div>
           </div>
 
-          {/* Card 5: Concentration & Diversification */}
-          <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-amber-500/30 transition-all">
-            <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider">מדד ריכוזיות סיכון</span>
-              <ShieldCheck size={18} className="text-amber-500" />
-            </div>
-            <div className="space-y-1">
-              <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
-                <span>{analytics.concentrationMetric.riskLevel}</span>
+          {/* Card 6: Concentration & Diversification */}
+          <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-amber-500/30 transition-all flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
+                <span className="text-xs font-semibold uppercase tracking-wider">מדד ריכוזיות סיכון</span>
+                <ShieldCheck size={18} className="text-amber-500" />
               </div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">
-                נכס מוביל: <strong className="text-slate-700 dark:text-slate-300">{analytics.concentrationMetric.topAsset}</strong> ({analytics.concentrationMetric.topWeight.toFixed(1)}%)
+              <div className="space-y-0.5">
+                <div className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white flex items-center gap-2">
+                  <span>{analytics.concentrationMetric.riskLevel}</span>
+                </div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">
+                  נכס מוביל: <strong className="text-slate-700 dark:text-slate-300">{analytics.concentrationMetric.topAsset}</strong> ({analytics.concentrationMetric.topWeight.toFixed(1)}%)
+                </div>
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
@@ -1034,7 +1218,206 @@ function App() {
         </section>
 
         {/* ======================================================== */}
-        {/* 3. ALLOCATION & SECTOR DIVERSIFICATION GRID */}
+        {/* 3. CALENDAR MONTHLY HOUSEHOLD INCOME BREAKDOWN (YTD)     */}
+        {/* ======================================================== */}
+        <section className="bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 p-6 sm:p-8 shadow-sm space-y-6">
+          
+          {/* Section Header */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-2xl text-white shadow-md shadow-indigo-500/20">
+                <Wallet size={24} className="stroke-[2.2]" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-xl font-bold text-slate-900 dark:text-white">
+                    תוספת להכנסת משק הבית – חלוקה לפי חודש קלנדרי ({analytics.currentYear})
+                  </h2>
+                  <span className="px-2.5 py-0.5 text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 rounded-full border border-emerald-200 dark:border-emerald-800/60">
+                    הכנסה פסיבית
+                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  כמה כסף נוסף לתקציב משק הבית בכל חודש קלנדרי, ומהי התוספת החודשית הממוצעת שנצברה מתחילת השנה
+                </p>
+              </div>
+            </div>
+
+            {/* Quick Summary Pill Badge */}
+            <div className="flex items-center gap-3 bg-indigo-50/80 dark:bg-indigo-950/50 px-4 py-2.5 rounded-2xl border border-indigo-100 dark:border-indigo-800/60 self-start md:self-auto">
+              <div className="text-right">
+                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">ממוצע תוספת חודשית (YTD):</div>
+                <div className="text-lg font-bold text-indigo-600 dark:text-indigo-400" dir="ltr">
+                  +₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()} <span className="text-xs font-normal text-slate-400">/חודש</span>
+                </div>
+              </div>
+              <div className="h-8 w-px bg-indigo-200 dark:bg-indigo-800/60" />
+              <div className="text-right">
+                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">סה"כ רווח מצטבר השנה:</div>
+                <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400" dir="ltr">
+                  +₪{Math.round(analytics.ytdPnLILS).toLocaleString()}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 4 Summary Highlight KPI Badges */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+              <div>
+                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">תוספת חודשית ממוצעת</span>
+                <span className="text-xl font-bold text-indigo-600 dark:text-indigo-400" dir="ltr">
+                  +₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()}
+                </span>
+                <span className="text-[11px] text-slate-400 block" dir="ltr">
+                  (+${Math.round(analytics.ytdMonthlyAvgUSD).toLocaleString()}/mo)
+                </span>
+              </div>
+              <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/60 rounded-xl text-indigo-600 dark:text-indigo-300">
+                <Coins size={20} />
+              </div>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+              <div>
+                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">סה"כ רווח שנצבר ב-{analytics.currentYear}</span>
+                <span className={`text-xl font-bold ${analytics.ytdPnLILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                  {analytics.ytdPnLILS >= 0 ? '+' : ''}₪{Math.round(analytics.ytdPnLILS).toLocaleString()}
+                </span>
+                <span className="text-[11px] text-slate-400 block" dir="ltr">
+                  ({analytics.ytdPnLUSD >= 0 ? '+' : ''}${Math.round(analytics.ytdPnLUSD).toLocaleString()})
+                </span>
+              </div>
+              <div className="p-2.5 bg-emerald-100 dark:bg-emerald-900/60 rounded-xl text-emerald-600 dark:text-emerald-300">
+                <TrendingUp size={20} />
+              </div>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+              <div>
+                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">חודש השיא של השנה</span>
+                <span className="text-xl font-bold text-slate-900 dark:text-white">
+                  {analytics.bestMonthYTD?.monthName || '–'}
+                </span>
+                <span className="text-[11px] text-emerald-600 dark:text-emerald-400 block font-semibold" dir="ltr">
+                  +₪{Math.round(analytics.bestMonthYTD?.monthGainILS || 0).toLocaleString()} (+${Math.round(analytics.bestMonthYTD?.monthGainUSD || 0).toLocaleString()})
+                </span>
+              </div>
+              <div className="p-2.5 bg-amber-100 dark:bg-amber-900/60 rounded-xl text-amber-600 dark:text-amber-300">
+                <Sparkles size={20} />
+              </div>
+            </div>
+
+            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
+              <div>
+                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">חודשים חיוביים השנה</span>
+                <span className="text-xl font-bold text-slate-900 dark:text-white">
+                  {analytics.positiveMonthsCount} מתוך {analytics.currentMonthNumber}
+                </span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400 block font-medium">
+                  {Math.round((analytics.positiveMonthsCount / (analytics.currentMonthNumber || 1)) * 100)}% חודשים ברווח
+                </span>
+              </div>
+              <div className="p-2.5 bg-violet-100 dark:bg-violet-900/60 rounded-xl text-violet-600 dark:text-violet-300">
+                <CalendarDays size={20} />
+              </div>
+            </div>
+
+          </div>
+
+          {/* Calendar Months Cards Grid (Jan through Current Month) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {analytics.calendarMonthlyList.map((month) => {
+              const maxAbsGain = Math.max(...analytics.calendarMonthlyList.map(m => Math.abs(m.monthGainUSD)), 1);
+              const barPercent = Math.min(100, Math.round((Math.abs(month.monthGainUSD) / maxAbsGain) * 100));
+
+              return (
+                <div
+                  key={month.monthKey}
+                  className={`p-4 rounded-2xl border transition-all flex flex-col justify-between space-y-3 ${
+                    month.isCurrentMonth
+                      ? 'bg-indigo-50/50 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-700 shadow-sm'
+                      : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700/60 hover:border-slate-300 dark:hover:border-slate-600'
+                  }`}
+                >
+                  {/* Card Header: Month Name + Status Badge */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar size={15} className={month.isCurrentMonth ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-400'} />
+                      <span className="font-bold text-sm text-slate-900 dark:text-white">
+                        {month.monthName} {month.year}
+                      </span>
+                    </div>
+                    {month.isCurrentMonth ? (
+                      <span className="px-2 py-0.5 text-[10px] font-bold bg-indigo-600 text-white rounded-full">
+                        נוכחי
+                      </span>
+                    ) : (
+                      <span className="px-1.5 py-0.5 text-[10px] font-medium bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded">
+                        חודש {month.monthIndex}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Monthly Added Gain / Loss */}
+                  <div className="space-y-0.5">
+                    <div className="text-xs text-slate-500 dark:text-slate-400">
+                      תוספת להכנסה בחודש זה:
+                    </div>
+                    <div className={`text-xl font-extrabold tracking-tight ${month.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                      {month.isPositive ? '+' : '-'}₪{Math.abs(Math.round(month.monthGainILS)).toLocaleString()}
+                      <span className="text-xs font-medium text-slate-400 ml-1.5">
+                        ({month.isPositive ? '+' : '-'}${Math.abs(Math.round(month.monthGainUSD)).toLocaleString()})
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Visual Bar */}
+                  <div className="space-y-1">
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${month.isPositive ? 'bg-emerald-500' : 'bg-rose-500'}`}
+                        style={{ width: `${barPercent}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Cumulative and Average Footnote in Card */}
+                  <div className="pt-2.5 border-t border-slate-200/80 dark:border-slate-700/60 space-y-1 text-xs">
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                      <span>רווח מצטבר השנה:</span>
+                      <span className={`font-semibold ${month.cumulativeYTDILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                        {month.cumulativeYTDILS >= 0 ? '+' : ''}₪{Math.round(month.cumulativeYTDILS).toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                      <span>ממוצע עד חודש זה:</span>
+                      <span className="font-bold text-indigo-600 dark:text-indigo-400" dir="ltr">
+                        ₪{Math.round(month.runningMonthlyAvgILS).toLocaleString()}/חודש
+                      </span>
+                    </div>
+                  </div>
+
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Practical Calculation Footnote */}
+          <div className="p-4 bg-indigo-50/60 dark:bg-indigo-950/30 rounded-2xl border border-indigo-100 dark:border-indigo-900/40 text-xs text-slate-700 dark:text-slate-300 flex items-start gap-3">
+            <div className="p-1.5 bg-indigo-100 dark:bg-indigo-900/80 rounded-lg text-indigo-600 dark:text-indigo-400 shrink-0 mt-0.5">
+              <Coins size={16} />
+            </div>
+            <div className="leading-relaxed">
+              <strong>הסבר חישוב תוספת להכנסה חודשית למשק הבית:</strong> מתחילת שנת {analytics.currentYear}, תיק ההשקעות ייצר רווח הון מצטבר של <span className="font-bold text-emerald-600 dark:text-emerald-400">₪{Math.round(analytics.ytdPnLILS).toLocaleString()}</span> (או ${Math.round(analytics.ytdPnLUSD).toLocaleString()}). בחלוקה ל-{analytics.currentMonthNumber} חודשים קלנדריים שחלפו, התיק הוסיף בממוצע <span className="font-bold text-indigo-600 dark:text-indigo-400">₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()} בכל חודש</span> כהכנסה פסיבית נטו לתקציב משק הבית.
+            </div>
+          </div>
+
+        </section>
+
+        {/* ======================================================== */}
+        {/* 4. ALLOCATION & SECTOR DIVERSIFICATION GRID */}
         {/* ======================================================== */}
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           
@@ -1178,7 +1561,18 @@ function App() {
                 </p>
               </div>
 
-              {/* Insight 3: Worst performer check */}
+              {/* Insight 3: Household Monthly Income Added */}
+              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
+                <div className="font-bold text-emerald-300 flex items-center gap-1.5 mb-1">
+                  <Coins size={14} />
+                  <span>תוספת להכנסת משק הבית: +₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()} / חודש</span>
+                </div>
+                <p className="text-slate-300 leading-relaxed">
+                  התיק צבר רווח הון של ₪{Math.round(analytics.ytdPnLILS).toLocaleString()} מתחילת השנה, שהניב בממוצע ₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()} לחודש תוספת תקציבית למשק הבית.
+                </p>
+              </div>
+
+              {/* Insight 4: Worst performer check */}
               {analytics.worstPerformer && (
                 <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
                   <div className="font-bold text-rose-300 flex items-center gap-1.5 mb-1">
@@ -1202,7 +1596,7 @@ function App() {
         </section>
 
         {/* ======================================================== */}
-        {/* 4. ADVANCED HOLDINGS MATRIX (DATA TABLE) */}
+        {/* 5. ADVANCED HOLDINGS MATRIX (DATA TABLE) */}
         {/* ======================================================== */}
         <section className="bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
           
