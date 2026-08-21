@@ -19,7 +19,6 @@ import {
 } from 'recharts';
 import {
   TrendingUp,
-  TrendingDown,
   DollarSign,
   PieChart as PieChartIcon,
   Activity,
@@ -30,13 +29,11 @@ import {
   ArrowDown,
   Layers,
   ShieldCheck,
-  AlertTriangle,
   Sparkles,
   Percent,
   Briefcase,
   Scale,
   Search,
-  Zap,
   Globe,
   Wallet,
   Calendar,
@@ -100,7 +97,6 @@ function App() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [history, setHistory] = useState<HistoryPoint[]>([]);
   const [usdToIls, setUsdToIls] = useState<number>(3.006);
-  const [metaInfo, setMetaInfo] = useState<{ usdIlsRate?: number; lastUpdate?: string } | null>(null);
   const [loading, setLoading] = useState(true);
   
   // Controls
@@ -146,7 +142,6 @@ function App() {
 
         if (metaRes && metaRes.ok) {
           const metaData = await metaRes.json();
-          setMetaInfo(metaData);
           if (metaData.usdIlsRate) {
             setUsdToIls(metaData.usdIlsRate);
           }
@@ -1716,76 +1711,6 @@ function App() {
 
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400">
               💡 טיפ מקצועי: חשיפה של מעל 60% לסקטור הטכנולוגיה מגבירה את רמת התנודתיות (Beta) ביחס לשוק הרחב.
-            </div>
-          </div>
-
-          {/* Actionable Executive Insights Panel */}
-          <div className="bg-gradient-to-br from-indigo-900 to-slate-900 text-white p-6 rounded-3xl border border-indigo-700/40 shadow-xl flex flex-col justify-between relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-8 opacity-5">
-              <Zap size={140} />
-            </div>
-
-            <div>
-              <div className="flex items-center gap-2 mb-4">
-                <Sparkles size={20} className="text-amber-400" />
-                <h3 className="font-bold text-lg text-white">מסקנות ותובנות ניהוליות</h3>
-              </div>
-              <p className="text-xs text-indigo-200 mb-4">תקציר ניתוח כמותי לקבלת החלטות השקעה</p>
-            </div>
-
-            <div className="space-y-3 relative z-10 text-xs">
-              
-              {/* Insight 1: Alpha */}
-              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
-                <div className="font-bold text-amber-300 flex items-center gap-1.5 mb-1">
-                  <TrendingUp size={14} />
-                  <span>עודף תשואה (Alpha) חיובי: +{analytics.alphaVsBenchmark.toFixed(1)}%</span>
-                </div>
-                <p className="text-slate-300 leading-relaxed">
-                  התיק מייצר תשואה עודפת מעל ה-S&P 500 הודות לפוזיציות צמיחה חזקות ב-{analytics.topPerformer?.ticker}.
-                </p>
-              </div>
-
-              {/* Insight 2: Concentration */}
-              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
-                <div className="font-bold text-indigo-300 flex items-center gap-1.5 mb-1">
-                  <AlertTriangle size={14} />
-                  <span>ריכוזיות נכסים: {analytics.concentrationMetric.riskLevel}</span>
-                </div>
-                <p className="text-slate-300 leading-relaxed">
-                  נכס המוביל ({analytics.concentrationMetric.topAsset}) מהווה כ-{analytics.concentrationMetric.topWeight.toFixed(1)}% מהתיק. שקול איזון תקופתי (Rebalancing).
-                </p>
-              </div>
-
-              {/* Insight 3: Household Monthly Income Added */}
-              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
-                <div className="font-bold text-emerald-300 flex items-center gap-1.5 mb-1">
-                  <Coins size={14} />
-                  <span>תוספת להכנסת משק הבית: +₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()} / חודש</span>
-                </div>
-                <p className="text-slate-300 leading-relaxed">
-                  התיק צבר רווח הון של ₪{Math.round(analytics.ytdPnLILS).toLocaleString()} מתחילת השנה, שהניב בממוצע ₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()} לחודש תוספת תקציבית למשק הבית.
-                </p>
-              </div>
-
-              {/* Insight 4: Worst performer check */}
-              {analytics.worstPerformer && (
-                <div className="p-3 bg-white/10 backdrop-blur-sm rounded-xl border border-white/10">
-                  <div className="font-bold text-rose-300 flex items-center gap-1.5 mb-1">
-                    <TrendingDown size={14} />
-                    <span>הפוזיציה החלשה: {analytics.worstPerformer.ticker} ({analytics.worstPerformer.returnPct.toFixed(1)}%)</span>
-                  </div>
-                  <p className="text-slate-300 leading-relaxed">
-                    ירידה של ${(Math.abs(analytics.worstPerformer.pnlUSD)).toFixed(0)} - ניתן לבחון מגן מס (Tax-Loss Harvesting) בעת מימוש.
-                  </p>
-                </div>
-              )}
-
-            </div>
-
-            <div className="mt-4 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-indigo-300">
-              <span>עדכון אחרון: {metaInfo?.lastUpdate ? new Date(metaInfo.lastUpdate).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' }) : 'היום'}</span>
-              <span className="font-bold text-white">מודל איסוף אוטומטי</span>
             </div>
           </div>
 
