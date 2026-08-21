@@ -1,6 +1,4 @@
 import { useState, useEffect, useMemo } from 'react';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
 import {
   AreaChart,
   Area,
@@ -40,9 +38,8 @@ import {
   Calendar,
   Coins,
   CalendarDays,
-  FileText,
-  Download,
-  AlertCircle
+  Landmark,
+  Receipt
 } from 'lucide-react';
 
 interface PortfolioItem {
@@ -69,10 +66,18 @@ export interface CalendarMonthItem {
   year: number;
   monthGainUSD: number;
   monthGainILS: number;
+  monthNetGainUSD: number;
+  monthNetGainILS: number;
+  monthTaxUSD: number;
+  monthTaxILS: number;
   cumulativeYTDUSD: number;
   cumulativeYTDILS: number;
+  cumulativeNetYTDUSD: number;
+  cumulativeNetYTDILS: number;
   runningMonthlyAvgUSD: number;
   runningMonthlyAvgILS: number;
+  runningNetMonthlyAvgUSD: number;
+  runningNetMonthlyAvgILS: number;
   endValueUSD: number;
   endValueILS: number;
   growthPct: number;
@@ -92,10 +97,11 @@ const ASSET_META: { [ticker: string]: { name: string; sector: string; type: 'Sto
   XOM: { name: 'Exxon Mobil', sector: 'אנרגיה ונפט', type: 'Stock', note: 'ענקית אנרגיה מסורתית ותשואת דיבידנד' }
 };
 
-type SortKey = 'name' | 'amount' | 'avg_price' | 'current_price' | 'valueUSD' | 'pnlUSD' | 'returnPct' | 'weight';
+type SortKey = 'name' | 'amount' | 'avg_price' | 'current_price' | 'valueUSD' | 'pnlUSD' | 'pnlNetUSD' | 'taxUSD' | 'returnPct' | 'returnNetPct' | 'weight';
 type TimeRange = '7D' | '30D' | '90D' | 'ALL';
 type ChartType = 'performance' | 'benchmark' | 'pnlContribution' | 'costVsValue' | 'monthly';
 type MonthlyPeriod = 'YTD' | 'YEAR' | 'L12M' | 'ALL';
+type TaxMode = 'NET' | 'GROSS' | 'BOTH';
 
 function App() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
@@ -107,6 +113,7 @@ function App() {
   const [activeChart, setActiveChart] = useState<ChartType>('performance');
   const [timeRange, setTimeRange] = useState<TimeRange>('ALL');
   const [currencyMode, setCurrencyMode] = useState<'USD' | 'ILS' | 'DUAL'>('DUAL');
+  const [taxMode, setTaxMode] = useState<TaxMode>('BOTH'); // Default to BOTH (משולב) as requested
   const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | 'PROFIT' | 'LOSS'>('ALL');
   const [darkMode, setDarkMode] = useState(false);
@@ -115,80 +122,6 @@ function App() {
   // Interactive Monthly Income Controls
   const [monthlyPeriod, setMonthlyPeriod] = useState<MonthlyPeriod>('YTD');
   const [selectedMonthlyYear, setSelectedMonthlyYear] = useState<number>(2026);
-  
-  // Export to PDF state
-  const [isExporting, setIsExporting] = useState(false);
-  const [pdfBlobUrl, setPdfBlobUrl] = useState<string | null>(null);
-  const [exportError, setExportError] = useState<string | null>(null);
-
-  const exportToPDF = async () => {
-    const element = document.getElementById('pdf-export-content');
-    if (!element) return;
-    
-    setIsExporting(true);
-    setExportError(null);
-    
-    try {
-      window.scrollTo(0, 0);
-
-      // Show pdf-specific elements for the capture
-      const pdfElements = document.querySelectorAll('.pdf-showtext');
-      pdfElements.forEach(el => el.classList.remove('hidden'));
-
-      // Small delay to ensure Recharts and UI states fully update and render
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const canvas = await html2canvas(element, {
-        scale: window.innerWidth < 768 ? 1 : 1.5, // lower scale on mobile for performance
-        useCORS: true,
-        logging: true,
-        backgroundColor: darkMode ? '#0b0f19' : '#f8fafc',
-        windowWidth: document.documentElement.offsetWidth,
-        windowHeight: document.documentElement.offsetHeight,
-      });
-      
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
-      
-      // A4 size: 210 x 297 mm
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
-      
-      let heightLeft = pdfHeight;
-      let position = 0;
-      
-      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pdf.internal.pageSize.getHeight();
-      
-      while (heightLeft > 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pdf.internal.pageSize.getHeight();
-      }
-      
-      const dateStr = new Date().toISOString().split('T')[0];
-      const filename = `Portfolio-Report-${dateStr}.pdf`;
-      
-      // Attempt direct download - this might be blocked by iframe sandboxes
-      pdf.save(filename);
-
-      // Provide the manual fallback via Blob URL just in case
-      const blob = pdf.output('blob');
-      const blobUrl = URL.createObjectURL(blob);
-      setPdfBlobUrl(blobUrl);
-
-    } catch (err: any) {
-      console.error('Failed to export PDF:', err);
-      setExportError(err.message || 'שגיאה ביצירת הקובץ. אנא נסה שוב.');
-    } finally {
-      // Hide pdf-specific elements again
-      const pdfElements = document.querySelectorAll('.pdf-showtext');
-      pdfElements.forEach(el => el.classList.add('hidden'));
-      
-      setIsExporting(false);
-    }
-  };
 
   useEffect(() => {
     if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
@@ -243,19 +176,37 @@ function App() {
       return {
         portfolioTotalUSD: 0,
         portfolioTotalILS: 0,
+        netPortfolioTotalUSD: 0,
+        netPortfolioTotalILS: 0,
         totalCostUSD: 0,
         totalCostILS: 0,
         totalPnLUSD: 0,
         totalPnLILS: 0,
+        totalTaxUSD: 0,
+        totalTaxILS: 0,
+        totalNetPnLUSD: 0,
+        totalNetPnLILS: 0,
         totalReturnPct: 0,
+        totalNetReturnPct: 0,
         dailyPnLUSD: 0,
         dailyPnLILS: 0,
+        dailyTaxUSD: 0,
+        dailyTaxILS: 0,
+        dailyNetPnLUSD: 0,
+        dailyNetPnLILS: 0,
         dailyChangePct: 0,
         ytdPnLUSD: 0,
         ytdPnLILS: 0,
+        ytdTaxUSD: 0,
+        ytdTaxILS: 0,
+        ytdNetPnLUSD: 0,
+        ytdNetPnLILS: 0,
         ytdReturnPct: 0,
+        ytdNetReturnPct: 0,
         ytdMonthlyAvgUSD: 0,
         ytdMonthlyAvgILS: 0,
+        ytdNetMonthlyAvgUSD: 0,
+        ytdNetMonthlyAvgILS: 0,
         currentYear: new Date().getFullYear(),
         currentMonthNumber: new Date().getMonth() + 1,
         availableMonthlyYears: [new Date().getFullYear()] as number[],
@@ -265,8 +216,14 @@ function App() {
         activePeriodMonthsCount: 1,
         activePeriodTotalGainUSD: 0,
         activePeriodTotalGainILS: 0,
+        activePeriodTaxUSD: 0,
+        activePeriodTaxILS: 0,
+        activePeriodNetTotalGainUSD: 0,
+        activePeriodNetTotalGainILS: 0,
         activePeriodMonthlyAvgUSD: 0,
         activePeriodMonthlyAvgILS: 0,
+        activePeriodNetMonthlyAvgUSD: 0,
+        activePeriodNetMonthlyAvgILS: 0,
         bestMonthYTD: null as CalendarMonthItem | null,
         worstMonthYTD: null as CalendarMonthItem | null,
         positiveMonthsCount: 0,
@@ -317,7 +274,13 @@ function App() {
       const prevValueUSD = data.amount * prevPrice;
       const costBasisUSD = data.amount * data.avg_price;
       const pnlUSD = valueUSD - costBasisUSD;
+      const pnlILS = pnlUSD * usdToIls;
+      const taxUSD = pnlUSD > 0 ? pnlUSD * 0.25 : 0;
+      const taxILS = pnlILS > 0 ? pnlILS * 0.25 : 0;
+      const pnlNetUSD = pnlUSD > 0 ? pnlUSD * 0.75 : pnlUSD;
+      const pnlNetILS = pnlILS > 0 ? pnlILS * 0.75 : pnlILS;
       const returnPct = ((currentPrice - data.avg_price) / data.avg_price) * 100;
+      const returnNetPct = costBasisUSD > 0 ? (pnlNetUSD / costBasisUSD) * 100 : 0;
       const dailyAssetChangePct = prevPrice > 0 ? ((currentPrice - prevPrice) / prevPrice) * 100 : 0;
       const dailyAssetPnLUSD = valueUSD - prevValueUSD;
 
@@ -343,8 +306,13 @@ function App() {
         costUSD: costBasisUSD,
         costILS: costBasisUSD * usdToIls,
         pnlUSD,
-        pnlILS: pnlUSD * usdToIls,
+        pnlILS,
+        taxUSD,
+        taxILS,
+        pnlNetUSD,
+        pnlNetILS,
         returnPct,
+        returnNetPct,
         dailyChangePct: dailyAssetChangePct,
         dailyPnLUSD: dailyAssetPnLUSD,
         dailyPnLILS: dailyAssetPnLUSD * usdToIls,
@@ -573,9 +541,16 @@ function App() {
 
     const ytdPnLUSD = currentTotalUSD - startOfYearUSD;
     const ytdPnLILS = ytdPnLUSD * usdToIls;
+    const ytdTaxUSD = ytdPnLUSD > 0 ? ytdPnLUSD * 0.25 : 0;
+    const ytdTaxILS = ytdPnLILS > 0 ? ytdPnLILS * 0.25 : 0;
+    const ytdNetPnLUSD = ytdPnLUSD > 0 ? ytdPnLUSD * 0.75 : ytdPnLUSD;
+    const ytdNetPnLILS = ytdPnLILS > 0 ? ytdPnLILS * 0.75 : ytdPnLILS;
     const ytdReturnPct = startOfYearUSD > 0 ? (ytdPnLUSD / startOfYearUSD) * 100 : 0;
+    const ytdNetReturnPct = startOfYearUSD > 0 ? (ytdNetPnLUSD / startOfYearUSD) * 100 : 0;
     const ytdMonthlyAvgUSD = ytdPnLUSD / (currentMonthNumber || 1);
     const ytdMonthlyAvgILS = ytdPnLILS / (currentMonthNumber || 1);
+    const ytdNetMonthlyAvgUSD = ytdNetPnLUSD / (currentMonthNumber || 1);
+    const ytdNetMonthlyAvgILS = ytdNetPnLILS / (currentMonthNumber || 1);
 
     const monthNamesHebrew = [
       'ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני',
@@ -689,12 +664,20 @@ function App() {
 
       const monthGainUSD = endValUSD - prevMonthValUSD;
       const monthGainILS = monthGainUSD * usdToIls;
+      const monthTaxUSD = Math.max(0, monthGainUSD) * 0.25;
+      const monthTaxILS = Math.max(0, monthGainILS) * 0.25;
+      const monthNetGainUSD = monthGainUSD > 0 ? monthGainUSD * 0.75 : monthGainUSD;
+      const monthNetGainILS = monthGainILS > 0 ? monthGainILS * 0.75 : monthGainILS;
 
       cumulativeGainUSD += monthGainUSD;
       const cumulativeGainILS = cumulativeGainUSD * usdToIls;
+      const cumulativeNetYTDUSD = cumulativeGainUSD > 0 ? cumulativeGainUSD * 0.75 : cumulativeGainUSD;
+      const cumulativeNetYTDILS = cumulativeGainILS > 0 ? cumulativeGainILS * 0.75 : cumulativeGainILS;
 
       const runningMonthlyAvgUSD = cumulativeGainUSD / (idx + 1);
       const runningMonthlyAvgILS = cumulativeGainILS / (idx + 1);
+      const runningNetMonthlyAvgUSD = cumulativeNetYTDUSD / (idx + 1);
+      const runningNetMonthlyAvgILS = cumulativeNetYTDILS / (idx + 1);
 
       const growthPct = prevMonthValUSD > 0 ? (monthGainUSD / prevMonthValUSD) * 100 : 0;
 
@@ -705,10 +688,18 @@ function App() {
         year: slot.year,
         monthGainUSD,
         monthGainILS,
+        monthNetGainUSD,
+        monthNetGainILS,
+        monthTaxUSD,
+        monthTaxILS,
         cumulativeYTDUSD: cumulativeGainUSD,
         cumulativeYTDILS: cumulativeGainILS,
+        cumulativeNetYTDUSD,
+        cumulativeNetYTDILS,
         runningMonthlyAvgUSD,
         runningMonthlyAvgILS,
+        runningNetMonthlyAvgUSD,
+        runningNetMonthlyAvgILS,
         endValueUSD: endValUSD,
         endValueILS: endValUSD * usdToIls,
         growthPct,
@@ -722,8 +713,14 @@ function App() {
     const activePeriodMonthsCount = calendarMonthlyList.length || 1;
     const activePeriodTotalGainUSD = cumulativeGainUSD;
     const activePeriodTotalGainILS = cumulativeGainUSD * usdToIls;
+    const activePeriodTaxUSD = Math.max(0, activePeriodTotalGainUSD) * 0.25;
+    const activePeriodTaxILS = Math.max(0, activePeriodTotalGainILS) * 0.25;
+    const activePeriodNetTotalGainUSD = activePeriodTotalGainUSD > 0 ? activePeriodTotalGainUSD * 0.75 : activePeriodTotalGainUSD;
+    const activePeriodNetTotalGainILS = activePeriodTotalGainILS > 0 ? activePeriodTotalGainILS * 0.75 : activePeriodTotalGainILS;
     const activePeriodMonthlyAvgUSD = activePeriodTotalGainUSD / activePeriodMonthsCount;
     const activePeriodMonthlyAvgILS = activePeriodTotalGainILS / activePeriodMonthsCount;
+    const activePeriodNetMonthlyAvgUSD = activePeriodNetTotalGainUSD / activePeriodMonthsCount;
+    const activePeriodNetMonthlyAvgILS = activePeriodNetTotalGainILS / activePeriodMonthsCount;
 
     const positiveMonthsCount = calendarMonthlyList.filter(m => m.isPositive).length;
     const bestMonthPeriod = [...calendarMonthlyList].sort((a, b) => b.monthGainUSD - a.monthGainUSD)[0] || null;
@@ -735,22 +732,53 @@ function App() {
     const lifetimeMonthlyAvgUSD = totalPnLUSD / totalMonthsLifetime;
     const lifetimeMonthlyAvgILS = totalPnLILS / totalMonthsLifetime;
 
+    const totalTaxUSD = Math.max(0, totalPnLUSD) * 0.25;
+    const totalTaxILS = Math.max(0, totalPnLILS) * 0.25;
+    const totalNetPnLUSD = totalPnLUSD > 0 ? totalPnLUSD * 0.75 : totalPnLUSD;
+    const totalNetPnLILS = totalPnLILS > 0 ? totalPnLILS * 0.75 : totalPnLILS;
+    const netPortfolioTotalUSD = currentTotalUSD - totalTaxUSD;
+    const netPortfolioTotalILS = (currentTotalUSD * usdToIls) - totalTaxILS;
+    const totalNetReturnPct = costTotalUSD > 0 ? (totalNetPnLUSD / costTotalUSD) * 100 : 0;
+
+    const dailyTaxUSD = Math.max(0, dailyPnLUSD) * 0.25;
+    const dailyTaxILS = Math.max(0, dailyPnLILS) * 0.25;
+    const dailyNetPnLUSD = dailyPnLUSD > 0 ? dailyPnLUSD * 0.75 : dailyPnLUSD;
+    const dailyNetPnLILS = dailyPnLILS > 0 ? dailyPnLILS * 0.75 : dailyPnLILS;
+
     return {
       portfolioTotalUSD: currentTotalUSD,
       portfolioTotalILS: currentTotalUSD * usdToIls,
+      netPortfolioTotalUSD,
+      netPortfolioTotalILS,
       totalCostUSD: costTotalUSD,
       totalCostILS: costTotalUSD * usdToIls,
       totalPnLUSD,
       totalPnLILS,
+      totalTaxUSD,
+      totalTaxILS,
+      totalNetPnLUSD,
+      totalNetPnLILS,
       totalReturnPct,
+      totalNetReturnPct,
       dailyPnLUSD,
       dailyPnLILS,
+      dailyTaxUSD,
+      dailyTaxILS,
+      dailyNetPnLUSD,
+      dailyNetPnLILS,
       dailyChangePct,
       ytdPnLUSD,
       ytdPnLILS,
+      ytdTaxUSD,
+      ytdTaxILS,
+      ytdNetPnLUSD,
+      ytdNetPnLILS,
       ytdReturnPct,
+      ytdNetReturnPct,
       ytdMonthlyAvgUSD,
       ytdMonthlyAvgILS,
+      ytdNetMonthlyAvgUSD,
+      ytdNetMonthlyAvgILS,
       currentYear,
       currentMonthNumber,
       availableMonthlyYears,
@@ -760,8 +788,14 @@ function App() {
       activePeriodMonthsCount,
       activePeriodTotalGainUSD,
       activePeriodTotalGainILS,
+      activePeriodTaxUSD,
+      activePeriodTaxILS,
+      activePeriodNetTotalGainUSD,
+      activePeriodNetTotalGainILS,
       activePeriodMonthlyAvgUSD,
       activePeriodMonthlyAvgILS,
+      activePeriodNetMonthlyAvgUSD,
+      activePeriodNetMonthlyAvgILS,
       bestMonthYTD: bestMonthPeriod,
       worstMonthYTD: worstMonthPeriod,
       positiveMonthsCount,
@@ -850,47 +884,7 @@ function App() {
   };
 
   return (
-    <>
-      {/* PDF Ready Preview Modal */}
-      {pdfBlobUrl && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 backdrop-blur-sm p-4 sm:p-6" dir="rtl">
-          <div className="bg-white dark:bg-[#111827] rounded-2xl shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col overflow-hidden border border-slate-200 dark:border-slate-800 relative">
-            <div className="p-4 sm:p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-indigo-100 dark:bg-indigo-900/40 text-indigo-600 dark:text-indigo-400 rounded-lg">
-                  <FileText size={24} />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-slate-900 dark:text-white">הדוח מוכן! (PDF)</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">ניתן להציג תצוגה מקדימה או לשמור את הקובץ</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3" dir="ltr">
-                <button onClick={() => setPdfBlobUrl(null)} className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg transition-colors">
-                  סגור תצוגה
-                </button>
-                <a href={pdfBlobUrl} download={`Portfolio-Report-${new Date().toISOString().split('T')[0]}.pdf`} className="flex items-center gap-2 px-5 py-2 text-sm font-bold bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg transition-colors shadow-md">
-                  <Download size={16} />
-                  שמור קובץ
-                </a>
-              </div>
-            </div>
-            
-            {exportError && (
-              <div className="p-4 bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400 border-b border-rose-200 dark:border-rose-800/50 flex items-center gap-2 text-sm font-medium">
-                <AlertCircle size={16} />
-                {exportError}
-              </div>
-            )}
-
-            <div className="flex-1 w-full bg-slate-200/50 dark:bg-[#0b0f19] p-2 sm:p-4 overflow-hidden relative">
-              <iframe src={pdfBlobUrl} className="w-full h-full rounded border-0 shadow-sm bg-white" title="PDF Preview" />
-            </div>
-          </div>
-        </div>
-      )}
-
-      <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 transition-colors font-sans antialiased" dir="rtl">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0b0f19] text-slate-900 dark:text-slate-100 transition-colors font-sans antialiased" dir="rtl">
       
       {/* Top Professional Navigation Bar */}
       <header className="sticky top-0 z-40 bg-white/80 dark:bg-[#0f172a]/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
@@ -922,6 +916,47 @@ function App() {
               <span className="font-bold text-slate-800 dark:text-slate-200" dir="ltr">₪{usdToIls.toFixed(3)}</span>
             </div>
 
+            {/* Israeli Tax Calculation Toggle */}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700/80 shadow-inner">
+              <button
+                type="button"
+                onClick={() => setTaxMode('BOTH')}
+                className={`px-3 py-1 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                  taxMode === 'BOTH'
+                    ? 'bg-indigo-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="הצגת ברוטו ונטו (מס 25%) יחד בדיפולט"
+              >
+                <Landmark size={13} />
+                <span>משולב (נטו+ברוטו)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setTaxMode('NET')}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
+                  taxMode === 'NET'
+                    ? 'bg-emerald-600 text-white shadow-sm font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="הצגת רווח נטו בלבד לאחר ניכוי 25% מס רווחי הון"
+              >
+                נטו בלבד
+              </button>
+              <button
+                type="button"
+                onClick={() => setTaxMode('GROSS')}
+                className={`px-2.5 py-1 text-xs font-semibold rounded-lg transition-all ${
+                  taxMode === 'GROSS'
+                    ? 'bg-white dark:bg-slate-700 text-indigo-600 dark:text-indigo-300 shadow-sm font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+                }`}
+                title="הצגת רווח ברוטו מלא לפני ניכוי מס"
+              >
+                ברוטו בלבד
+              </button>
+            </div>
+
             {/* Currency Mode Switcher */}
             <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-lg border border-slate-200 dark:border-slate-700">
               <button
@@ -944,25 +979,6 @@ function App() {
               </button>
             </div>
 
-            {/* Export PDF Button */}
-            <button
-              onClick={exportToPDF}
-              disabled={isExporting}
-              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors border ${
-                isExporting 
-                  ? 'bg-slate-200 dark:bg-slate-800 text-slate-400 border-transparent cursor-not-allowed' 
-                  : 'bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-indigo-600 dark:text-indigo-400 border-slate-200 dark:border-slate-700 shadow-sm'
-              }`}
-              title="ייצוא דוח ל-PDF / Export PDF"
-            >
-              {isExporting ? (
-                <div className="animate-spin h-4 w-4 border-2 border-indigo-500 border-t-transparent rounded-full" />
-              ) : (
-                <FileText size={16} />
-              )}
-              <span className="text-xs font-bold hidden sm:inline">ייצוא דוח</span>
-            </button>
-
             {/* Dark Mode Toggle */}
             <button
               onClick={() => setDarkMode(!darkMode)}
@@ -977,16 +993,8 @@ function App() {
       </header>
 
       {/* Main Container */}
-      <main id="pdf-export-content" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
-        {/* PDF Export Header (Visible only in exported PDF, or conditionally if we want, but since html2canvas captures screen, we can add a print-only visible header, though html2canvas doesn't respect @media print by default unless we pass window. We'll just add a clean bilingual title at the top of the main content) */}
-        <div className="hidden pdf-showtext text-center mb-6">
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-white">דוח תיק השקעות מקיף | Comprehensive Portfolio Report</h2>
-          <p className="text-slate-500 dark:text-slate-400 mt-1">
-            הופק בתאריך: {new Date().toLocaleDateString('he-IL')} | Generated: {new Date().toLocaleDateString('en-US')}
-          </p>
-        </div>
-
         {/* ======================================================== */}
         {/* 1. TOP EXECUTIVE METRIC CARDS (KPI DASHBOARD) */}
         {/* ======================================================== */}
@@ -996,7 +1004,7 @@ function App() {
           <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500/30 transition-all flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider">שווי תיק כולל</span>
+                <span className="text-xs font-semibold uppercase tracking-wider">שווי תיק שוק</span>
                 <DollarSign size={18} className="text-indigo-500" />
               </div>
               <div className="space-y-0.5">
@@ -1009,10 +1017,9 @@ function App() {
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-500">שינוי יומי:</span>
-              <span className={`font-semibold flex items-center gap-0.5 ${analytics.dailyChangePct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                {analytics.dailyChangePct >= 0 ? <ArrowUp size={13} /> : <ArrowDown size={13} />}
-                {analytics.dailyChangePct >= 0 ? '+' : ''}{analytics.dailyChangePct.toFixed(2)}%
+              <span className="text-slate-500">נטו למימוש (מס 25%):</span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400" dir="ltr">
+                ₪{analytics.netPortfolioTotalILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </span>
             </div>
           </div>
@@ -1021,22 +1028,64 @@ function App() {
           <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-emerald-500/30 transition-all flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
-                <span className="text-xs font-semibold uppercase tracking-wider">רווח כולל (P&L)</span>
-                <TrendingUp size={18} className="text-emerald-500" />
+                <span className="text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                  <span>
+                    {taxMode === 'BOTH' ? 'רווח כולל (נטו וברוטו)' : taxMode === 'GROSS' ? 'רווח ברוטו (P&L)' : 'רווח נטו (מס 25%)'}
+                  </span>
+                </span>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                  taxMode === 'BOTH' 
+                    ? 'bg-indigo-100 dark:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300' 
+                    : taxMode === 'GROSS' 
+                    ? 'bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300' 
+                    : 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300'
+                }`}>
+                  {taxMode === 'BOTH' ? 'משולב' : taxMode === 'GROSS' ? 'ברוטו' : 'נטו'}
+                </span>
               </div>
               <div className="space-y-0.5">
-                <div className={`text-2xl font-bold tracking-tight ${analytics.totalPnLUSD >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                  {analytics.totalPnLUSD >= 0 ? '+' : ''}${analytics.totalPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <div className={`text-sm font-medium ${analytics.totalPnLUSD >= 0 ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-rose-600/80 dark:text-rose-400/80'}`} dir="ltr">
-                  {analytics.totalPnLILS >= 0 ? '+' : ''}₪{analytics.totalPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                </div>
+                {taxMode === 'BOTH' ? (
+                  <>
+                    <div className={`text-2xl font-bold tracking-tight ${analytics.totalNetPnLUSD >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                      {analytics.totalNetPnLUSD >= 0 ? '+' : ''}${analytics.totalNetPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mr-1.5">
+                        ({analytics.totalNetPnLILS >= 0 ? '+' : ''}₪{analytics.totalNetPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })} נטו)
+                      </span>
+                    </div>
+                    <div className="text-xs font-medium text-slate-500 dark:text-slate-400" dir="ltr">
+                      ברוטו: +${analytics.totalPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (+₪{analytics.totalPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })})
+                    </div>
+                  </>
+                ) : taxMode === 'GROSS' ? (
+                  <>
+                    <div className={`text-2xl font-bold tracking-tight ${analytics.totalPnLUSD >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                      {analytics.totalPnLUSD >= 0 ? '+' : ''}${analytics.totalPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <div className={`text-sm font-medium ${analytics.totalPnLUSD >= 0 ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-rose-600/80 dark:text-rose-400/80'}`} dir="ltr">
+                      {analytics.totalPnLILS >= 0 ? '+' : ''}₪{analytics.totalPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className={`text-2xl font-bold tracking-tight ${analytics.totalNetPnLUSD >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                      {analytics.totalNetPnLUSD >= 0 ? '+' : ''}${analytics.totalNetPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </div>
+                    <div className={`text-sm font-medium ${analytics.totalNetPnLUSD >= 0 ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-rose-600/80 dark:text-rose-400/80'}`} dir="ltr">
+                      {analytics.totalNetPnLILS >= 0 ? '+' : ''}₪{analytics.totalNetPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-500">תשואה:</span>
-              <span className={`px-2 py-0.5 rounded-full font-bold text-xs ${analytics.totalReturnPct >= 0 ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400' : 'bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                {analytics.totalReturnPct >= 0 ? '+' : ''}{analytics.totalReturnPct.toFixed(2)}%
+              <span className="text-slate-500">
+                {taxMode === 'BOTH' ? 'מס רווחי הון (25%):' : taxMode === 'GROSS' ? 'מס צפוי (25%):' : 'ברוטו:'}
+              </span>
+              <span className="font-semibold text-slate-700 dark:text-slate-300" dir="ltr">
+                {taxMode === 'BOTH' || taxMode === 'GROSS'
+                  ? `-₪${analytics.totalTaxILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+                  : `+₪${analytics.totalPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+                }
               </span>
             </div>
           </div>
@@ -1048,31 +1097,45 @@ function App() {
               <div className="flex items-center justify-between text-indigo-700 dark:text-indigo-300 mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
                   <Coins size={14} className="text-indigo-600 dark:text-indigo-400" />
-                  תוספת חודשית (YTD)
+                  תוספת חודשית {taxMode === 'BOTH' ? '(משולב)' : taxMode === 'GROSS' ? '(ברוטו)' : '(נטו)'}
                 </span>
                 <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 dark:bg-indigo-900/80 text-indigo-700 dark:text-indigo-300">
                   משק בית
                 </span>
               </div>
               <div className="space-y-0.5">
-                <div className={`text-2xl font-bold tracking-tight ${analytics.ytdMonthlyAvgILS >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                  {analytics.ytdMonthlyAvgILS >= 0 ? '+' : ''}₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()}
-                  <span className="text-xs font-normal text-slate-500 dark:text-slate-400 mr-1">/חודש</span>
-                </div>
-                <div className="text-sm font-medium text-slate-500 dark:text-slate-400" dir="ltr">
-                  {analytics.ytdMonthlyAvgUSD >= 0 ? '+' : ''}${Math.round(analytics.ytdMonthlyAvgUSD).toLocaleString()}/mo
-                </div>
+                {taxMode === 'BOTH' ? (
+                  <>
+                    <div className={`text-2xl font-bold tracking-tight ${analytics.ytdNetMonthlyAvgILS >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                      {analytics.ytdNetMonthlyAvgILS >= 0 ? '+' : ''}₪{Math.round(analytics.ytdNetMonthlyAvgILS).toLocaleString()}
+                      <span className="text-xs font-normal text-slate-500 dark:text-slate-400 mr-1">/חודש נטו</span>
+                    </div>
+                    <div className="text-xs font-medium text-slate-500 dark:text-slate-400" dir="ltr">
+                      ברוטו: +₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()}/חודש (+${Math.round(analytics.ytdMonthlyAvgUSD).toLocaleString()}/mo)
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className={`text-2xl font-bold tracking-tight ${(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgILS : analytics.ytdNetMonthlyAvgILS) >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                      {(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgILS : analytics.ytdNetMonthlyAvgILS) >= 0 ? '+' : ''}₪{Math.round(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgILS : analytics.ytdNetMonthlyAvgILS).toLocaleString()}
+                      <span className="text-xs font-normal text-slate-500 dark:text-slate-400 mr-1">/חודש</span>
+                    </div>
+                    <div className="text-sm font-medium text-slate-500 dark:text-slate-400" dir="ltr">
+                      {(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgUSD : analytics.ytdNetMonthlyAvgUSD) >= 0 ? '+' : ''}${Math.round(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgUSD : analytics.ytdNetMonthlyAvgUSD).toLocaleString()}/mo
+                    </div>
+                  </>
+                )}
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-indigo-100 dark:border-indigo-900/40 flex items-center justify-between text-xs">
-              <span className="text-slate-500">רווח השנה ({analytics.currentMonthNumber} חודשים):</span>
+              <span className="text-slate-500">רווח נטו השנה:</span>
               <span className="font-bold text-indigo-600 dark:text-indigo-300" dir="ltr">
-                ₪{Math.round(analytics.ytdPnLILS).toLocaleString()}
+                ₪{Math.round(analytics.ytdNetPnLILS).toLocaleString()}
               </span>
             </div>
           </div>
 
-          {/* Card 4: Total Cost Basis & Multiplier */}
+          {/* Card 4: Total Cost Basis & Capital Gains Tax */}
           <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-blue-500/30 transition-all flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 mb-2">
@@ -1089,9 +1152,9 @@ function App() {
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-500">מכפיל הון:</span>
-              <span className="font-bold text-indigo-600 dark:text-indigo-400">
-                {(analytics.portfolioTotalUSD / (analytics.totalCostUSD || 1)).toFixed(2)}x
+              <span className="text-slate-500">מס רווחי הון (25%):</span>
+              <span className="font-bold text-rose-500 dark:text-rose-400" dir="ltr">
+                -₪{analytics.totalTaxILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
               </span>
             </div>
           </div>
@@ -1113,13 +1176,110 @@ function App() {
               </div>
             </div>
             <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-              <span className="text-slate-500">סטטוס:</span>
-              <span className="font-bold text-violet-600 dark:text-violet-400">
-                {analytics.alphaVsBenchmark >= 0 ? '🏆 מכה את המדד' : 'מפגר אחרי המדד'}
+              <span className="text-slate-500">תשואה נטו:</span>
+              <span className="font-bold text-emerald-600 dark:text-emerald-400" dir="ltr">
+                {analytics.totalNetReturnPct >= 0 ? '+' : ''}{analytics.totalNetReturnPct.toFixed(2)}%
               </span>
             </div>
           </div>
 
+        </section>
+
+        {/* ======================================================== */}
+        {/* ISRAEL TAX INSIGHTS & REALIZATION SUMMARY PANEL */}
+        {/* ======================================================== */}
+        <section className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 sm:p-7 shadow-lg border border-indigo-500/20 relative overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none" />
+          
+          <div className="relative z-10 space-y-5">
+            
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-indigo-800/40">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-indigo-600/30 border border-indigo-400/30 rounded-xl text-indigo-300">
+                  <Receipt size={22} />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base sm:text-lg font-bold text-white">
+                      🇮🇱 חישוב מס רווחי הון בישראל (25% מס בעת מימוש)
+                    </h3>
+                    <span className="px-2 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-full">
+                      ניכוי במקור
+                    </span>
+                  </div>
+                  <p className="text-xs text-indigo-200/70 mt-0.5">
+                    ניתוח מדויק של שווי התיק, הרווח הנקי ביד לאחר תשלום מס של 25% והתוספת האמיתית לחשבון הבנק
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-auto bg-indigo-900/60 border border-indigo-700/50 px-3 py-1.5 rounded-xl text-xs text-indigo-200">
+                <Landmark size={14} className="text-indigo-400" />
+                <span>שיעור מס חוקי: <strong>25%</strong></span>
+              </div>
+            </div>
+
+            {/* 4 Interactive Tax Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              
+              {/* Gross Profit */}
+              <div className="bg-white/5 hover:bg-white/10 transition-colors p-4 rounded-2xl border border-white/10">
+                <div className="text-xs text-slate-400 mb-1 font-medium">רווח הון ברוטו (לפני מס)</div>
+                <div className={`text-xl font-bold ${analytics.totalPnLUSD >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} dir="ltr">
+                  {analytics.totalPnLUSD >= 0 ? '+' : ''}${analytics.totalPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-xs text-slate-400 mt-0.5" dir="ltr">
+                  ₪{analytics.totalPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })} | תשואה: {analytics.totalReturnPct >= 0 ? '+' : ''}{analytics.totalReturnPct.toFixed(2)}%
+                </div>
+              </div>
+
+              {/* Tax Deduction 25% */}
+              <div className="bg-white/5 hover:bg-white/10 transition-colors p-4 rounded-2xl border border-rose-500/20">
+                <div className="text-xs text-rose-300/80 mb-1 font-medium">ניכוי מס רווחי הון (25%)</div>
+                <div className="text-xl font-bold text-rose-400" dir="ltr">
+                  -${analytics.totalTaxUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-xs text-rose-300/70 mt-0.5" dir="ltr">
+                  -₪{analytics.totalTaxILS.toLocaleString(undefined, { maximumFractionDigits: 0 })} (הערכת מס למימוש)
+                </div>
+              </div>
+
+              {/* Net Profit to Pocket */}
+              <div className="bg-emerald-950/40 hover:bg-emerald-950/60 transition-colors p-4 rounded-2xl border border-emerald-500/30">
+                <div className="text-xs text-emerald-300 mb-1 font-medium">רווח הון נקי ביד (נטו)</div>
+                <div className="text-xl font-bold text-emerald-400" dir="ltr">
+                  {analytics.totalNetPnLUSD >= 0 ? '+' : ''}${analytics.totalNetPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-xs text-emerald-300/80 mt-0.5" dir="ltr">
+                  +₪{analytics.totalNetPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })} | תשואה נטו: +{analytics.totalNetReturnPct.toFixed(2)}%
+                </div>
+              </div>
+
+              {/* Net Cashout Portfolio Value */}
+              <div className="bg-indigo-900/40 hover:bg-indigo-900/60 transition-colors p-4 rounded-2xl border border-indigo-400/30">
+                <div className="text-xs text-indigo-300 mb-1 font-medium">שווי משיכה נטו לבנק (Cash Out)</div>
+                <div className="text-xl font-bold text-white" dir="ltr">
+                  ${analytics.netPortfolioTotalUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </div>
+                <div className="text-xs text-indigo-300/80 mt-0.5" dir="ltr">
+                  ₪{analytics.netPortfolioTotalILS.toLocaleString(undefined, { maximumFractionDigits: 0 })} (לאחר ניכוי מס מלא)
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bottom Income Tip */}
+            <div className="pt-2 text-xs text-indigo-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                💡 <strong>תוספת חודשית נטו למשק הבית:</strong> התיק מייצר בממוצע <span className="text-emerald-300 font-bold">₪{Math.round(analytics.ytdNetMonthlyAvgILS).toLocaleString()} נקי בכל חודש</span> שנכנס ישירות לתקציב המשפחה (לאחר תשלום ₪{Math.round(analytics.ytdMonthlyAvgILS - analytics.ytdNetMonthlyAvgILS).toLocaleString()} מס חודשי משוער).
+              </div>
+              <div className="text-[11px] text-indigo-300/70 whitespace-nowrap">
+                * החישוב מבוסס על מס נומינלי בשיעור 25% לפי פקודת מס הכנסה בישראל
+              </div>
+            </div>
+
+          </div>
         </section>
 
         {/* ======================================================== */}
@@ -1556,16 +1716,20 @@ function App() {
               {/* Quick Summary Pill Badge */}
               <div className="flex items-center justify-between sm:justify-end gap-3 bg-indigo-50/80 dark:bg-indigo-950/50 px-4 py-2.5 rounded-2xl border border-indigo-100 dark:border-indigo-800/60 shrink-0">
                 <div className="text-right">
-                  <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">ממוצע לתקופה:</div>
+                  <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                    {taxMode === 'GROSS' ? 'ממוצע ברוטו:' : 'ממוצע נטו לכיס:'}
+                  </div>
                   <div className="text-base font-bold text-indigo-600 dark:text-indigo-400" dir="ltr">
-                    +₪{Math.round(analytics.activePeriodMonthlyAvgILS).toLocaleString()} <span className="text-[10px] font-normal text-slate-400">/חודש</span>
+                    +₪{Math.round(taxMode === 'GROSS' ? analytics.activePeriodMonthlyAvgILS : analytics.activePeriodNetMonthlyAvgILS).toLocaleString()} <span className="text-[10px] font-normal text-slate-400">/חודש</span>
                   </div>
                 </div>
                 <div className="h-7 w-px bg-indigo-200 dark:bg-indigo-800/60" />
                 <div className="text-right">
-                  <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">סה"כ רווח:</div>
-                  <div className={`text-base font-bold ${analytics.activePeriodTotalGainILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                    {analytics.activePeriodTotalGainILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodTotalGainILS).toLocaleString()}
+                  <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
+                    {taxMode === 'GROSS' ? 'סה"כ רווח ברוטו:' : 'סה"כ רווח נטו:'}
+                  </div>
+                  <div className={`text-base font-bold ${(taxMode === 'GROSS' ? analytics.activePeriodTotalGainILS : analytics.activePeriodNetTotalGainILS) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                    {(taxMode === 'GROSS' ? analytics.activePeriodTotalGainILS : analytics.activePeriodNetTotalGainILS) >= 0 ? '+' : ''}₪{Math.round(taxMode === 'GROSS' ? analytics.activePeriodTotalGainILS : analytics.activePeriodNetTotalGainILS).toLocaleString()}
                   </div>
                 </div>
               </div>
@@ -1578,12 +1742,12 @@ function App() {
             
             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">תוספת חודשית ממוצעת לתקופה</span>
-                <span className={`text-xl font-bold ${analytics.activePeriodMonthlyAvgILS >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                  {analytics.activePeriodMonthlyAvgILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodMonthlyAvgILS).toLocaleString()}
+                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">תוספת חודשית נטו (מס 25%)</span>
+                <span className={`text-xl font-bold ${analytics.activePeriodNetMonthlyAvgILS >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                  {analytics.activePeriodNetMonthlyAvgILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodNetMonthlyAvgILS).toLocaleString()}
                 </span>
                 <span className="text-[11px] text-slate-400 block" dir="ltr">
-                  ({analytics.activePeriodMonthlyAvgUSD >= 0 ? '+' : ''}${Math.round(analytics.activePeriodMonthlyAvgUSD).toLocaleString()}/mo)
+                  (ברוטו: ₪{Math.round(analytics.activePeriodMonthlyAvgILS).toLocaleString()}/חודש)
                 </span>
               </div>
               <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/60 rounded-xl text-indigo-600 dark:text-indigo-300">
@@ -1593,12 +1757,12 @@ function App() {
 
             <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 flex items-center justify-between">
               <div>
-                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">סה"כ רווח שנצבר ({analytics.activePeriodMonthsCount} חודשים)</span>
-                <span className={`text-xl font-bold ${analytics.activePeriodTotalGainILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                  {analytics.activePeriodTotalGainILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodTotalGainILS).toLocaleString()}
+                <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">רווח נקי שנצבר ({analytics.activePeriodMonthsCount} חודשים)</span>
+                <span className={`text-xl font-bold ${analytics.activePeriodNetTotalGainILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                  {analytics.activePeriodNetTotalGainILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodNetTotalGainILS).toLocaleString()}
                 </span>
-                <span className="text-[11px] text-slate-400 block" dir="ltr">
-                  ({analytics.activePeriodTotalGainUSD >= 0 ? '+' : ''}${Math.round(analytics.activePeriodTotalGainUSD).toLocaleString()})
+                <span className="text-[11px] text-rose-500 dark:text-rose-400 block font-medium" dir="ltr">
+                  (מס: -₪{Math.round(analytics.activePeriodTaxILS).toLocaleString()})
                 </span>
               </div>
               <div className="p-2.5 bg-emerald-100 dark:bg-emerald-900/60 rounded-xl text-emerald-600 dark:text-emerald-300">
@@ -1613,7 +1777,7 @@ function App() {
                   {analytics.bestMonthYTD ? `${analytics.bestMonthYTD.monthName} ${analytics.bestMonthYTD.year}` : '–'}
                 </span>
                 <span className="text-[11px] text-emerald-600 dark:text-emerald-400 block font-semibold" dir="ltr">
-                  +₪{Math.round(analytics.bestMonthYTD?.monthGainILS || 0).toLocaleString()} (+${Math.round(analytics.bestMonthYTD?.monthGainUSD || 0).toLocaleString()})
+                  נטו: +₪{Math.round(analytics.bestMonthYTD?.monthNetGainILS || 0).toLocaleString()} (ברוטו: +₪{Math.round(analytics.bestMonthYTD?.monthGainILS || 0).toLocaleString()})
                 </span>
               </div>
               <div className="p-2.5 bg-amber-100 dark:bg-amber-900/60 rounded-xl text-amber-600 dark:text-amber-300">
@@ -1673,15 +1837,22 @@ function App() {
                   </div>
 
                   {/* Monthly Added Gain / Loss */}
-                  <div className="space-y-0.5">
-                    <div className="text-xs text-slate-500 dark:text-slate-400">
-                      תוספת להכנסה בחודש זה:
+                  <div className="space-y-1">
+                    <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                      <span>תוספת נטו (מס 25%):</span>
+                      <span className="text-[10px] font-medium text-slate-400">
+                        {month.isPositive ? `מס: -₪${Math.round(month.monthTaxILS).toLocaleString()}` : 'ללא מס'}
+                      </span>
                     </div>
                     <div className={`text-xl font-extrabold tracking-tight ${month.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                      {month.isPositive ? '+' : '-'}₪{Math.abs(Math.round(month.monthGainILS)).toLocaleString()}
+                      {month.isPositive ? '+' : '-'}₪{Math.abs(Math.round(taxMode === 'GROSS' ? month.monthGainILS : month.monthNetGainILS)).toLocaleString()}
                       <span className="text-xs font-medium text-slate-400 ml-1.5">
-                        ({month.isPositive ? '+' : '-'}${Math.abs(Math.round(month.monthGainUSD)).toLocaleString()})
+                        ({month.isPositive ? '+' : '-'}${Math.abs(Math.round(taxMode === 'GROSS' ? month.monthGainUSD : month.monthNetGainUSD)).toLocaleString()})
                       </span>
+                    </div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between" dir="ltr">
+                      <span>ברוטו: {month.isPositive ? '+' : '-'}₪{Math.abs(Math.round(month.monthGainILS)).toLocaleString()}</span>
+                      <span>נטו: {month.isPositive ? '+' : '-'}₪{Math.abs(Math.round(month.monthNetGainILS)).toLocaleString()}</span>
                     </div>
                   </div>
 
@@ -1698,15 +1869,15 @@ function App() {
                   {/* Cumulative and Average Footnote in Card */}
                   <div className="pt-2.5 border-t border-slate-200/80 dark:border-slate-700/60 space-y-1 text-xs">
                     <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
-                      <span>מצטבר בתקופה:</span>
-                      <span className={`font-semibold ${month.cumulativeYTDILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                        {month.cumulativeYTDILS >= 0 ? '+' : ''}₪{Math.round(month.cumulativeYTDILS).toLocaleString()}
+                      <span>מצטבר נטו לתקופה:</span>
+                      <span className={`font-semibold ${month.cumulativeNetYTDILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                        {month.cumulativeNetYTDILS >= 0 ? '+' : ''}₪{Math.round(month.cumulativeNetYTDILS).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
-                      <span>ממוצע עד חודש זה:</span>
-                      <span className={`font-bold ${month.runningMonthlyAvgILS >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-500'}`} dir="ltr">
-                        {month.runningMonthlyAvgILS >= 0 ? '+' : ''}₪{Math.round(month.runningMonthlyAvgILS).toLocaleString()}/חודש
+                      <span>ממוצע נטו עד חודש זה:</span>
+                      <span className={`font-bold ${month.runningNetMonthlyAvgILS >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-500'}`} dir="ltr">
+                        {month.runningNetMonthlyAvgILS >= 0 ? '+' : ''}₪{Math.round(month.runningNetMonthlyAvgILS).toLocaleString()}/חודש
                       </span>
                     </div>
                   </div>
@@ -1722,7 +1893,7 @@ function App() {
               <Coins size={16} />
             </div>
             <div className="leading-relaxed">
-              <strong>הסבר חישוב תוספת להכנסה חודשית למשק הבית:</strong> עבור <strong>{analytics.activePeriodSubtitle}</strong>, תיק ההשקעות ייצר רווח הון מצטבר של <span className={`font-bold ${analytics.activePeriodTotalGainILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{analytics.activePeriodTotalGainILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodTotalGainILS).toLocaleString()}</span> ({analytics.activePeriodTotalGainUSD >= 0 ? '+' : ''}${Math.round(analytics.activePeriodTotalGainUSD).toLocaleString()}). בחלוקה ל-<strong>{analytics.activePeriodMonthsCount} חודשים קלנדריים</strong>, התיק הוסיף בממוצע <span className="font-bold text-indigo-600 dark:text-indigo-400">₪{Math.round(analytics.activePeriodMonthlyAvgILS).toLocaleString()} בכל חודש</span> כהכנסה פסיבית נטו לתקציב משק הבית.
+              <strong>הסבר חישוב תוספת להכנסה חודשית נטו למשק הבית:</strong> עבור <strong>{analytics.activePeriodSubtitle}</strong>, תיק ההשקעות ייצר רווח הון ברוטו של <span className={`font-bold ${analytics.activePeriodTotalGainILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{analytics.activePeriodTotalGainILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodTotalGainILS).toLocaleString()}</span>. לאחר ניכוי <strong>25% מס רווחי הון בישראל (₪{Math.round(analytics.activePeriodTaxILS).toLocaleString()})</strong>, נותר רווח נקי של <span className="font-bold text-emerald-600 dark:text-emerald-400">₪{Math.round(analytics.activePeriodNetTotalGainILS).toLocaleString()}</span>. בחלוקה ל-<strong>{analytics.activePeriodMonthsCount} חודשים</strong>, התיק מוסיף בממוצע <span className="font-bold text-indigo-600 dark:text-indigo-400">₪{Math.round(analytics.activePeriodNetMonthlyAvgILS).toLocaleString()} נטו בכל חודש</span> ישירות לחשבון הבנק.
             </div>
           </div>
 
@@ -1918,7 +2089,7 @@ function App() {
                     שווי שוק כולל <SortIcon columnKey="valueUSD" />
                   </th>
                   <th className="py-3.5 px-4 text-start cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => handleSort('pnlUSD')}>
-                    רווח/הפסד (P&L) <SortIcon columnKey="pnlUSD" />
+                    רווח/הפסד {taxMode === 'BOTH' ? '(נטו וברוטו)' : taxMode === 'GROSS' ? '(ברוטו)' : '(נטו מס 25%)'} <SortIcon columnKey="pnlUSD" />
                   </th>
                   <th className="py-3.5 px-5 text-end cursor-pointer hover:text-indigo-600 transition-colors" onClick={() => handleSort('returnPct')}>
                     תשואה כוללת <SortIcon columnKey="returnPct" />
@@ -1928,6 +2099,9 @@ function App() {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 text-sm">
                 {filteredHoldings.map((asset, i) => {
                   const isPositive = asset.returnPct >= 0;
+                  const displayPnLUSD = taxMode === 'GROSS' ? asset.pnlUSD : asset.pnlNetUSD;
+                  const displayPnLILS = taxMode === 'GROSS' ? asset.pnlILS : asset.pnlNetILS;
+
                   return (
                     <tr key={asset.ticker} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors group">
                       
@@ -1984,27 +2158,48 @@ function App() {
                         {formatMoney(asset.valueUSD, asset.valueILS)}
                       </td>
 
-                      {/* P&L */}
+                      {/* P&L with Israeli Tax 25% breakdown */}
                       <td className="py-4 px-4">
                         <div className="space-y-0.5" dir="ltr">
                           <div className={`font-bold ${isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-                            {isPositive ? '+' : '-'}${Math.abs(asset.pnlUSD).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            {isPositive ? '+' : '-'}${Math.abs(displayPnLUSD).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                            <span className="text-[11px] font-semibold text-slate-400 ml-1.5">
+                              ({isPositive ? '+' : '-'}₪{Math.abs(displayPnLILS).toLocaleString(undefined, { maximumFractionDigits: 0 })})
+                            </span>
                           </div>
-                          <div className="text-xs text-slate-500 dark:text-slate-400">
-                            {isPositive ? '+' : '-'}₪{Math.abs(asset.pnlILS).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                          <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-2">
+                            {isPositive ? (
+                              <>
+                                <span>מס: -${asset.taxUSD.toFixed(1)}</span>
+                                <span>•</span>
+                                <span>ברוטו: +${asset.pnlUSD.toFixed(1)}</span>
+                              </>
+                            ) : (
+                              <span>הפסד ללא מס</span>
+                            )}
                           </div>
                         </div>
                       </td>
 
-                      {/* Return % Badge */}
+                      {/* Return % Badge (Net and Gross) */}
                       <td className="py-4 px-5 text-end" dir="ltr">
-                        <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold ${
-                          isPositive
-                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50'
-                            : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50'
-                        }`}>
-                          {isPositive ? '+' : ''}{asset.returnPct.toFixed(2)}%
-                        </span>
+                        <div className="flex flex-col items-end gap-0.5">
+                          <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            isPositive
+                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800/50'
+                              : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800/50'
+                          }`}>
+                            {taxMode === 'GROSS'
+                              ? `${isPositive ? '+' : ''}${asset.returnPct.toFixed(2)}%`
+                              : `נטו: ${isPositive ? '+' : ''}${asset.returnNetPct.toFixed(2)}%`
+                            }
+                          </span>
+                          {taxMode !== 'GROSS' && (
+                            <span className="text-[10px] text-slate-400">
+                              ברוטו: {isPositive ? '+' : ''}{asset.returnPct.toFixed(2)}%
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                     </tr>
@@ -2039,7 +2234,6 @@ function App() {
       </footer>
 
     </div>
-    </>
   );
 }
 
