@@ -1,18 +1,18 @@
 # 📈 Stock Tracker & Portfolio Analytics | מעקב תיק השקעות
 
 [![Interactive Web Dashboard](https://img.shields.io/badge/Live_Dashboard-Open_App-4f46e5?style=for-the-badge&logo=google-chrome&logoColor=white)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪180%2C622-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
-[![YTD Monthly Income](https://img.shields.io/badge/Monthly_Income-+₪2%2C287%2Fmo-4338ca?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
-[![Dividends 12M](https://img.shields.io/badge/Dividends_12M-₪831-059669?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Profit](https://img.shields.io/badge/Total_Profit-+40.71%25-16a34a?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
+[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪179%2C611-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
+[![YTD Monthly Income](https://img.shields.io/badge/Monthly_Income-+₪2%2C092%2Fmo-4338ca?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
+[![Dividends 12M](https://img.shields.io/badge/Dividends_12M-₪834-059669?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
+[![Total Profit](https://img.shields.io/badge/Total_Profit-+39.45%25-16a34a?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
 
 > **מערכת ניהול, מעקב וניתוח תיק השקעות בזמן אמת** הכוללת תמיכה כפולה במטבעות ($ / ₪), חישוב מס רווחי הון ישראלי (25%), מעקב תוספת הכנסה חודשית למשק הבית, ויומן דיבידנדים היסטורי מלא מאירועי שוק ההון.
 
 ---
 
 ### 🕒 סטטוס עדכון
-- **מועד עדכון אחרון:** `21/08/2026 21:25`
-- **שער חליפין רציף (USD/ILS כולל מרווח ברוקר):** `₪2.994`
+- **מועד עדכון אחרון:** `24/08/2026 13:57`
+- **שער חליפין רציף (USD/ILS כולל מרווח ברוקר):** `₪3.004`
 
 ---
 
@@ -21,19 +21,19 @@
 ### 📊 שווי תיק ורווחיות (Valuation & Returns)
 | מדד / Metric | ערך בדולר ($) | ערך בשקלים (₪) | הסבר ומשמעות |
 | :--- | :--- | :--- | :--- |
-| **שווי נוכחי כולל (Current Value)** | `$60,322` | `₪180,622` | שווי השוק הנוכחי של כלל הנכסים |
-| **עלות השקעה כוללת (Cost Basis)** | `$42,871` | `₪128,369` | סך הקרן המושקעת המקורית |
-| **רווח/הפסד כולל ברוטו (Total P&L Gross)** | `+$17,451` | `+₪52,253` | **+40.71%** תשואה על הקרן |
-| **מס רווחי הון צפוי (Israeli Tax 25%)** | `-$4,731` | `-₪14,165` | מס ריאלי משוער למימוש |
-| **רווח כולל נטו (Total P&L Net)** | `+$12,720` | `+₪38,088` | **+29.67%** נטו לאחר מס |
-| **שינוי יומי (Daily Change)** | `+$549` | `+₪1,644` | **+0.92%** |
+| **שווי נוכחי כולל (Current Value)** | `$59,785` | `₪179,611` | שווי השוק הנוכחי של כלל הנכסים |
+| **עלות השקעה כוללת (Cost Basis)** | `$42,871` | `₪128,798` | סך הקרן המושקעת המקורית |
+| **רווח/הפסד כולל ברוטו (Total P&L Gross)** | `+$16,913` | `+₪50,813` | **+39.45%** תשואה על הקרן |
+| **מס רווחי הון צפוי (Israeli Tax 25%)** | `-$4,642` | `-₪13,947` | מס ריאלי משוער למימוש |
+| **רווח כולל נטו (Total P&L Net)** | `+$12,271` | `+₪36,866` | **+28.62%** נטו לאחר מס |
+| **שינוי יומי (Daily Change)** | `$-537` | `₪-1,614` | **-0.89%** |
 
 ### 💵 תזרים והכנסות שוטפות (Cash Flow & Income Generation)
 | סוג הכנסה / Metric | ערך ברוטו | ערך נטו (לאחר 25% מס) | תיאור |
 | :--- | :--- | :--- | :--- |
-| **תוספת חודשית ממוצעת (YTD Monthly)** | `+₪2,287/חודש` (+$764) | `+₪1,715/חודש` (+$573) | תרומת התיק השנתית כהכנסה פאסיבית חודשית |
-| **דיבידנדים בפועל ב-12 חודשים (12M)** | `₪831` ($278) | `₪623` ($208) | **0.46%** תשואת דיבידנד שנתית לתיק |
-| **סך דיבידנדים מצטבר היסטורי (All-Time)** | `₪2,469` ($825) | `₪1,852` ($618) | סה"כ 67 אירועי חלוקה רשמיים שהתקבלו |
+| **תוספת חודשית ממוצעת (YTD Monthly)** | `+₪2,092/חודש` (+$696) | `+₪1,569/חודש` (+$522) | תרומת התיק השנתית כהכנסה פאסיבית חודשית |
+| **דיבידנדים בפועל ב-12 חודשים (12M)** | `₪834` ($278) | `₪625` ($208) | **0.46%** תשואת דיבידנד שנתית לתיק |
+| **סך דיבידנדים מצטבר היסטורי (All-Time)** | `₪2,477` ($825) | `₪1,858` ($618) | סה"כ 67 אירועי חלוקה רשמיים שהתקבלו |
 
 ---
 
@@ -41,12 +41,12 @@
 
 | סימול ונכס | יחידות | שער ממוצע | שער נוכחי | שווי שוק | רווח/הפסד (ברוטו) | רווח נטו (25% מס) | משקל בתיק | דיבידנד (12M) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $187.99 | $344.82 | $16,551 <br><sub>₪49,560</sub> | 🟢 +83.42% <br><sub>₪22,541</sub> | ₪16,905 | 27.4% | $40.8 ($30.6 נטו) |
-| **ASML** <br><sub>ASML Holding</sub> | 4 | $934.51 | $1763.76 | $7,055 <br><sub>₪21,125</sub> | 🟢 +88.74% <br><sub>₪9,932</sub> | ₪7,449 | 11.7% | $36.2 ($27.2 נטו) |
-| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $126.08 | $165.11 | $330 <br><sub>₪989</sub> | 🟢 +30.96% <br><sub>₪234</sub> | ₪175 | 0.5% | $8.2 ($6.2 נטו) |
-| **NVDA** <br><sub>NVIDIA Corp</sub> | 57 | $148.62 | $214.72 | $12,239 <br><sub>₪36,647</sub> | 🟢 +44.48% <br><sub>₪11,282</sub> | ₪8,461 | 20.3% | $16.0 ($12.0 נטו) |
-| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $436.45 | $362.86 | $7,257 <br><sub>₪21,730</sub> | 🔴 -16.86% <br><sub>₪-4,407</sub> | ₪-4,407 | 12.0% | — |
-| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $527.38 | $703.71 | $16,889 <br><sub>₪50,571</sub> | 🟢 +33.44% <br><sub>₪12,672</sub> | ₪9,504 | 28.0% | $176.3 ($132.2 נטו) |
+| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $187.99 | $347.18 | $16,665 <br><sub>₪50,066</sub> | 🟢 +84.68% <br><sub>₪22,956</sub> | ₪17,217 | 27.9% | $40.8 ($30.6 נטו) |
+| **ASML** <br><sub>ASML Holding</sub> | 4 | $934.51 | $1733.05 | $6,932 <br><sub>₪20,826</sub> | 🟢 +85.45% <br><sub>₪9,596</sub> | ₪7,197 | 11.6% | $36.2 ($27.2 נטו) |
+| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $126.08 | $164.69 | $329 <br><sub>₪990</sub> | 🟢 +30.62% <br><sub>₪232</sub> | ₪174 | 0.6% | $8.2 ($6.2 נטו) |
+| **NVDA** <br><sub>NVIDIA Corp</sub> | 57 | $148.62 | $209.50 | $11,942 <br><sub>₪35,876</sub> | 🟢 +40.96% <br><sub>₪10,425</sub> | ₪7,819 | 20.0% | $16.0 ($12.0 נטו) |
+| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $436.45 | $353.68 | $7,074 <br><sub>₪21,251</sub> | 🔴 -18.96% <br><sub>₪-4,973</sub> | ₪-4,973 | 11.8% | — |
+| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $527.38 | $701.80 | $16,843 <br><sub>₪50,602</sub> | 🟢 +33.07% <br><sub>₪12,576</sub> | ₪9,432 | 28.2% | $176.3 ($132.2 נטו) |
 
 ---
 
