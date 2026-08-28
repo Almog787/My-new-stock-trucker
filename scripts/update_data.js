@@ -471,78 +471,42 @@ async function fetchAndUpdatePrices() {
       const now = new Date();
       const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       
-      // Generate README content with logical categories & clean formatting
+      // Generate README content with logical categories & clean formatting (Shortened)
       const readmeContent = `# 📈 Stock Tracker & Portfolio Analytics | מעקב תיק השקעות
 
 [![Interactive Web Dashboard](https://img.shields.io/badge/Live_Dashboard-Open_App-4f46e5?style=for-the-badge&logo=google-chrome&logoColor=white)](https://almog787.github.io/My-new-stock-trucker/)
 [![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪${Math.round(totalCurrentILS).toLocaleString('en-US').replace(/,/g, '%2C')}-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
 [![YTD Monthly Income](https://img.shields.io/badge/Monthly_Income-+₪${Math.round(ytdMonthlyAvgILS).toLocaleString('en-US').replace(/,/g, '%2C')}%2Fmo-4338ca?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
-[![Dividends 12M](https://img.shields.io/badge/Dividends_12M-₪${Math.round(l12mReceivedGrossUSD * brokerRate).toLocaleString('en-US').replace(/,/g, '%2C')}-059669?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
 [![Total Profit](https://img.shields.io/badge/Total_Profit-${formatPercent(totalPnLPercent).replace('%', '%25')}-${totalPnLPercent >= 0 ? '16a34a' : 'dc2626'}?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
 
-> **מערכת ניהול, מעקב וניתוח תיק השקעות בזמן אמת** הכוללת תמיכה כפולה במטבעות ($ / ₪), חישוב מס רווחי הון ישראלי (25%), מעקב תוספת הכנסה חודשית למשק הבית, ויומן דיבידנדים היסטורי מלא מאירועי שוק ההון.
+> **מערכת חכמה לניהול ומעקב תיק השקעות בזמן אמת.** כוללת חישובי מס רווחי הון (25%), המרות מט"ח ויומן דיבידנדים היסטורי.
+> 👉 **[למעבר לדשבורד המלא והאינטראקטיבי לחץ כאן](https://almog787.github.io/My-new-stock-trucker/)**
 
 ---
 
-### 🕒 סטטוס עדכון
-- **מועד עדכון אחרון:** \`${formattedDate}\`
-- **שער חליפין רציף (USD/ILS כולל מרווח ברוקר):** \`₪${usdIlsRate.toFixed(3)}\`
+## 📊 תמונת מצב (Executive Snapshot)
+
+* **שווי תיק נוכחי:** \`₪${Math.round(totalCurrentILS).toLocaleString('en-US')}\` (\`$${Math.round(totalCurrentUSD).toLocaleString('en-US')}\`)
+* **רווח כולל נטו (לאחר 25% מס):** \`${totalNetPnLILS >= 0 ? '+' : ''}₪${Math.round(totalNetPnLILS).toLocaleString('en-US')}\` (**${formatPercent(totalNetPnLPercent)}**)
+* **שינוי יומי:** \`${dailyPnLILS >= 0 ? '+' : ''}₪${Math.round(dailyPnLILS).toLocaleString('en-US')}\` (**${formatPercent(dailyChangePercent)}**)
+* **הכנסה פאסיבית חודשית ממוצעת (YTD):** \`+₪${Math.round(ytdNetMonthlyAvgILS).toLocaleString('en-US')}/חודש\` נטו
+* **סך דיבידנדים (12M):** \`₪${Math.round(l12mReceivedGrossUSD * 0.75 * brokerRate).toLocaleString('en-US')}\` נטו
+* **מועד עדכון אחרון:** \`${formattedDate}\` (שער רציף: \`₪${usdIlsRate.toFixed(3)}\`)
 
 ---
 
-## 💎 1. מדדים מרכזיים ושווי תיק (Executive KPI Dashboard)
-
-### 📊 שווי תיק ורווחיות (Valuation & Returns)
-| מדד / Metric | ערך בדולר ($) | ערך בשקלים (₪) | הסבר ומשמעות |
-| :--- | :--- | :--- | :--- |
-| **שווי נוכחי כולל (Current Value)** | \`$${Math.round(totalCurrentUSD).toLocaleString('en-US')}\` | \`₪${Math.round(totalCurrentILS).toLocaleString('en-US')}\` | שווי השוק הנוכחי של כלל הנכסים |
-| **עלות השקעה כוללת (Cost Basis)** | \`$${Math.round(totalInvestedUSD).toLocaleString('en-US')}\` | \`₪${Math.round(totalInvestedILS).toLocaleString('en-US')}\` | סך הקרן המושקעת המקורית |
-| **רווח/הפסד כולל ברוטו (Total P&L Gross)** | \`${totalPnLUSD >= 0 ? '+' : ''}$${Math.round(totalPnLUSD).toLocaleString('en-US')}\` | \`${totalPnLILS >= 0 ? '+' : ''}₪${Math.round(totalPnLILS).toLocaleString('en-US')}\` | **${formatPercent(totalPnLPercent)}** תשואה על הקרן |
-| **מס רווחי הון צפוי (Israeli Tax 25%)** | \`-$${Math.round(totalUnrealizedTaxUSD).toLocaleString('en-US')}\` | \`-₪${Math.round(totalUnrealizedTaxILS).toLocaleString('en-US')}\` | מס ריאלי משוער למימוש |
-| **רווח כולל נטו (Total P&L Net)** | \`${totalNetPnLUSD >= 0 ? '+' : ''}$${Math.round(totalNetPnLUSD).toLocaleString('en-US')}\` | \`${totalNetPnLILS >= 0 ? '+' : ''}₪${Math.round(totalNetPnLILS).toLocaleString('en-US')}\` | **${formatPercent(totalNetPnLPercent)}** נטו לאחר מס |
-| **שינוי יומי (Daily Change)** | \`${dailyPnLUSD >= 0 ? '+' : ''}$${Math.round(dailyPnLUSD).toLocaleString('en-US')}\` | \`${dailyPnLILS >= 0 ? '+' : ''}₪${Math.round(dailyPnLILS).toLocaleString('en-US')}\` | **${formatPercent(dailyChangePercent)}** |
-
-### 💵 תזרים והכנסות שוטפות (Cash Flow & Income Generation)
-| סוג הכנסה / Metric | ערך ברוטו | ערך נטו (לאחר 25% מס) | תיאור |
-| :--- | :--- | :--- | :--- |
-| **תוספת חודשית ממוצעת (YTD Monthly)** | \`+₪${Math.round(ytdMonthlyAvgILS).toLocaleString('en-US')}/חודש\` (+$${Math.round(ytdMonthlyAvgUSD).toLocaleString('en-US')}) | \`+₪${Math.round(ytdNetMonthlyAvgILS).toLocaleString('en-US')}/חודש\` (+$${Math.round(ytdNetMonthlyAvgUSD).toLocaleString('en-US')}) | תרומת התיק השנתית כהכנסה פאסיבית חודשית |
-| **דיבידנדים בפועל ב-12 חודשים (12M)** | \`₪${Math.round(l12mReceivedGrossUSD * brokerRate).toLocaleString('en-US')}\` ($${Math.round(l12mReceivedGrossUSD).toLocaleString('en-US')}) | \`₪${Math.round(l12mReceivedGrossUSD * 0.75 * brokerRate).toLocaleString('en-US')}\` ($${Math.round(l12mReceivedGrossUSD * 0.75).toLocaleString('en-US')}) | **${((l12mReceivedGrossUSD / totalCurrentUSD) * 100).toFixed(2)}%** תשואת דיבידנד שנתית לתיק |
-| **סך דיבידנדים מצטבר היסטורי (All-Time)** | \`₪${Math.round(totalReceivedGrossUSD * brokerRate).toLocaleString('en-US')}\` ($${Math.round(totalReceivedGrossUSD).toLocaleString('en-US')}) | \`₪${Math.round(totalReceivedGrossUSD * 0.75 * brokerRate).toLocaleString('en-US')}\` ($${Math.round(totalReceivedGrossUSD * 0.75).toLocaleString('en-US')}) | סה"כ ${allDividendEvents.length} אירועי חלוקה רשמיים שהתקבלו |
-
----
-
-## 📜 2. פירוט החזקות בתיק (Holdings Matrix)
-
-| סימול ונכס | יחידות | שער ממוצע | שער נוכחי | שווי שוק | רווח/הפסד (ברוטו) | רווח נטו (25% מס) | משקל בתיק | דיבידנד (12M) |
-| :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-${enhancedHoldingsRows.join('\n')}
-
----
-
-## 📈 3. גרפים ומגמות (Visual Analytics)
+## 📈 גרפים ומגמות (Visual Analytics)
 
 <div align="center">
 
-### 📊 ביצועי תיק ב-30 הימים האחרונים (Portfolio Performance)
-<img src="data_hub/portfolio_performance.png" alt="Portfolio Performance (30 Days)" width="900" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);" />
-
-<br/><br/>
-
-### 🥧 התפלגות והקצאת נכסים בתיק (Asset Allocation)
-<img src="data_hub/asset_allocation.png" alt="Asset Allocation" width="900" style="max-width: 100%; height: auto; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08);" />
+<img src="data_hub/portfolio_performance.png" alt="Portfolio Performance (30 Days)" width="48%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 1%;" />
+<img src="data_hub/asset_allocation.png" alt="Asset Allocation" width="48%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 1%;" />
 
 </div>
 
----
+<br/>
 
-## 🚀 4. תכונות המערכת האינטראקטיבית (Web Features)
-
-- 🇮🇱 **התאמת מס רווחי הון ישראלי (25%):** מעבר בלחיצת כפתור בין מצב **משולב (נטו + ברוטו)**, **נטו בלבד** או **ברוטו בלבד**.
-- 💵 **יומן דיבידנדים היסטורי אינטראקטיבי:** צפייה בכל 67+ תשלומי הדיבידנדים שהתקבלו בפועל עם סינון לפי מניה, שער הדולר וניכוי מס 25%.
-- 📅 **לוח שנה ופילוח חודשי (Calendar Monthly Breakdown):** מעקב רווחיות לפי חודש קלנדרי (YTD / שנתי / 12 חודשים) והצגת הכנסה ממוצעת חודשית.
-- 🎯 **השוואת ביצועים ו-Alpha מול מדד S&P 500 (VOO Benchmark):** חישוב בזמן אמת של התשואה העודפת לעומת השוק.
-- ⚡ **אוטומציה מלאה דרך GitHub Actions:** עדכון יומי אוטומטי של מחירים, דיבידנדים, גרפים ודוחות ללא צורך בהתערבות ידנית.
-- 🌓 **עיצוב מודרני מותאם מובייל עם מצב כהה/בהיר (Dark/Light Mode).**
+> 💡 *לפירוט החזקות מלא, טבלאות היסטוריות וניתוחי עומק, יש להיכנס ל-[דשבורד המערכת](https://almog787.github.io/My-new-stock-trucker/).*
 
 ---
 📂 *Portfolio Tracker Engine & Analytics by Almog787*

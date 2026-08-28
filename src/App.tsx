@@ -245,6 +245,11 @@ function App() {
     };
 
     loadData();
+
+    // רענון אוטומטי של הנתונים כל שעה (3600000 מילישניות)
+    // כך שאם המשתמש משאיר את החלונית פתוחה, היא תמשוך את העדכונים מה-GitHub Actions
+    const intervalId = setInterval(loadData, 3600000);
+    return () => clearInterval(intervalId);
   }, []);
 
   // Main Calculations Engine
