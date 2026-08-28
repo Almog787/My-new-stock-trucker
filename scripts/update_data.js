@@ -273,25 +273,30 @@ async function fetchAndUpdatePrices() {
         if (quote && quote.symbol && quote.regularMarketPrice) {
           const ticker = quote.symbol;
           const currentPrice = quote.regularMarketPrice;
+          const changePercent = quote.regularMarketChangePercent || 0;
           const shares = portfolio[ticker].amount;
           const avgPrice = portfolio[ticker].avg_price;
           const costBasisUSD = shares * avgPrice;
           const currentValueUSD = shares * currentPrice;
-          const pnlUSD = currentValueUSD - costBasisUSD;
-          const pnlILS = pnlUSD * brokerRate;
-          const pnlPercent = ((currentPrice / avgPrice) - 1) * 100;
-          const taxILS = pnlILS > 0 ? pnlILS * 0.25 : 0;
-          const netPnLILS = pnlILS - taxILS;
-          const weightPct = totalCurrentUSD > 0 ? (currentValueUSD / totalCurrentUSD) * 100 : 0;
-          const divInfo = tickerDividendSummaries[ticker];
-          const div12mUSD = divInfo?.l12mGrossUSD || 0;
-          const div12mNetUSD = divInfo?.l12mNetUSD || 0;
+          const currentValueILS = currentValueUSD * brokerRate;
+          
+          // Daily Change calculation
+          const previousValueUSD = currentValueUSD / (1 + changePercent / 100);
+          const dailyChangeUSD = currentValueUSD - previousValueUSD;
+          const dailyChangeILS = dailyChangeUSD * brokerRate;
+          const dailyBadge = changePercent >= 0 ? `🟢 +${changePercent.toFixed(2)}%` : `🔴 ${changePercent.toFixed(2)}%`;
+          const dailyAmountStr = `${dailyChangeILS >= 0 ? '+' : ''}₪${Math.round(dailyChangeILS).toLocaleString('en-US')}`;
 
-          const pnlBadge = pnlPercent >= 0 ? `🟢 +${pnlPercent.toFixed(2)}%` : `🔴 ${pnlPercent.toFixed(2)}%`;
-          const divBadge = div12mUSD > 0 ? `$${div12mUSD.toFixed(1)} ($${div12mNetUSD.toFixed(1)} נטו)` : '—';
+          // Inception / Total Change calculation
+          const totalReturnUSD = currentValueUSD - costBasisUSD;
+          const totalReturnILS = totalReturnUSD * brokerRate;
+          const totalReturnPercent = ((currentPrice / avgPrice) - 1) * 100;
+          const totalBadge = totalReturnPercent >= 0 ? `🟢 +${totalReturnPercent.toFixed(2)}%` : `🔴 ${totalReturnPercent.toFixed(2)}%`;
+          const totalAmountStr = `${totalReturnILS >= 0 ? '+' : ''}₪${Math.round(totalReturnILS).toLocaleString('en-US')}`;
+
           const assetName = ASSET_META[ticker]?.name || ticker;
 
-          enhancedHoldingsRows.push(`| **${ticker}** <br><sub>${assetName}</sub> | ${shares} | $${avgPrice.toFixed(2)} | $${currentPrice.toFixed(2)} | $${Math.round(currentValueUSD).toLocaleString()} <br><sub>₪${Math.round(currentValueUSD * brokerRate).toLocaleString()}</sub> | ${pnlBadge} <br><sub>₪${Math.round(pnlILS).toLocaleString()}</sub> | ₪${Math.round(netPnLILS).toLocaleString()} | ${weightPct.toFixed(1)}% | ${divBadge} |`);
+          enhancedHoldingsRows.push(`| **${ticker}** <br><sub>${assetName}</sub> | ${shares} | $${currentPrice.toFixed(2)} | ₪${Math.round(currentValueILS).toLocaleString('en-US')} <br><sub>($${Math.round(currentValueUSD).toLocaleString('en-US')})</sub> | ${dailyBadge} <br><sub>${dailyAmountStr}</sub> | ${totalBadge} <br><sub>${totalAmountStr}</sub> |`);
         }
       });
 
@@ -492,6 +497,14 @@ async function fetchAndUpdatePrices() {
 * **הכנסה פאסיבית חודשית ממוצעת (YTD):** \`+₪${Math.round(ytdNetMonthlyAvgILS).toLocaleString('en-US')}/חודש\` נטו
 * **סך דיבידנדים (12M):** \`₪${Math.round(l12mReceivedGrossUSD * 0.75 * brokerRate).toLocaleString('en-US')}\` נטו
 * **מועד עדכון אחרון:** \`${formattedDate}\` (שער רציף: \`₪${usdIlsRate.toFixed(3)}\`)
+
+---
+
+## 📋 ביצועי מניות והחזקות (Holdings Performance)
+
+| נכס (Asset) | כמות | שער נוכחי | שווי שוק | שינוי יומי (Daily Change) | שינוי מהכניסה לתיק (Total Return) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+${enhancedHoldingsRows.join('\n')}
 
 ---
 
