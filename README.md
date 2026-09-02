@@ -1,9 +1,9 @@
 # 📈 Stock Tracker & Portfolio Analytics | מעקב תיק השקעות
 
 [![Interactive Web Dashboard](https://img.shields.io/badge/Live_Dashboard-Open_App-4f46e5?style=for-the-badge&logo=google-chrome&logoColor=white)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪180%2C769-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
-[![YTD Monthly Income](https://img.shields.io/badge/Monthly_Income-+₪1%2C752%2Fmo-4338ca?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Profit](https://img.shields.io/badge/Total_Profit-+38.54%25-16a34a?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
+[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪181%2C575-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
+[![YTD Monthly Income](https://img.shields.io/badge/Monthly_Income-+₪1%2C925%2Fmo-4338ca?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
+[![Total Profit](https://img.shields.io/badge/Total_Profit-+39.79%25-16a34a?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
 
 > **מערכת חכמה לניהול ומעקב תיק השקעות בזמן אמת.** כוללת חישובי מס רווחי הון (25%), המרות מט"ח ויומן דיבידנדים היסטורי.
 > 👉 **[למעבר לדשבורד המלא והאינטראקטיבי לחץ כאן](https://almog787.github.io/My-new-stock-trucker/)**
@@ -12,12 +12,12 @@
 
 ## 📊 תמונת מצב (Executive Snapshot)
 
-* **שווי תיק נוכחי:** `₪180,769` (`$59,393`)
-* **רווח כולל נטו (לאחר 25% מס):** `+₪36,492` (**+27.97%**)
-* **שינוי יומי:** `₪-2,576` (**-1.41%**)
-* **הכנסה פאסיבית חודשית ממוצעת (YTD):** `+₪1,314/חודש` נטו
-* **סך דיבידנדים (12M):** `₪634` נטו
-* **מועד עדכון אחרון:** `01/09/2026 23:05` (שער רציף: `₪3.044`)
+* **שווי תיק נוכחי:** `₪181,575` (`$59,930`)
+* **רווח כולל נטו (לאחר 25% מס):** `+₪37,497` (**+28.87%**)
+* **שינוי יומי:** `+₪1,626` (**+0.90%**)
+* **הכנסה פאסיבית חודשית ממוצעת (YTD):** `+₪1,443/חודש` נטו
+* **סך דיבידנדים (12M):** `₪631` נטו
+* **מועד עדכון אחרון:** `02/09/2026 15:05` (שער רציף: `₪3.030`)
 
 ---
 
@@ -25,12 +25,12 @@
 
 | נכס (Asset) | כמות | שער נוכחי | שווי שוק | שינוי יומי (Daily Change) | שינוי מהכניסה לתיק (Total Return) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $335.02 | ₪48,944 <br><sub>($16,081)</sub> | 🔴 -1.28% <br><sub>₪-633</sub> | 🟢 +78.21% <br><sub>+₪21,480</sub> |
-| **ASML** <br><sub>ASML Holding</sub> | 4 | $1665.14 | ₪20,272 <br><sub>($6,661)</sub> | 🔴 -1.82% <br><sub>₪-376</sub> | 🟢 +78.18% <br><sub>+₪8,895</sub> |
-| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $164.55 | ₪1,002 <br><sub>($329)</sub> | 🟢 +2.24% <br><sub>+₪22</sub> | 🟢 +30.51% <br><sub>+₪234</sub> |
-| **NVDA** <br><sub>NVIDIA Corp</sub> | 57 | $217.44 | ₪37,723 <br><sub>($12,394)</sub> | 🔴 -1.39% <br><sub>₪-531</sub> | 🟢 +46.31% <br><sub>+₪11,939</sub> |
-| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $356.09 | ₪21,676 <br><sub>($7,122)</sub> | 🔴 -3.22% <br><sub>₪-722</sub> | 🔴 -18.41% <br><sub>₪-4,892</sub> |
-| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $700.28 | ₪51,153 <br><sub>($16,807)</sub> | 🔴 -0.65% <br><sub>₪-337</sub> | 🟢 +32.78% <br><sub>+₪12,630</sub> |
+| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $336.13 | ₪48,884 <br><sub>($16,134)</sub> | 🟢 +0.33% <br><sub>+₪161</sub> | 🟢 +78.80% <br><sub>+₪21,544</sub> |
+| **ASML** <br><sub>ASML Holding</sub> | 4 | $1669.02 | ₪20,227 <br><sub>($6,676)</sub> | 🟢 +0.23% <br><sub>+₪47</sub> | 🟢 +78.60% <br><sub>+₪8,902</sub> |
+| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $163.30 | ₪990 <br><sub>($327)</sub> | 🔴 -0.76% <br><sub>₪-8</sub> | 🟢 +29.52% <br><sub>+₪226</sub> |
+| **NVDA** <br><sub>NVIDIA Corp</sub> | 57 | $225.42 | ₪38,930 <br><sub>($12,849)</sub> | 🟢 +3.67% <br><sub>+₪1,378</sub> | 🟢 +51.68% <br><sub>+₪13,263</sub> |
+| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $352.90 | ₪21,384 <br><sub>($7,058)</sub> | 🔴 -0.90% <br><sub>₪-193</sub> | 🔴 -19.14% <br><sub>₪-5,063</sub> |
+| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $703.58 | ₪51,161 <br><sub>($16,886)</sub> | 🟢 +0.47% <br><sub>+₪240</sub> | 🟢 +33.41% <br><sub>+₪12,812</sub> |
 
 ---
 
