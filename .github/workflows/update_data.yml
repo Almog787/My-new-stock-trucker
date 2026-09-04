@@ -2,8 +2,8 @@ name: Update Stock Data
 
 on:
   schedule:
-    # Run every hour between 13:00 and 21:00 UTC (approx. 9:00 AM - 5:00 PM EST/EDT) on weekdays
-    - cron: '0 13-21 * * 1-5'
+    # Run every 30 minutes between 13:00 and 22:00 UTC (approx. 9:00 AM - 6:00 PM EST/EDT) on weekdays
+    - cron: '0,30 13-22 * * 1-5'
   workflow_dispatch: # Allow manual triggering from GitHub Actions UI
 
 permissions:
