@@ -247,15 +247,82 @@ async function fetchAndUpdatePrices() {
     if (Object.keys(prices).length > 0) {
       const history = fs.existsSync(historyPath) ? JSON.parse(fs.readFileSync(historyPath, 'utf8')) : [];
       
-      const newEntry = {
-        timestamp: new Date().toISOString(),
-        prices,
-        exchangeRate: brokerRate
+      console.log('Fetching intraday timeline (5m intervals) to backfill history...');
+      const period1 = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const chartData = {};
+      const round5m = (dateStr) => {
+          const d = new Date(dateStr);
+          const ms = Math.round(d.getTime() / (5 * 60 * 1000)) * (5 * 60 * 1000);
+          return new Date(ms).toISOString();
       };
+
+      for (const ticker of tickers) {
+          try {
+              const res = await yahooFinance.chart(ticker, { period1, interval: '5m' });
+              for (const q of res.quotes) {
+                  if (!q.close) continue;
+                  const ts = round5m(q.date);
+                  if (!chartData[ts]) chartData[ts] = { prices: {} };
+                  chartData[ts].prices[ticker] = q.close;
+              }
+          } catch(e) {
+              console.warn(`Could not fetch 5m chart for ${ticker}:`, e.message);
+          }
+      }
+
+      try {
+          const resIls = await yahooFinance.chart('ILS=X', { period1, interval: '5m' });
+          for (const q of resIls.quotes) {
+              if (!q.close) continue;
+              const ts = round5m(q.date);
+              if (!chartData[ts]) chartData[ts] = { prices: {} };
+              chartData[ts].exchangeRate = q.close + 0.008; 
+          }
+      } catch(e) {
+          console.warn('Could not fetch 5m chart for ILS=X:', e.message);
+      }
+
+      const historyMap = {};
+      for (const entry of history) {
+          const ts = round5m(entry.timestamp);
+          historyMap[ts] = entry;
+      }
+
+      let lastPricesTracker = history.length > 0 ? { ...history[history.length - 1].prices } : {};
+      let lastKnownRate = history.length > 0 ? history[history.length - 1].exchangeRate : brokerRate;
+
+      const sortedTs = Object.keys(chartData).sort();
+      let addedPoints = 0;
+      for (const ts of sortedTs) {
+          const data = chartData[ts];
+          if (Object.keys(data.prices).length === 0) continue; // Only keep points where market is open
+          
+          const mergedPrices = { ...lastPricesTracker, ...data.prices };
+          const mergedRate = data.exchangeRate || lastKnownRate;
+          
+          if (!historyMap[ts]) {
+              historyMap[ts] = { timestamp: ts, prices: mergedPrices, exchangeRate: mergedRate };
+              addedPoints++;
+          } else {
+              // Update existing point with any potentially more accurate data
+              historyMap[ts].prices = { ...historyMap[ts].prices, ...mergedPrices };
+              if (data.exchangeRate) historyMap[ts].exchangeRate = data.exchangeRate;
+          }
+          
+          lastPricesTracker = mergedPrices;
+          lastKnownRate = mergedRate;
+      }
       
-      history.push(newEntry);
-      fs.writeFileSync(historyPath, JSON.stringify(history, null, 2));
-      console.log(`Successfully updated stock history with ${Object.keys(prices).length} prices.`);
+      const currentTs = round5m(new Date().toISOString());
+      historyMap[currentTs] = {
+          timestamp: currentTs,
+          prices,
+          exchangeRate: brokerRate
+      };
+
+      const finalHistory = Object.values(historyMap).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      fs.writeFileSync(historyPath, JSON.stringify(finalHistory, null, 2));
+      console.log(`Successfully updated stock history timeline. Added ${addedPoints} new points.`);
       
       // ASSET META for clean descriptive table
       const ASSET_META = {

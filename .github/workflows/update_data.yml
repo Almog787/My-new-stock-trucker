@@ -1,35 +1,71 @@
-name: Update Stock Data
+name: Update Stock Data & Deploy
 
 on:
   schedule:
-    # Run every 30 minutes between 13:00 and 22:00 UTC (approx. 9:00 AM - 6:00 PM EST/EDT) on weekdays
-    - cron: '0,30 13-22 * * 1-5'
+    # Run every hour at minute 5 between 13:00 and 23:00 UTC (9:00 AM - 7:00 PM Eastern) on weekdays
+    - cron: '5 13-23 * * 1-5'
   workflow_dispatch: # Allow manual triggering from GitHub Actions UI
 
+# Sets permissions of the GITHUB_TOKEN
 permissions:
   contents: write
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  update-data:
+  update-and-deploy:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
 
-      - name: Fetch stock data
+      - name: Fetch stock data and update charts
         run: node scripts/update_data.js
 
       - name: Commit and push changes
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add public/data/stock_history.json public/data/meta.json public/data/dividends.json README.md data_hub/
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: auto-update stock history, charts and README [skip ci]" && git push)
+          if ! git diff --staged --quiet; then
+            git commit -m "chore: auto-update stock history, charts and README"
+            git pull --rebase origin main || git pull --rebase origin master || true
+            git push origin HEAD || git push origin main || true
+          else
+            echo "No changes to commit."
+          fi
+
+      - name: Build Web Application
+        run: npm run build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: './dist'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+

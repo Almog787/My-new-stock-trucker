@@ -213,11 +213,12 @@ function App() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        const ts = Date.now();
         const [portfolioRes, historyRes, metaRes, dividendsRes] = await Promise.all([
-          fetch('./data/portfolio.json'),
-          fetch('./data/stock_history.json'),
-          fetch('./data/meta.json').catch(() => null),
-          fetch('./data/dividends.json').catch(() => null)
+          fetch(`./data/portfolio.json?t=${ts}`, { cache: 'no-store' }),
+          fetch(`./data/stock_history.json?t=${ts}`, { cache: 'no-store' }),
+          fetch(`./data/meta.json?t=${ts}`, { cache: 'no-store' }).catch(() => null),
+          fetch(`./data/dividends.json?t=${ts}`, { cache: 'no-store' }).catch(() => null)
         ]);
         
         const portfolioData = await portfolioRes.json();
@@ -246,9 +247,9 @@ function App() {
 
     loadData();
 
-    // רענון אוטומטי של הנתונים כל חצי שעה (1800000 מילישניות)
+    // רענון אוטומטי של הנתונים כל שעה (3600000 מילישניות)
     // כך שאם המשתמש משאיר את החלונית פתוחה, היא תמשוך את העדכונים מה-GitHub Actions
-    const intervalId = setInterval(loadData, 1800000);
+    const intervalId = setInterval(loadData, 3600000);
     return () => clearInterval(intervalId);
   }, []);
 
