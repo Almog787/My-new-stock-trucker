@@ -43,8 +43,11 @@ import {
   HandCoins,
   History,
   X,
-  CheckCircle2
+  CheckCircle2,
+  ArrowUpRight
 } from 'lucide-react';
+import { TimesFMForecastHub } from './components/TimesFMForecastHub';
+import { ForecastData } from './types/forecast';
 
 interface PortfolioItem {
   amount: number;
@@ -164,15 +167,18 @@ const ASSET_META: { [ticker: string]: { name: string; sector: string; type: 'Sto
 
 type SortKey = 'name' | 'amount' | 'avg_price' | 'current_price' | 'valueUSD' | 'pnlUSD' | 'pnlNetUSD' | 'taxUSD' | 'returnPct' | 'returnNetPct' | 'weight' | 'dividendYield' | 'annualDividendUSD';
 type TimeRange = '7D' | '30D' | '90D' | 'ALL';
-type ChartType = 'performance' | 'benchmark' | 'pnlContribution' | 'costVsValue' | 'monthly';
+type ChartType = 'performance' | 'timesfm' | 'benchmark' | 'pnlContribution' | 'costVsValue' | 'monthly';
 type MonthlyPeriod = 'YTD' | 'YEAR' | 'L12M' | 'ALL';
 type TaxMode = 'NET' | 'GROSS' | 'BOTH';
+type MainView = 'dashboard' | 'timesfm' | 'dividends';
 
 function App() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
   const [history, setHistory] = useState<HistoryPoint[]>([]);
+  const [forecastData, setForecastData] = useState<ForecastData | null>(null);
   const [usdToIls, setUsdToIls] = useState<number>(3.006);
   const [loading, setLoading] = useState(true);
+  const [mainView, setMainView] = useState<MainView>('dashboard');
   
   // Controls
   const [activeChart, setActiveChart] = useState<ChartType>('performance');
@@ -214,11 +220,12 @@ function App() {
     const loadData = async () => {
       try {
         const ts = Date.now();
-        const [portfolioRes, historyRes, metaRes, dividendsRes] = await Promise.all([
+        const [portfolioRes, historyRes, metaRes, dividendsRes, forecastRes] = await Promise.all([
           fetch(`./data/portfolio.json?t=${ts}`, { cache: 'no-store' }),
           fetch(`./data/stock_history.json?t=${ts}`, { cache: 'no-store' }),
           fetch(`./data/meta.json?t=${ts}`, { cache: 'no-store' }).catch(() => null),
-          fetch(`./data/dividends.json?t=${ts}`, { cache: 'no-store' }).catch(() => null)
+          fetch(`./data/dividends.json?t=${ts}`, { cache: 'no-store' }).catch(() => null),
+          fetch(`./data/forecast.json?t=${ts}`, { cache: 'no-store' }).catch(() => null)
         ]);
         
         const portfolioData = await portfolioRes.json();
@@ -234,6 +241,11 @@ function App() {
         if (dividendsRes && dividendsRes.ok) {
           const divJson = await dividendsRes.json();
           setDividendsData(divJson);
+        }
+
+        if (forecastRes && forecastRes.ok) {
+          const fcJson = await forecastRes.json();
+          setForecastData(fcJson);
         }
 
         setPortfolio(portfolioData);
@@ -1177,10 +1189,109 @@ function App() {
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
         
-        {/* ======================================================== */}
-        {/* 1. TOP EXECUTIVE METRIC CARDS (KPI DASHBOARD) */}
-        {/* ======================================================== */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        {/* Navigation Mode Switcher */}
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-white dark:bg-[#111827] p-2 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setMainView('dashboard')}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all ${
+                mainView === 'dashboard'
+                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-500/20'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+              }`}
+            >
+              <Briefcase size={16} />
+              <span>סקירת תיק ואנליזה כמותית (Dashboard)</span>
+            </button>
+
+            <button
+              onClick={() => setMainView('timesfm')}
+              className={`flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl transition-all relative ${
+                mainView === 'timesfm'
+                  ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-700 text-white shadow-md shadow-purple-500/20'
+                  : 'text-indigo-600 dark:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50'
+              }`}
+            >
+              <Sparkles size={16} />
+              <span>Google Research TimesFM (חיזוי AI ואנומליות)</span>
+              <span className="px-2 py-0.5 bg-gradient-to-r from-amber-400 to-orange-400 text-slate-950 font-black text-[10px] rounded-full shadow-xs">
+                Zero-Shot AI
+              </span>
+            </button>
+
+            <button
+              onClick={() => setIsDividendModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 transition-all"
+            >
+              <Coins size={16} />
+              <span>יומן דיבידנדים והכנסה פאסיבית</span>
+            </button>
+          </div>
+
+          {forecastData && (
+            <div className="hidden lg:flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 pl-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>חיזוי TimesFM מעודכן ל-30 יום</span>
+            </div>
+          )}
+        </div>
+
+        {/* TimesFM Hub View */}
+        {mainView === 'timesfm' && (
+          <TimesFMForecastHub
+            forecastData={forecastData}
+            history={history}
+            portfolio={portfolio}
+            usdToIls={usdToIls}
+            darkMode={darkMode}
+            currencyMode={currencyMode}
+          />
+        )}
+
+        {/* Dashboard View */}
+        {mainView === 'dashboard' && (
+          <>
+            {/* TimesFM AI Highlight Teaser Banner */}
+            {forecastData && (
+              <div 
+                onClick={() => setMainView('timesfm')}
+                className="cursor-pointer group relative overflow-hidden bg-gradient-to-r from-indigo-900/90 via-purple-900/80 to-slate-900 text-white rounded-3xl p-5 sm:p-6 border border-indigo-700/50 shadow-md hover:border-indigo-500 transition-all"
+              >
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-start sm:items-center gap-4">
+                    <div className="p-3 rounded-2xl bg-indigo-500/20 border border-indigo-400/30 text-indigo-300 shrink-0 group-hover:scale-105 transition-transform">
+                      <Sparkles size={24} />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[11px] font-bold px-2 py-0.5 rounded bg-indigo-500/30 text-indigo-200 uppercase tracking-wider">
+                          Google TimesFM Foundation Model
+                        </span>
+                        <span className="text-xs text-indigo-300/80">• אופק 30 יום</span>
+                      </div>
+                      <h3 className="text-base sm:text-lg font-bold text-white group-hover:text-indigo-200 transition-colors">
+                        תחזית תיק מבוססת AI: צפי שווי ₪{Math.round(forecastData.portfolio.forecast30dILS_P50).toLocaleString()} ({forecastData.portfolio.expectedReturn30dPct >= 0 ? '+' : ''}{forecastData.portfolio.expectedReturn30dPct.toFixed(2)}%)
+                      </h3>
+                      <p className="text-xs text-slate-300 mt-0.5">
+                        מנעד ביטחון P10-P90: ₪{Math.round(forecastData.portfolio.forecast30dILS_P10).toLocaleString()} עד ₪{Math.round(forecastData.portfolio.forecast30dILS_P90).toLocaleString()} • {forecastData.anomalies.length} התראות אנומליה
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-end md:self-center">
+                    <span className="text-xs font-bold text-indigo-300 group-hover:underline">
+                      לצפייה בגרף החיזוי ומטריצת המניות המלאה
+                    </span>
+                    <ArrowUpRight size={18} className="text-indigo-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ======================================================== */}
+            {/* 1. TOP EXECUTIVE METRIC CARDS (KPI DASHBOARD) */}
+            {/* ======================================================== */}
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
           
           {/* Card 1: Total Portfolio Value */}
           <div className="bg-white dark:bg-[#111827] p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-indigo-500/30 transition-all flex flex-col justify-between">
@@ -1630,6 +1741,14 @@ function App() {
               >
                 <Percent size={15} />
                 <span>רווח חודשי (Monthly P&L)</span>
+              </button>
+
+              <button
+                onClick={() => setMainView('timesfm')}
+                className="flex items-center gap-2 px-3.5 py-2 text-xs font-bold rounded-lg transition-all bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-sm hover:opacity-95"
+              >
+                <Sparkles size={15} />
+                <span>חיזוי TimesFM AI (30 יום)</span>
               </button>
             </div>
 
@@ -2518,6 +2637,8 @@ function App() {
           )}
 
         </section>
+        </>
+      )}
 
       </main>
 

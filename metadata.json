@@ -1,0 +1,6 @@
+{
+  "name": "תיק השקעות PRO - מעקב כמותי וחיזוי מודל TimesFM AI",
+  "description": "דשבורד מתקדם לניהול ומעקב תיק השקעות, אנליזות תשואה ורווח נטו/ברוטו לפי מס ישראלי, חיזוי סדרות עתיות ל-30 יום וזיהוי אנומליות באמצעות Google Research TimesFM",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

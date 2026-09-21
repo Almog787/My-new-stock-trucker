@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { execSync } from 'child_process';
 import YahooFinance from 'yahoo-finance2';
 
 const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey', 'ripHistorical'] });
@@ -535,23 +536,172 @@ async function fetchAndUpdatePrices() {
         }
       };
 
+      // 4. Run Google TimesFM Forecasting Engine
+      const forecastPath = path.join(process.cwd(), 'public', 'data', 'forecast.json');
+      try {
+        console.log('Running Google Research TimesFM time series model...');
+        execSync('python3 scripts/timesfm_forecast.py', { stdio: 'inherit' });
+      } catch (err) {
+        console.error('Warning: TimesFM python execution encountered an issue:', err.message);
+      }
+
+      let forecastData = null;
+      if (fs.existsSync(forecastPath)) {
+        try {
+          forecastData = JSON.parse(fs.readFileSync(forecastPath, 'utf8'));
+        } catch (e) {
+          console.error('Failed to parse forecast.json', e);
+        }
+      }
+
       await downloadQuickChart(allocationConfig, path.join(dataHubDir, 'asset_allocation.png'));
       await downloadQuickChart(performanceConfig, path.join(dataHubDir, 'portfolio_performance.png'));
+
+      // Generate TimesFM Forecast Chart if data exists
+      if (forecastData && forecastData.portfolio && forecastData.portfolio.timeline) {
+        try {
+          const hist15 = chartHistory.slice(-15);
+          const timeline = forecastData.portfolio.timeline;
+          
+          const combinedLabels = [
+            ...hist15.map(h => h.date),
+            ...timeline.map(t => t.displayDate)
+          ];
+
+          // Historical series (padded with nulls for future)
+          const histData = [
+            ...hist15.map(h => h.value),
+            ...new Array(timeline.length).fill(null)
+          ];
+
+          // P50 Target series (stitched from last historical point)
+          const lastHistVal = hist15.length > 0 ? hist15[hist15.length - 1].value : forecastData.portfolio.currentUSD;
+          const p50Data = [
+            ...new Array(Math.max(0, hist15.length - 1)).fill(null),
+            lastHistVal,
+            ...timeline.map(t => t.p50USD)
+          ];
+
+          // P90 Optimistic series
+          const p90Data = [
+            ...new Array(Math.max(0, hist15.length - 1)).fill(null),
+            lastHistVal,
+            ...timeline.map(t => t.p90USD)
+          ];
+
+          // P10 Pessimistic series
+          const p10Data = [
+            ...new Array(Math.max(0, hist15.length - 1)).fill(null),
+            lastHistVal,
+            ...timeline.map(t => t.p10USD)
+          ];
+
+          const forecastChartConfig = {
+            type: 'line',
+            data: {
+              labels: combinedLabels,
+              datasets: [
+                {
+                  label: 'Historical',
+                  data: histData,
+                  borderColor: '#2563eb',
+                  borderWidth: 2.5,
+                  pointRadius: 2,
+                  fill: false,
+                  tension: 0.2
+                },
+                {
+                  label: 'TimesFM Forecast (P50)',
+                  data: p50Data,
+                  borderColor: '#8b5cf6',
+                  borderWidth: 3,
+                  borderDash: [5, 5],
+                  pointRadius: 2,
+                  fill: false,
+                  tension: 0.2
+                },
+                {
+                  label: 'P90 Optimistic (90%)',
+                  data: p90Data,
+                  borderColor: 'rgba(16, 185, 129, 0.6)',
+                  borderWidth: 1.5,
+                  borderDash: [3, 3],
+                  pointRadius: 0,
+                  fill: false,
+                  tension: 0.2
+                },
+                {
+                  label: 'P10 Pessimistic (10%)',
+                  data: p10Data,
+                  borderColor: 'rgba(239, 68, 68, 0.6)',
+                  borderWidth: 1.5,
+                  borderDash: [3, 3],
+                  pointRadius: 0,
+                  fill: false,
+                  tension: 0.2
+                }
+              ]
+            },
+            options: {
+              layout: { padding: 20 },
+              plugins: {
+                legend: { display: true, position: 'top' },
+                title: {
+                  display: true,
+                  text: 'Google Research TimesFM - 30 Day Portfolio Forecast',
+                  font: { size: 18, family: 'sans-serif', weight: 'bold' }
+                }
+              },
+              scales: {
+                y: {
+                  grid: { color: '#f3f4f6' },
+                  ticks: { callback: 'function(val) { return "$" + val.toLocaleString(); }' }
+                },
+                x: {
+                  grid: { display: false },
+                  ticks: { maxTicksLimit: 12 }
+                }
+              }
+            }
+          };
+
+          await downloadQuickChart(forecastChartConfig, path.join(dataHubDir, 'timesfm_forecast.png'));
+        } catch (chartErr) {
+          console.error('Failed to generate TimesFM chart:', chartErr.message);
+        }
+      }
+
       console.log('Charts generated successfully.');
 
       // Formatting Date: DD/MM/YYYY HH:MM
       const now = new Date();
       const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       
+      // Generate TimesFM Assets Table for README
+      let forecastTableMarkdown = '';
+      if (forecastData && forecastData.assets) {
+        const rows = Object.entries(forecastData.assets).map(([ticker, info]) => {
+          const chgSign = info.expectedChangePct >= 0 ? '+' : '';
+          const signalBadge = info.expectedChangePct >= 0 ? `🟢 ${info.signalHe}` : `🔴 ${info.signalHe}`;
+          return `| **${ticker}** | \`$${info.currentPrice.toFixed(2)}\` | \`$${info.forecastP50.toFixed(2)}\` | \`$${info.forecastP10.toFixed(2)} - $${info.forecastP90.toFixed(2)}\` | **${chgSign}${info.expectedChangePct.toFixed(2)}%** | ${signalBadge} |`;
+        });
+        forecastTableMarkdown = [
+          '| מניה (Asset) | שער נוכחי | יעד צפוי 30 יום (P50) | טווח ביטחון (P10 - P90) | תשואה חזויה | אות מודל (AI Signal) |',
+          '| :--- | :---: | :---: | :---: | :---: | :---: |',
+          ...rows
+        ].join('\n');
+      }
+
       // Generate README content with logical categories & clean formatting (Shortened)
       const readmeContent = `# 📈 Stock Tracker & Portfolio Analytics | מעקב תיק השקעות
 
 [![Interactive Web Dashboard](https://img.shields.io/badge/Live_Dashboard-Open_App-4f46e5?style=for-the-badge&logo=google-chrome&logoColor=white)](https://almog787.github.io/My-new-stock-trucker/)
 [![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪${Math.round(totalCurrentILS).toLocaleString('en-US').replace(/,/g, '%2C')}-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
-[![YTD Monthly Income](https://img.shields.io/badge/Monthly_Income-+₪${Math.round(ytdMonthlyAvgILS).toLocaleString('en-US').replace(/,/g, '%2C')}%2Fmo-4338ca?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
+[![TimesFM Forecast](https://img.shields.io/badge/TimesFM_30d_Target-₪${forecastData ? Math.round(forecastData.portfolio.forecast30dILS_P50).toLocaleString('en-US').replace(/,/g, '%2C') : 'N/A'}-8b5cf6?style=for-the-badge&logo=google)](https://almog787.github.io/My-new-stock-trucker/)
 [![Total Profit](https://img.shields.io/badge/Total_Profit-${formatPercent(totalPnLPercent).replace('%', '%25')}-${totalPnLPercent >= 0 ? '16a34a' : 'dc2626'}?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
 
-> **מערכת חכמה לניהול ומעקב תיק השקעות בזמן אמת.** כוללת חישובי מס רווחי הון (25%), המרות מט"ח ויומן דיבידנדים היסטורי.
+> **מערכת חכמה לניהול ומעקב תיק השקעות בזמן אמת המשולבת במודל חיזוי סדרות עתיות Google Research TimesFM.** 
+> כוללת חישובי מס רווחי הון (25%), המרות מט"ח, יומן דיבידנדים היסטורי, מנוע זיהוי אנומליות וחיזוי מבוסס AI.
 > 👉 **[למעבר לדשבורד המלא והאינטראקטיבי לחץ כאן](https://almog787.github.io/My-new-stock-trucker/)**
 
 ---
@@ -567,6 +717,20 @@ async function fetchAndUpdatePrices() {
 
 ---
 
+## 🔮 תחזיות מודל Google Research TimesFM (AI Forecasting & Analytics)
+
+${forecastData ? `
+* **יעד שווי תיק צפוי בעוד 30 יום (P50):** \`₪${Math.round(forecastData.portfolio.forecast30dILS_P50).toLocaleString('en-US')}\` (\`$${Math.round(forecastData.portfolio.forecast30dUSD_P50).toLocaleString('en-US')}\`)
+* **טווח הסתברותי (P10 - P90):** \`₪${Math.round(forecastData.portfolio.forecast30dILS_P10).toLocaleString('en-US')}\` עד \`₪${Math.round(forecastData.portfolio.forecast30dILS_P90).toLocaleString('en-US')}\`
+* **תשואת תיק צפויה (30d Expected Return):** \`${forecastData.portfolio.expectedReturn30dPct >= 0 ? '+' : ''}${forecastData.portfolio.expectedReturn30dPct.toFixed(2)}%\` (תנודתיות שנתית חזויה: \`${forecastData.portfolio.volatilityAnnualizedPct.toFixed(1)}%\`)
+* **תחזית שער דולר/שקל (30 יום):** \`₪${forecastData.exchangeRate.forecast30dRate_P50.toFixed(3)}\` (טווח: \`₪${forecastData.exchangeRate.forecast30dRate_P10.toFixed(3)} - ₪${forecastData.exchangeRate.forecast30dRate_P90.toFixed(3)}\`)
+
+### 🎯 מטריצת תחזיות ואותות למניות התיק:
+${forecastTableMarkdown}
+` : '*התחזית תתעדכן בריצה הבאה של המודל.*'}
+
+---
+
 ## 📋 ביצועי מניות והחזקות (Holdings Performance)
 
 | נכס (Asset) | כמות | שער נוכחי | שווי שוק | שינוי יומי (Daily Change) | שינוי מהכניסה לתיק (Total Return) |
@@ -579,6 +743,8 @@ ${enhancedHoldingsRows.join('\n')}
 
 <div align="center">
 
+<img src="data_hub/timesfm_forecast.png" alt="Google TimesFM Portfolio Forecast" width="98%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 1%;" />
+<br/>
 <img src="data_hub/portfolio_performance.png" alt="Portfolio Performance (30 Days)" width="48%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 1%;" />
 <img src="data_hub/asset_allocation.png" alt="Asset Allocation" width="48%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 1%;" />
 
@@ -586,10 +752,10 @@ ${enhancedHoldingsRows.join('\n')}
 
 <br/>
 
-> 💡 *לפירוט החזקות מלא, טבלאות היסטוריות וניתוחי עומק, יש להיכנס ל-[דשבורד המערכת](https://almog787.github.io/My-new-stock-trucker/).*
+> 💡 *לפירוט החזקות מלא, סימולטור תרחישים, זיהוי אנומליות וגרפים אינטראקטיביים, יש להיכנס ל-[דשבורד המערכת](https://almog787.github.io/My-new-stock-trucker/).*
 
 ---
-📂 *Portfolio Tracker Engine & Analytics by Almog787*
+📂 *Portfolio Tracker Engine & TimesFM AI Analytics by Almog787*
 `;
 
       fs.writeFileSync(readmePath, readmeContent);
