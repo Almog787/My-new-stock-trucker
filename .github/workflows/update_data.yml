@@ -2,27 +2,19 @@ name: Update Stock Data & Deploy
 
 on:
   schedule:
-    # Run every hour at minute 5 between 13:00 and 23:00 UTC (9:00 AM - 7:00 PM Eastern) on weekdays
+    # Runs every hour at minute 5 between 13:00 and 23:00 UTC on weekdays
     - cron: '5 13-23 * * 1-5'
-  workflow_dispatch: # Allow manual triggering from GitHub Actions UI
+  workflow_dispatch:
 
-# Sets permissions of the GITHUB_TOKEN
-permissions:
-  contents: write
-  pages: write
-  id-token: write
-
-# Allow one concurrent deployment
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  update-and-deploy:
+  update-and-build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -35,7 +27,7 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Setup Python
+      - name: Setup Python (For TimesFM AI Forecast Model)
         uses: actions/setup-python@v5
         with:
           python-version: '3.10'
@@ -52,9 +44,9 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add public/data/stock_history.json public/data/meta.json public/data/dividends.json public/data/forecast.json README.md data_hub/
           if ! git diff --staged --quiet; then
-            git commit -m "chore: auto-update stock history, charts and README"
-            git pull --rebase origin main || git pull --rebase origin master || true
-            git push origin HEAD || git push origin main || true
+            git commit -m "chore: auto-update stock history, charts and README [skip ci]"
+            git pull --rebase origin ${{ github.ref_name }}
+            git push origin HEAD:${{ github.ref_name }}
           else
             echo "No changes to commit."
           fi
@@ -70,7 +62,16 @@ jobs:
         with:
           path: './dist'
 
+  deploy:
+    needs: update-and-build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-

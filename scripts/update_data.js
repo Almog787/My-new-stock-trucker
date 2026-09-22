@@ -717,6 +717,14 @@ async function fetchAndUpdatePrices() {
 
 ---
 
+## 📋 ביצועי מניות והחזקות (Holdings Performance)
+
+| נכס (Asset) | כמות | שער נוכחי | שווי שוק | שינוי יומי (Daily Change) | שינוי מהכניסה לתיק (Total Return) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+${enhancedHoldingsRows.join('\n')}
+
+---
+
 ## 🔮 תחזיות מודל Google Research TimesFM (AI Forecasting & Analytics)
 
 ${forecastData ? `
@@ -728,14 +736,6 @@ ${forecastData ? `
 ### 🎯 מטריצת תחזיות ואותות למניות התיק:
 ${forecastTableMarkdown}
 ` : '*התחזית תתעדכן בריצה הבאה של המודל.*'}
-
----
-
-## 📋 ביצועי מניות והחזקות (Holdings Performance)
-
-| נכס (Asset) | כמות | שער נוכחי | שווי שוק | שינוי יומי (Daily Change) | שינוי מהכניסה לתיק (Total Return) |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-${enhancedHoldingsRows.join('\n')}
 
 ---
 
