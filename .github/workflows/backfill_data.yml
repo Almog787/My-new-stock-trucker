@@ -1,17 +1,19 @@
-name: Update Stock Data & Deploy
+name: Manual Backfill & Gap-Fill Stock History
 
 on:
-  schedule:
-    # Runs every hour at minute 5 between 13:00 and 23:00 UTC on weekdays
-    - cron: '5 13-23 * * 1-5'
   workflow_dispatch:
+    inputs:
+      days_back:
+        description: 'Number of days back to fetch missing historical stock data (default: 60)'
+        required: false
+        default: '60'
 
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  update-and-build:
+  backfill-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -35,16 +37,16 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Fetch stock data and update charts
-        run: node scripts/update_data.js
+      - name: Backfill and complete missing stock history
+        run: node scripts/backfill_history.js --days ${{ inputs.days_back || '60' }}
 
-      - name: Commit and push changes
+      - name: Commit and push backfilled data
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           git add public/data/stock_history.json public/data/meta.json public/data/dividends.json public/data/forecast.json README.md data_hub/
           if ! git diff --staged --quiet; then
-            git commit -m "chore: auto-update stock history, charts and README [skip ci]"
+            git commit -m "chore: manual backfill of missing stock history & forecast [skip ci]"
             git pull --rebase origin ${{ github.ref_name }}
             git push origin HEAD:${{ github.ref_name }}
           else
@@ -63,7 +65,7 @@ jobs:
           path: './dist'
 
   deploy:
-    needs: update-and-build
+    needs: backfill-and-deploy
     runs-on: ubuntu-latest
     permissions:
       pages: write
