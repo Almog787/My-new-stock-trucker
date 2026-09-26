@@ -2,8 +2,20 @@ name: Update Stock Data & Deploy
 
 on:
   schedule:
-    # Runs every hour at minute 5 between 13:00 and 23:00 UTC on weekdays
-    - cron: '5 13-23 * * 1-5'
+    # US Market opens at 9:30 AM ET. 
+    # In EDT (Summer) this is 13:30 UTC. In EST (Winter) this is 14:30 UTC.
+    # We trigger at 13:30 UTC to cover the summer opening.
+    - cron: '30 13 * * 1-5'
+    
+    # Runs every 30 minutes (minutes 0 and 30) from 14:00 to 20:30 UTC.
+    # This covers the core trading hours for both Winter and Summer.
+    - cron: '0,30 14-20 * * 1-5'
+    
+    # US Market closes at 4:00 PM ET.
+    # In EDT (Summer) this is 20:00 UTC. In EST (Winter) this is 21:00 UTC.
+    # We trigger at 21:00 UTC to cover the winter closing.
+    - cron: '0 21 * * 1-5'
+    
   workflow_dispatch:
 
 concurrency:
