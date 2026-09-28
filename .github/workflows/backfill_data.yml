@@ -44,11 +44,11 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add public/data/stock_history.json public/data/meta.json public/data/dividends.json public/data/forecast.json README.md data_hub/
+          git add -A public/data/ data_hub/ README.md
           if ! git diff --staged --quiet; then
             git commit -m "chore: manual backfill of missing stock history & forecast [skip ci]"
-            git pull --rebase origin ${{ github.ref_name }}
-            git push origin HEAD:${{ github.ref_name }}
+            git pull --rebase --autostash origin ${{ github.ref_name || 'main' }}
+            git push origin HEAD:${{ github.ref_name || 'main' }}
           else
             echo "No changes to commit."
           fi

@@ -554,8 +554,12 @@ async function fetchAndUpdatePrices() {
         }
       }
 
-      await downloadQuickChart(allocationConfig, path.join(dataHubDir, 'asset_allocation.png'));
-      await downloadQuickChart(performanceConfig, path.join(dataHubDir, 'portfolio_performance.png'));
+      try {
+        await downloadQuickChart(allocationConfig, path.join(dataHubDir, 'asset_allocation.png'));
+        await downloadQuickChart(performanceConfig, path.join(dataHubDir, 'portfolio_performance.png'));
+      } catch (chartErr) {
+        console.warn('Warning: Could not download allocation/performance charts:', chartErr.message);
+      }
 
       // Generate TimesFM Forecast Chart if data exists
       if (forecastData && forecastData.portfolio && forecastData.portfolio.timeline) {
