@@ -44,14 +44,26 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add -A public/data/ data_hub/ README.md
-          if ! git diff --staged --quiet; then
+          TARGET_BRANCH="${{ github.ref_name || 'main' }}"
+          MAX_RETRIES=3
+
+          for i in $(seq 1 $MAX_RETRIES); do
+            git fetch origin "$TARGET_BRANCH"
+            git reset "origin/$TARGET_BRANCH"
+            git add -A public/data/ data_hub/ README.md
+            if git diff --staged --quiet; then
+              echo "No changes to commit."
+              break
+            fi
             git commit -m "chore: manual backfill of missing stock history & forecast [skip ci]"
-            git pull --rebase --autostash origin ${{ github.ref_name || 'main' }}
-            git push origin HEAD:${{ github.ref_name || 'main' }}
-          else
-            echo "No changes to commit."
-          fi
+            if git push origin "HEAD:$TARGET_BRANCH"; then
+              echo "Successfully pushed changes."
+              break
+            else
+              echo "Push failed (concurrent push detected), retrying ($i/$MAX_RETRIES)..."
+              sleep 3
+            fi
+          done
 
       - name: Build Web Application
         run: npm run build
