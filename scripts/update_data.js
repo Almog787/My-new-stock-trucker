@@ -249,7 +249,7 @@ async function fetchAndUpdatePrices() {
       const history = fs.existsSync(historyPath) ? JSON.parse(fs.readFileSync(historyPath, 'utf8')) : [];
       
       console.log('Fetching intraday timeline (5m intervals) to backfill history...');
-      const period1 = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+      const period1 = new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       const chartData = {};
       const round5m = (dateStr) => {
           const d = new Date(dateStr);
@@ -286,11 +286,8 @@ async function fetchAndUpdatePrices() {
       const historyMap = {};
       for (const entry of history) {
           const ts = round5m(entry.timestamp);
-          historyMap[ts] = entry;
+          if (ts) historyMap[ts] = entry;
       }
-
-      let lastPricesTracker = history.length > 0 ? { ...history[history.length - 1].prices } : {};
-      let lastKnownRate = history.length > 0 ? history[history.length - 1].exchangeRate : brokerRate;
 
       const sortedTs = Object.keys(chartData).sort();
       let addedPoints = 0;
@@ -298,30 +295,49 @@ async function fetchAndUpdatePrices() {
           const data = chartData[ts];
           if (Object.keys(data.prices).length === 0) continue; // Only keep points where market is open
           
-          const mergedPrices = { ...lastPricesTracker, ...data.prices };
-          const mergedRate = data.exchangeRate || lastKnownRate;
-          
           if (!historyMap[ts]) {
-              historyMap[ts] = { timestamp: ts, prices: mergedPrices, exchangeRate: mergedRate };
+              historyMap[ts] = { timestamp: ts, prices: { ...data.prices }, exchangeRate: data.exchangeRate || null };
               addedPoints++;
           } else {
               // Update existing point with any potentially more accurate data
-              historyMap[ts].prices = { ...historyMap[ts].prices, ...mergedPrices };
+              historyMap[ts].prices = { ...historyMap[ts].prices, ...data.prices };
               if (data.exchangeRate) historyMap[ts].exchangeRate = data.exchangeRate;
           }
-          
-          lastPricesTracker = mergedPrices;
-          lastKnownRate = mergedRate;
       }
       
       const currentTs = round5m(new Date().toISOString());
-      historyMap[currentTs] = {
-          timestamp: currentTs,
-          prices,
-          exchangeRate: brokerRate
-      };
+      if (currentTs) {
+          if (!historyMap[currentTs]) {
+              historyMap[currentTs] = { timestamp: currentTs, prices: { ...prices }, exchangeRate: brokerRate };
+              addedPoints++;
+          } else {
+              historyMap[currentTs].prices = { ...historyMap[currentTs].prices, ...prices };
+              historyMap[currentTs].exchangeRate = brokerRate;
+          }
+      }
 
-      const finalHistory = Object.values(historyMap).sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      // Chronological forward-fill for any missing ticker values
+      const sortedAllTs = Object.keys(historyMap).sort((a, b) => new Date(a) - new Date(b));
+      let forwardPrices = {};
+      let forwardRate = brokerRate;
+
+      const finalHistory = sortedAllTs.map(ts => {
+          const entry = historyMap[ts];
+          if (entry.exchangeRate) {
+              forwardRate = entry.exchangeRate;
+          } else {
+              entry.exchangeRate = forwardRate;
+          }
+          for (const ticker of tickers) {
+              if (entry.prices[ticker] !== undefined && entry.prices[ticker] !== null) {
+                  forwardPrices[ticker] = entry.prices[ticker];
+              } else if (forwardPrices[ticker] !== undefined) {
+                  entry.prices[ticker] = forwardPrices[ticker];
+              }
+          }
+          return entry;
+      }).filter(item => Object.keys(item.prices).some(t => tickers.includes(t) && item.prices[t] > 0));
+
       fs.writeFileSync(historyPath, JSON.stringify(finalHistory, null, 2));
       console.log(`Successfully updated stock history timeline. Added ${addedPoints} new points.`);
       
@@ -375,25 +391,11 @@ async function fetchAndUpdatePrices() {
       const totalPnLILS = totalCurrentILS - totalInvestedILS;
       const totalPnLPercent = totalInvestedILS > 0 ? ((totalCurrentILS / totalInvestedILS) - 1) * 100 : 0;
       
-      // Calculate Israeli Capital Gains Tax (25%)
-      let totalUnrealizedTaxILS = 0;
-      let totalUnrealizedTaxUSD = 0;
-      quotes.forEach(quote => {
-        if (quote && quote.symbol && quote.regularMarketPrice) {
-          const ticker = quote.symbol;
-          const shares = portfolio[ticker].amount;
-          const cost = shares * portfolio[ticker].avg_price;
-          const cur = shares * quote.regularMarketPrice;
-          const gainUSD = cur - cost;
-          if (gainUSD > 0) {
-            totalUnrealizedTaxUSD += gainUSD * 0.25;
-            totalUnrealizedTaxILS += (gainUSD * brokerRate) * 0.25;
-          }
-        }
-      });
-
-      const totalNetPnLUSD = totalPnLUSD - totalUnrealizedTaxUSD;
-      const totalNetPnLILS = totalPnLILS - totalUnrealizedTaxILS;
+      // Calculate Israeli Capital Gains Tax (25%) with portfolio loss offsetting (סעיף 92 לפקודת מס הכנסה)
+      const totalUnrealizedTaxUSD = totalPnLUSD > 0 ? totalPnLUSD * 0.25 : 0;
+      const totalUnrealizedTaxILS = totalPnLILS > 0 ? totalPnLILS * 0.25 : 0;
+      const totalNetPnLUSD = totalPnLUSD > 0 ? totalPnLUSD * 0.75 : totalPnLUSD;
+      const totalNetPnLILS = totalPnLILS > 0 ? totalPnLILS * 0.75 : totalPnLILS;
       const totalNetPnLPercent = totalInvestedUSD > 0 ? (totalNetPnLUSD / totalInvestedUSD) * 100 : 0;
       
       // Calculate YTD Added Monthly Income (for household income)

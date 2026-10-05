@@ -46,6 +46,7 @@ jobs:
           git config --local user.name "github-actions[bot]"
           TARGET_BRANCH="${{ github.ref_name || 'main' }}"
           MAX_RETRIES=3
+          PUSH_SUCCESS=0
 
           for i in $(seq 1 $MAX_RETRIES); do
             git fetch origin "$TARGET_BRANCH"
@@ -53,17 +54,24 @@ jobs:
             git add -A public/data/ data_hub/ README.md
             if git diff --staged --quiet; then
               echo "No changes to commit."
+              PUSH_SUCCESS=1
               break
             fi
             git commit -m "chore: manual backfill of missing stock history & forecast [skip ci]"
             if git push origin "HEAD:$TARGET_BRANCH"; then
               echo "Successfully pushed changes."
+              PUSH_SUCCESS=1
               break
             else
               echo "Push failed (concurrent push detected), retrying ($i/$MAX_RETRIES)..."
               sleep 3
             fi
           done
+
+          if [ "$PUSH_SUCCESS" -ne 1 ]; then
+            echo "Error: Failed to push changes after $MAX_RETRIES attempts."
+            exit 1
+          fi
 
       - name: Build Web Application
         run: npm run build
