@@ -4,7 +4,7 @@
     "version": "v1.1-zero-shot",
     "contextLength": 431,
     "forecastHorizonDays": 30,
-    "generatedAt": "2026-10-05T07:06:31.482052",
+    "generatedAt": "2026-10-05T07:07:56.409840",
     "quantiles": [
       0.1,
       0.5,
@@ -13,7 +13,7 @@
   },
   "portfolio": {
     "currentUSD": 62013.17,
-    "currentILS": 189698.29,
+    "currentILS": 189705.73,
     "forecast30dUSD_P50": 62465.07,
     "forecast30dUSD_P10": 54204.61,
     "forecast30dUSD_P90": 71984.37,
