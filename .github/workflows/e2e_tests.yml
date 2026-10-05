@@ -1,0 +1,61 @@
+name: End-to-End & Data Pipeline Tests
+
+on:
+  push:
+    branches: ['main']
+  pull_request:
+    branches: ['main']
+  workflow_dispatch:
+  schedule:
+    # Run nightly regression test after US market close (22:00 UTC, Mon-Fri)
+    - cron: '0 22 * * 1-5'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Run Automated E2E & Data Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Verify TypeScript & Lint
+        run: npm run lint
+
+      - name: Validate Stock & Forecast Data Integrity
+        run: npm run test:data
+
+      - name: Build Application
+        run: npm run build
+
+      - name: Install Playwright Browsers & OS Dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright E2E Tests
+        run: npm run test:e2e
+        env:
+          CI: true
+
+      - name: Upload Test Results / Artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7

@@ -8,6 +8,9 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "lint": "tsc --noEmit",
+    "test": "npm run test:data && npm run test:e2e",
+    "test:data": "node scripts/validate_data.js",
+    "test:e2e": "playwright test",
     "preview": "vite preview"
   },
   "keywords": [],
@@ -25,6 +28,7 @@
     "yahoo-finance2": "^4.0.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/express": "^5.0.6",
     "@types/node-cron": "^3.0.11",
