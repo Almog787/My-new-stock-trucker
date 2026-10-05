@@ -2,10 +2,12 @@ name: Update Stock Data & Deploy
 
 on:
   schedule:
-    # Runs every 15 minutes during US market hours (EDT & EST) on weekdays (Mon-Fri).
-    # Uses off-peak minutes (7, 22, 37, 52) to avoid round-hour runner congestion.
-    # 13:00 to 21:59 UTC covers 9:00 AM to 5:00 PM Eastern Time (Summer & Winter).
-    - cron: '7,22,37,52 13-21 * * 1-5'
+    # Runs every 15 minutes during US market hours (13:00 to 21:59 UTC / 16:00 to 01:00 Israel time) Mon-Fri.
+    # Uses off-peak minutes (07, 22, 37, 52) split into explicit cron entries for 100% parser compatibility.
+    - cron: '7 13-21 * * 1-5'
+    - cron: '22 13-21 * * 1-5'
+    - cron: '37 13-21 * * 1-5'
+    - cron: '52 13-21 * * 1-5'
     
   workflow_dispatch:
 
