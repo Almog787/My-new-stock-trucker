@@ -40,6 +40,34 @@ jobs:
       - name: Backfill and complete missing stock history
         run: node scripts/backfill_history.js --days ${{ inputs.days_back || '60' }}
 
+      # Quality Gate 1: Code syntax & TypeScript type integrity
+      - name: Validate TypeScript & Lint
+        run: npm run lint
+
+      # Quality Gate 2: Data completeness and value validation (JSON structures & rates)
+      - name: Validate Backfilled Data Integrity
+        run: npm run test:data
+
+      # Quality Gate 3: End-to-End browser tests (Dashboard, TimesFM & Dividends)
+      - name: Install Playwright Browsers & OS Dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E Verification Tests
+        run: npm run test:e2e
+        env:
+          CI: true
+
+      - name: Upload Test Results on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backfill-data-e2e-failure-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
+      # Commit & Push: Only executed after all 3 Quality Gates pass 100%
       - name: Commit and push backfilled data
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
@@ -72,31 +100,6 @@ jobs:
             echo "Error: Failed to push changes after $MAX_RETRIES attempts."
             exit 1
           fi
-
-      # Quality Gate: Run data integrity and E2E validation on the backfilled data
-      - name: Validate TypeScript & Lint
-        run: npm run lint
-
-      - name: Validate Backfilled Data Integrity
-        run: npm run test:data
-
-      - name: Install Playwright Browsers & OS Dependencies
-        run: npx playwright install --with-deps chromium
-
-      - name: Run E2E Verification Tests
-        run: npm run test:e2e
-        env:
-          CI: true
-
-      - name: Upload Test Results on Failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backfill-data-e2e-failure-report
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 7
 
       - name: Build Web Application
         run: npm run build
