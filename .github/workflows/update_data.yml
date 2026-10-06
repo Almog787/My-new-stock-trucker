@@ -76,6 +76,31 @@ jobs:
             exit 1
           fi
 
+      # Quality Gate: Run data integrity and E2E validation on the newly generated data
+      - name: Validate TypeScript & Lint
+        run: npm run lint
+
+      - name: Validate Updated Data Integrity
+        run: npm run test:data
+
+      - name: Install Playwright Browsers & OS Dependencies
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E Verification Tests
+        run: npm run test:e2e
+        env:
+          CI: true
+
+      - name: Upload Test Results on Failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: update-data-e2e-failure-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+
       - name: Build Web Application
         run: npm run build
 

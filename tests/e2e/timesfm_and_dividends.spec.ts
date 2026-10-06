@@ -7,8 +7,8 @@ test.describe('TimesFM AI Forecast & Dividend Hub', () => {
   });
 
   test('switches to TimesFM AI Forecast Hub and validates predictions', async ({ page }) => {
-    // Click on the TimesFM tab
-    const timesFmTab = page.locator('button:has-text("TimesFM")');
+    // Click on the TimesFM navigation tab
+    const timesFmTab = page.locator('button:has-text("Google Research TimesFM")');
     await expect(timesFmTab).toBeVisible();
     await timesFmTab.click();
 
@@ -17,9 +17,10 @@ test.describe('TimesFM AI Forecast & Dividend Hub', () => {
     await expect(page.locator('text=Zero-Shot').first()).toBeVisible();
 
     // Return to dashboard
-    const dashboardTab = page.locator('button:has-text("סקירת תיק")');
+    const dashboardTab = page.locator('button:has-text("סקירת תיק ואנליזה")');
+    await expect(dashboardTab).toBeVisible();
     await dashboardTab.click();
-    await expect(page.locator('text=תיק השקעות PRO')).toBeVisible();
+    await expect(page.locator('h1')).toContainText('תיק השקעות PRO');
   });
 
   test('opens and closes Dividend Calendar Modal', async ({ page }) => {
@@ -29,15 +30,18 @@ test.describe('TimesFM AI Forecast & Dividend Hub', () => {
     await dividendBtn.click();
 
     // Check modal visibility
-    await expect(page.locator('text=יומן דיבידנדים והכנסה פאסיבית').first()).toBeVisible({ timeout: 5000 });
-    await expect(page.locator('text=דיבידנדים שהתקבלו בפועל').first()).toBeVisible();
+    await expect(page.locator('text=יומן חלוקות דיבידנדים בפועל')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=סך נטו שהתקבל')).toBeVisible();
 
-    // Close modal via close button or Escape
-    const closeBtn = page.locator('button[aria-label="Close"], button:has-text("✕"), button:has-text("סגור")').first();
+    // Close modal via close button
+    const closeBtn = page.locator('button[title="סגור חלון"]');
     if (await closeBtn.isVisible()) {
       await closeBtn.click();
     } else {
       await page.keyboard.press('Escape');
     }
+
+    // Modal should be closed
+    await expect(page.locator('text=יומן חלוקות דיבידנדים בפועל')).toHaveCount(0);
   });
 });
