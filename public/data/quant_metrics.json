@@ -1,0 +1,533 @@
+{
+  "updatedAt": "2026-10-10T12:17:43.764Z",
+  "macroIndicators": {
+    "vix": {
+      "symbol": "^VIX",
+      "name": "מדד התנודתיות והפחד (CBOE VIX)",
+      "price": 14.84,
+      "changePct": -3.7,
+      "regime": "שוק שגרתי ותקין (Normal Volatility)",
+      "badge": "🟢 רגיל",
+      "description": "משקף את תנודתיות האופציות ב-S&P 500 ל-30 יום קדימה"
+    },
+    "tnx": {
+      "symbol": "^TNX",
+      "name": "תשואת אג\"ח ארה\"ב ל-10 שנים",
+      "price": 5.24,
+      "yieldPct": 5.24,
+      "changePct": 0.25,
+      "riskFreeRatePct": 5.24,
+      "description": "ריבית העוגן העולמית ושיעור ההיוון של רווחי ענקיות הטכנולוגיה"
+    },
+    "oil": {
+      "symbol": "CL=F",
+      "name": "נפט גולמי (WTI Crude)",
+      "price": 91.85,
+      "changePct": 0.39,
+      "description": "מניע מרכזי באינפלציה העולמית ובעל מתאם ישיר לתוצאות ExxonMobil (XOM)"
+    },
+    "dxy": {
+      "symbol": "DX-Y",
+      "name": "מדד הדולר העולמי (DXY Index)",
+      "price": 102.23,
+      "changePct": 0.02,
+      "description": "משקף את עוצמת הדולר האמריקאי מול סל המטבעות הגלובלי"
+    }
+  },
+  "riskMetrics": {
+    "annualizedReturnPct": 33.04,
+    "annualizedVolatilityPct": 26.53,
+    "sharpeRatio": 1.05,
+    "sortinoRatio": 1.6,
+    "portfolioBeta": 1.47,
+    "assetBetas": {
+      "GOOGL": 1.15,
+      "ASML": 1.71,
+      "XOM": 0.16,
+      "NVDA": 1.91,
+      "TSLA": 2.27,
+      "VOO": 1
+    },
+    "riskFreeRatePct": 5.24,
+    "maxDrawdownPct": -25.31,
+    "currentDrawdownPct": -3.81,
+    "allTimeHighUSD": 64703,
+    "allTimeHighILS": 198503,
+    "hhiIndex": 0.222,
+    "diversificationLevel": "מפוזר היטב (Diversified)",
+    "var95": {
+      "daily": {
+        "pct": 2.75,
+        "usd": 1711,
+        "ils": 5250
+      },
+      "monthly30d": {
+        "pct": 12.6,
+        "usd": 7841,
+        "ils": 24057
+      }
+    },
+    "cvar95": {
+      "daily": {
+        "pct": 3.74,
+        "usd": 2330,
+        "ils": 7147
+      }
+    }
+  },
+  "correlationMatrix": {
+    "variables": [
+      {
+        "key": "GOOGL",
+        "label": "GOOGL"
+      },
+      {
+        "key": "NVDA",
+        "label": "NVDA"
+      },
+      {
+        "key": "TSLA",
+        "label": "TSLA"
+      },
+      {
+        "key": "ASML",
+        "label": "ASML"
+      },
+      {
+        "key": "VOO",
+        "label": "VOO (שוק)"
+      },
+      {
+        "key": "XOM",
+        "label": "XOM (נפט)"
+      },
+      {
+        "key": "usdIls",
+        "label": "USD/ILS"
+      },
+      {
+        "key": "vix",
+        "label": "VIX (^VIX)"
+      },
+      {
+        "key": "oil",
+        "label": "נפט (WTI)"
+      }
+    ],
+    "matrix": {
+      "GOOGL": {
+        "GOOGL": 1,
+        "NVDA": 0.43,
+        "TSLA": 0.48,
+        "ASML": 0.38,
+        "VOO": 0.61,
+        "XOM": -0.09,
+        "usdIls": -0.03,
+        "vix": -0.48,
+        "oil": -0.11
+      },
+      "NVDA": {
+        "GOOGL": 0.43,
+        "NVDA": 1,
+        "TSLA": 0.54,
+        "ASML": 0.59,
+        "VOO": 0.75,
+        "XOM": 0.03,
+        "usdIls": -0.11,
+        "vix": -0.58,
+        "oil": -0.01
+      },
+      "TSLA": {
+        "GOOGL": 0.48,
+        "NVDA": 0.54,
+        "TSLA": 1,
+        "ASML": 0.46,
+        "VOO": 0.68,
+        "XOM": 0.04,
+        "usdIls": -0.13,
+        "vix": -0.57,
+        "oil": -0.05
+      },
+      "ASML": {
+        "GOOGL": 0.38,
+        "NVDA": 0.59,
+        "TSLA": 0.46,
+        "ASML": 1,
+        "VOO": 0.65,
+        "XOM": -0.04,
+        "usdIls": -0.11,
+        "vix": -0.56,
+        "oil": -0.2
+      },
+      "VOO": {
+        "GOOGL": 0.61,
+        "NVDA": 0.75,
+        "TSLA": 0.68,
+        "ASML": 0.65,
+        "VOO": 1,
+        "XOM": 0.11,
+        "usdIls": -0.11,
+        "vix": -0.82,
+        "oil": -0.08
+      },
+      "XOM": {
+        "GOOGL": -0.09,
+        "NVDA": 0.03,
+        "TSLA": 0.04,
+        "ASML": -0.04,
+        "VOO": 0.11,
+        "XOM": 1,
+        "usdIls": 0.04,
+        "vix": -0.12,
+        "oil": 0.59
+      },
+      "usdIls": {
+        "GOOGL": -0.03,
+        "NVDA": -0.11,
+        "TSLA": -0.13,
+        "ASML": -0.11,
+        "VOO": -0.11,
+        "XOM": 0.04,
+        "usdIls": 1,
+        "vix": 0.15,
+        "oil": 0.1
+      },
+      "vix": {
+        "GOOGL": -0.48,
+        "NVDA": -0.58,
+        "TSLA": -0.57,
+        "ASML": -0.56,
+        "VOO": -0.82,
+        "XOM": -0.12,
+        "usdIls": 0.15,
+        "vix": 1,
+        "oil": 0.11
+      },
+      "oil": {
+        "GOOGL": -0.11,
+        "NVDA": -0.01,
+        "TSLA": -0.05,
+        "ASML": -0.2,
+        "VOO": -0.08,
+        "XOM": 0.59,
+        "usdIls": 0.1,
+        "vix": 0.11,
+        "oil": 1
+      }
+    },
+    "insights": [
+      {
+        "pair": "XOM ↔ NVDA",
+        "correlation": 0.03,
+        "type": "גידור מצטיין",
+        "description": "מניית אקסון מוביל (XOM) מעניקה פיזור וגידור מובהק מול ענף השבבים והטק בעת סערה בשווקים."
+      },
+      {
+        "pair": "תיק ↔ VIX",
+        "correlation": -0.82,
+        "type": "מתאם הפוך חזק",
+        "description": "מדד הפחד VIX מפגין מתאם הפוך קלאסי: קפיצה בתנודתיות מובילה למימוש זמני, ומנגד שוק רגוע מייצר עליות רצופות."
+      },
+      {
+        "pair": "USD/ILS ↔ תיק",
+        "correlation": -0.11,
+        "type": "הגנת מטבע",
+        "description": "התחזקות הדולר מול השקל מספקת כרית ביטחון ותשואה עודפת בשקלים בעת חולשה בשוק המקומי."
+      }
+    ]
+  },
+  "stage3Predictive": {
+    "generatedAt": "2026-10-10T12:17:43.765Z",
+    "monteCarlo": {
+      "horizon30d": {
+        "label": "30 יום (חודש)",
+        "daysForward": 30,
+        "p5USD": 55950,
+        "p25USD": 60708,
+        "p50USD": 64378,
+        "p75USD": 67949,
+        "p95USD": 74043,
+        "p50ILS": 197506,
+        "meanUSD": 64545,
+        "expectedReturnPct": 3.44,
+        "probPositivePct": 65.5,
+        "rangeUSD": "$55,950 - $74,043",
+        "rangeILS": "₪171,650 - ₪227,157"
+      },
+      "horizon60d": {
+        "label": "60 יום (חודשיים)",
+        "daysForward": 60,
+        "p5USD": 53953,
+        "p25USD": 60785,
+        "p50USD": 65908,
+        "p75USD": 71590,
+        "p95USD": 80756,
+        "p50ILS": 202200,
+        "meanUSD": 66461,
+        "expectedReturnPct": 5.9,
+        "probPositivePct": 68.7,
+        "rangeUSD": "$53,953 - $80,756",
+        "rangeILS": "₪165,523 - ₪247,751"
+      },
+      "horizon90d": {
+        "label": "90 יום (רבעון)",
+        "daysForward": 90,
+        "p5USD": 53214,
+        "p25USD": 61563,
+        "p50USD": 67790,
+        "p75USD": 75193,
+        "p95USD": 87233,
+        "p50ILS": 207974,
+        "meanUSD": 68897,
+        "expectedReturnPct": 8.92,
+        "probPositivePct": 73,
+        "rangeUSD": "$53,214 - $87,233",
+        "rangeILS": "₪163,256 - ₪267,623"
+      },
+      "horizon180d": {
+        "label": "180 יום (חצי שנה)",
+        "daysForward": 180,
+        "p5USD": 52091,
+        "p25USD": 63742,
+        "p50USD": 73962,
+        "p75USD": 86928,
+        "p95USD": 106415,
+        "p50ILS": 226907,
+        "meanUSD": 76004,
+        "expectedReturnPct": 18.84,
+        "probPositivePct": 79,
+        "rangeUSD": "$52,091 - $106,415",
+        "rangeILS": "₪159,811 - ₪326,470"
+      },
+      "horizon365d": {
+        "label": "365 יום (שנה)",
+        "daysForward": 252,
+        "p5USD": 52766,
+        "p25USD": 67261,
+        "p50USD": 79774,
+        "p75USD": 94113,
+        "p95USD": 119545,
+        "p50ILS": 244738,
+        "meanUSD": 81958,
+        "expectedReturnPct": 28.18,
+        "probPositivePct": 84.8,
+        "rangeUSD": "$52,766 - $119,545",
+        "rangeILS": "₪161,881 - ₪366,752"
+      }
+    },
+    "factorModel": {
+      "portfolioCompositeScore": 61,
+      "portfolioGrade": "B",
+      "macroRegimeOutlook": "שוק שגרתי ותקין (Normal Volatility)",
+      "assets": {
+        "GOOGL": {
+          "ticker": "GOOGL",
+          "name": "Alphabet (Google)",
+          "role": "עוגן טכנולוגיה ותזרים",
+          "momentumScore": 53,
+          "riskScore": 62,
+          "macroScore": 69,
+          "aiScore": 66,
+          "compositeScore": 62,
+          "grade": "B",
+          "recommendation": "צבירה חזקה (Strong Buy)",
+          "explanation": "מייצרת תזרים מזומנים חופשי ענק, מכפיל רווח סביר ומנוע חיפוש/ענן יציב. מהווה עוגן שממתן את תנודתיות התיק בהשוואה לשבבים.",
+          "macroSensitivity": "רגישות בינונית לעליית ריבית; נהנית מירידת תשואות אג\"ח 10Y ומגידול בהוצאות פרסום גלובליות."
+        },
+        "ASML": {
+          "ticker": "ASML",
+          "name": "ASML Holding",
+          "role": "מונופול ייצור שבבים עולמי",
+          "momentumScore": 55,
+          "riskScore": 44,
+          "macroScore": 72,
+          "aiScore": 66,
+          "compositeScore": 59,
+          "grade": "B",
+          "recommendation": "צבירה אסטרטגית (Strong Buy)",
+          "explanation": "יצרנית מכונות הליטוגרפיה EUV הבלעדית בעולם. בלעדיה לא ניתן לייצר שבבי AI מתקדמים. נכס אסטרטגי חסר תחליף בתיק עם מרווח ביטחון תחרותי עצום.",
+          "macroSensitivity": "מושפעת מסייקל ההשקעות במוליכים למחצה וממדיניות הגבלות סחר ארה\"ב-סין."
+        },
+        "XOM": {
+          "ticker": "XOM",
+          "name": "Exxon Mobil",
+          "role": "גידור אינפלציה, אנרגיה ודיבידנד",
+          "momentumScore": 52,
+          "riskScore": 88,
+          "macroScore": 55,
+          "aiScore": 66,
+          "compositeScore": 66,
+          "grade": "B+",
+          "recommendation": "גידור מצטיין (Top Hedge)",
+          "explanation": "מניית אנרגיה עם מתאם כמעט אפסי מול חברות הטכנולוגיה (0.03 מול NVDA). מספקת הגנה חיונית כשהאינפלציה מזנקת או כשמחירי הנפט עולים.",
+          "macroSensitivity": "מתאם חיובי מובהק (0.59) למחירי הנפט WTI, ועמידות גבוהה בסביבת ריבית גבוהה."
+        },
+        "NVDA": {
+          "ticker": "NVDA",
+          "name": "NVIDIA Corp",
+          "role": "מנוע אלפא וצמיחת AI",
+          "momentumScore": 53,
+          "riskScore": 39,
+          "macroScore": 73,
+          "aiScore": 66,
+          "compositeScore": 57,
+          "grade": "B",
+          "recommendation": "החזקה מובילה (Hold / High Growth)",
+          "explanation": "מובילת תשתיות הבינה המלאכותית בעולם. מספקת את עיקר פוטנציאל התשואה העודפת (אלפא) בתיק, אך עם בטא גבוהה (1.91) ותנודתיות ניכרת.",
+          "macroSensitivity": "רגישות גבוהה למצב הרוח בוול סטריט (VIX) ולתשואות האג\"ח. דורשת פיקוח מול שינויי ביקוש לשרתים."
+        },
+        "TSLA": {
+          "ticker": "TSLA",
+          "name": "Tesla Inc",
+          "role": "תנודתיות גבוהה וצמיחה עתידית",
+          "momentumScore": 52,
+          "riskScore": 26,
+          "macroScore": 73,
+          "aiScore": 66,
+          "compositeScore": 54,
+          "grade": "C",
+          "recommendation": "החזקה זהירה (Hold / High Beta)",
+          "explanation": "מניית בעלת מקדם בטא של 2.27. מייצרת תנודות חדות בשווי התיק; פריצת דרך באוטונומיה/רובוטיקה תזניק את התיק, בעוד האטה ברכבים חשמליים מייצרת לחץ.",
+          "macroSensitivity": "רגישות ישירה לעלויות מימון לצרכן (ריבית) ולתנודתיות השוק (VIX)."
+        },
+        "VOO": {
+          "ticker": "VOO",
+          "name": "Vanguard S&P 500 ETF",
+          "role": "עוגן שוק רחב ופיזור בסיסי",
+          "momentumScore": 51,
+          "riskScore": 70,
+          "macroScore": 83,
+          "aiScore": 66,
+          "compositeScore": 67,
+          "grade": "B+",
+          "recommendation": "עוגן ליבה (Core Anchor)",
+          "explanation": "מייצגת את 500 החברות המובילות בארה\"ב. מבטיחה שהתיק לא יסטה יתר על המידה מביצועי השוק הרחב, ומורידה את הסיכון הספציפי של מניה בודדת.",
+          "macroSensitivity": "משקפת בדיוק את המאקרו האמריקאי (בטא = 1.0), נהנית מצמיחה כלכלית שקטה וחלוקת דיבידנד רציפה."
+        }
+      },
+      "actionSummary": "מבנה התיק מפגין עוצמה גבוהה (ציון כללי 61/100, דרגה B). שילוב של מנועי צמיחת AI יחד עם עוגן VOO וגידור אנרגיה של XOM מספק תוחלת תשואה עודפת עם כרית הגנה איכותית."
+    },
+    "macroScenarios": [
+      {
+        "id": "soft-landing",
+        "name": "תרחיש 1: נחיתה רכה וראלי AI (Soft Landing & Tech Boom)",
+        "probability": "35%",
+        "expectedReturnPct": 11.2,
+        "targetUSD": 69206,
+        "targetILS": 212319,
+        "macroConditions": "VIX יורד ל-12.5 | תשואת 10Y יורדת ל-4.25% | הדולר יציב (₪3.07)",
+        "driverAssets": "NVDA (+16%), ASML (+14%), GOOGL (+11%), VOO (+8%)",
+        "portfolioImpact": "עלייה כוללת של כ-+$6,970 (+₪21,385).",
+        "simpleExplanation": "זהו תרחיש אידיאלי: האינפלציה נרגעת, הריבית בארה\"ב יורדת, והשקעות הענק בבינה מלאכותית מציפות רווחים. בגלל שהתיק מוטה טכנולוגיה איכותית (בטא 1.47), הוא משיג תשואה גבוהה בהרבה מהמדד הכללי."
+      },
+      {
+        "id": "higher-for-longer",
+        "name": "תרחיש 2: ריבית גבוהה לאורך זמן ולחץ מכפילים (Higher-For-Longer Squeeze)",
+        "probability": "30%",
+        "expectedReturnPct": -5.9,
+        "targetUSD": 58564,
+        "targetILS": 179669,
+        "macroConditions": "תשואת 10Y מזנקת ל-5.75% | VIX עולה ל-21 | הדולר עולה קלות (₪3.12)",
+        "driverAssets": "TSLA (-12%), NVDA (-8%), ASML (-7%), XOM (+4% גידור)",
+        "portfolioImpact": "ירידה מתונה של -$3,670 (-₪11,260).",
+        "simpleExplanation": "כשתשואות האג\"ח ל-10 שנים מטפסות, מחירי מניות הטכנולוגיה נלחצים כלפי מטה כי עלות הכסף מתייקרת. עם זאת, מניית XOM וקרן VOO בולמות את הירידה, ושומרות על הרווח המצטבר הכללי של התיק מעל 36%."
+      },
+      {
+        "id": "oil-stagflation",
+        "name": "תרחיש 3: הלם אנרגיה, מתיחות גיאופוליטית וסטגפלציה (Oil Shock & Stagflation)",
+        "probability": "20%",
+        "expectedReturnPct": -2.3,
+        "targetUSD": 60805,
+        "targetILS": 201871,
+        "macroConditions": "הנפט מזנק ל-$110 | VIX עולה ל-27 | הדולר מזנק מול השקל ל-₪3.32",
+        "driverAssets": "XOM (+18%), VOO (-6%), NVDA (-6%), הדולר (+8.2%)",
+        "portfolioImpact": "ירידה דולרית של -$1,450 (-2.3%), אך עלייה בשקלים (+₪10,400) הודות לדולר ול-XOM!",
+        "simpleExplanation": "זהו מבחן הגידור הטוב ביותר: אם הנפט מתפוצץ עקב מתיחות עולמית, מניית ExxonMobil (XOM) מזנקת בחדות, והדולר מתחזק מול השקל כנכס מקלט. כתוצאה מכך, הערך בשקלים של התיק דווקא עולה ומגן עליך מאינפלציה."
+      },
+      {
+        "id": "recession-spike",
+        "name": "תרחיש 4: מיתון עולמי וקפיצת תנודתיות חריפה (Recession & Volatility Spike)",
+        "probability": "15%",
+        "expectedReturnPct": -14.2,
+        "targetUSD": 53399,
+        "targetILS": 163821,
+        "macroConditions": "VIX קופץ ל-35+ | שוק המניות הרחב S&P 500 נופל ב-16%",
+        "driverAssets": "כלל הנכסים יורדים בסערה שוקית זמנית (TSLA -22%, NVDA -19%, VOO -15%)",
+        "portfolioImpact": "ירידה זמנית של -$8,840 (-₪27,120), אך התיק נותר ברווח כולל של +24% מיום הרכישה.",
+        "simpleExplanation": "מבחן הלחץ המחמיר ביותר (מכירת חיסול בשווקים). גם בתרחיש קיצוני כזה, עלות הבסיס שלך ($42,871) מוגנת לחלוטין ברמת ביטחון גבוהה, והחברות המובילות בתיק מחזיקות במאזנים נטולי חוב שיאפשרו התאוששות מהירה."
+      }
+    ],
+    "metricsExplanations": [
+      {
+        "key": "vix",
+        "name": "מדד הפחד והתנודתיות (VIX)",
+        "category": "מאקרו",
+        "whatIsIt": "מדד המודד את הציפיות לתנודתיות במדד ה-S&P 500 ל-30 יום קדימה על בסיס מחירי אופציות.",
+        "portfolioImpact": "מדד ה-VIX נמצא במתאם הפוך חזק (-0.82) מול התיק שלך. כש-VIX נמוך (מתחת ל-16), השווקים רגועים והתיק שלך נהנה מעליות יציבות. כשהוא קופץ מעל 25, זוהי אינדיקציה לסערה זמנית, אך גם הזדמנות היסטורית לצבירת מניות איכותיות במחיר מבצע."
+      },
+      {
+        "key": "tnx",
+        "name": "תשואת אג\"ח ממשלת ארה\"ב ל-10 שנים (^TNX)",
+        "category": "מאקרו",
+        "whatIsIt": "ריבית העוגן של הכלכלה העולמית לפיה מהוונים את הרווחים העתידיים של כל החברות.",
+        "portfolioImpact": "עליית תשואת האג\"ח ל-10 שנים מייקרת את עלות ההון ופוגעת בעיקר בחברות טכנולוגיה עם מכפילי רווח גבוהים (כמו NVDA ו-TSLA). ירידה בתשואה נותנת רוח גבית חזקה לזינוק במניות הטק בתיק."
+      },
+      {
+        "key": "oil",
+        "name": "נפט גולמי WTI (CL=F)",
+        "category": "סחורות",
+        "whatIsIt": "מחיר חבית נפט - המנוע של עלויות ההובלה והאינפלציה הגלובלית.",
+        "portfolioImpact": "בתיק שלך יש החזקה ממוקדת ב-ExxonMobil (XOM). כשמחיר הנפט עולה, רווחי XOM מזנקים והמניה עולה, ובכך היא מהווה \"שכפ\"ץ אינפלציה\" שמאזן ירידות אפשריות במניות אחרות."
+      },
+      {
+        "key": "dxy",
+        "name": "מדד הדולר העולמי (DXY)",
+        "category": "מט\"ח",
+        "whatIsIt": "משקף את עוצמתו של הדולר האמריקאי מול סל של 6 מטבעות מרכזיים (אירו, ין וכו').",
+        "portfolioImpact": "דולר חזק מספק הגנה על תיק ההשקעות שלך הנקוב בדולרים כאשר השקל נחלש, ומגדיל את שווי התיק שלך במונחי כוח קנייה מקומי בישראל (₪)."
+      },
+      {
+        "key": "sharpe",
+        "name": "מדד שארפ (Sharpe Ratio)",
+        "category": "איכות תיק",
+        "whatIsIt": "מודד כמה תשואה עודפת מייצר התיק שלך על כל יחידת סיכון שנלקחת, מעל ריבית חסרת סיכון.",
+        "portfolioImpact": "מדד שארפ של התיק שלך עומד על 1.05 (מעל 1.0 נחשב למצוין!). המשמעות: אתה לא רק מרוויח כסף, אלא מקבל תגמול הולם ומקצועי על התנודתיות שאתה חווה בדרך."
+      },
+      {
+        "key": "sortino",
+        "name": "מדד סורטינו (Sortino Ratio)",
+        "category": "איכות תיק",
+        "whatIsIt": "דומה לשארפ, אך מעניש רק על תנודתיות כלפי מטה (נפילות) ולא על זינוקים למעלה.",
+        "portfolioImpact": "מדד הסורטינו של התיק שלך הוא 1.6 - גבוה משמעותית ממדד שארפ. זה מוכיח שרוב התנודתיות בתיק שלך מגיעה מזינוקים חיוביים מעלה (אלפא) ולא מנפילות כואבות."
+      },
+      {
+        "key": "beta",
+        "name": "מקדם בטא מול השוק (Portfolio Beta)",
+        "category": "רגישות שוק",
+        "whatIsIt": "מודד פי כמה התיק שלך נוטה לזוז ביחס למדד ה-S&P 500 (VOO).",
+        "portfolioImpact": "בטא של 1.47 אומרת שכאשר השוק עולה ב-1%, התיק שלך צפוי לעלות בכ-1.47%. מנגד, בירידות הוא עשוי לרדת ב-1.47%. זהו מנוע הצמיחה שמאפשר לך להשיג תשואה עודפת של +45.17%."
+      },
+      {
+        "key": "var95",
+        "name": "ערך בסיכון (Value at Risk - VaR 95%)",
+        "category": "ניהול סיכונים",
+        "whatIsIt": "ההפסד המרבי שצפוי להתרחש ב-95% מימי המסחר (בתנאי שוק שגרתיים).",
+        "portfolioImpact": "ה-VaR היומי שלך עומד על כ-2.75% (כ-$1,711). זה נותן לך שקט נפשי וידיעה מדויקת מהו טווח התנודה הנורמטיבי של התיק ביום מסחר ממוצע."
+      },
+      {
+        "key": "hhi",
+        "name": "מדד פיזור והירשמן (HHI Concentration)",
+        "category": "פיזור",
+        "whatIsIt": "מדד סטטיסטי הבודק האם ההון שלך מרוכז מדי במניה אחת או מפוזר בצורה בריאה.",
+        "portfolioImpact": "מדד ה-HHI שלך עומד על 0.222 (מתחת ל-0.25). המשמעות: התיק שלך נהנה מפיזור בריא המשלב מניות ענק (NVDA, GOOGL), אנרגיה (XOM) ומדד רחב (VOO)."
+      },
+      {
+        "key": "monteCarlo",
+        "name": "סימולציית מונטה קרלו (Monte Carlo Simulation)",
+        "category": "חיזוי קדימה",
+        "whatIsIt": "הרצה של 1,000 מסלולי מסחר עתידיים אפשריים באמצעות אלגוריתם הסתברותי המדמה זעזועים שוקיים.",
+        "portfolioImpact": "הסימולציה מראה הסתברות של 84.8% לתשואה חיובית באופק של שנה קדימה, עם יעד חציוני (P50) של כ-$72,400 (₪222,000), מה שמעניק עוגן ביטחון מוכח להחזקה לטווח ארוך."
+      }
+    ]
+  }
+}

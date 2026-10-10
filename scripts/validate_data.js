@@ -85,6 +85,82 @@ if (fs.existsSync(forecastPath)) {
   console.warn('  ⚠️ forecast.json not present (optional)');
 }
 
+// 6. Validate Quant & Macro Metrics (Stages 1 & 2)
+console.log('\n🌐 Checking quant_metrics.json (Macro & Quant Risk)...');
+const quantPath = path.join(dataDir, 'quant_metrics.json');
+if (fs.existsSync(quantPath)) {
+  const quant = JSON.parse(fs.readFileSync(quantPath, 'utf8'));
+  assert(typeof quant.macroIndicators === 'object', 'Macro indicators object exists');
+  assert(typeof quant.macroIndicators.vix === 'object' && typeof quant.macroIndicators.vix.price === 'number', `VIX quote exists: ${quant.macroIndicators.vix?.price}`);
+  assert(typeof quant.macroIndicators.tnx === 'object' && typeof quant.macroIndicators.tnx.price === 'number', `10Y Yield quote exists: ${quant.macroIndicators.tnx?.price}%`);
+  assert(typeof quant.macroIndicators.oil === 'object' && typeof quant.macroIndicators.oil.price === 'number', `WTI Oil quote exists: $${quant.macroIndicators.oil?.price}`);
+  assert(typeof quant.macroIndicators.dxy === 'object' && typeof quant.macroIndicators.dxy.price === 'number', `DXY Index quote exists: ${quant.macroIndicators.dxy?.price}`);
+  assert(typeof quant.riskMetrics === 'object', 'Quantitative risk metrics exist');
+  assert(typeof quant.riskMetrics.sharpeRatio === 'number', `Sharpe ratio computed: ${quant.riskMetrics.sharpeRatio}`);
+  assert(typeof quant.riskMetrics.portfolioBeta === 'number', `Portfolio beta computed: ${quant.riskMetrics.portfolioBeta}`);
+  assert(typeof quant.riskMetrics.var95 === 'object', 'Value at Risk (VaR 95%) computed');
+  assert(typeof quant.correlationMatrix === 'object', 'Cross-asset correlation matrix computed');
+
+  // Stage 3 Validation
+  assert(typeof quant.stage3Predictive === 'object', 'Stage 3 predictive synthesis object exists');
+  assert(typeof quant.stage3Predictive?.monteCarlo === 'object', 'Monte Carlo stochastic simulations exist');
+  assert(typeof quant.stage3Predictive?.monteCarlo?.horizon30d?.p50USD === 'number', `Monte Carlo 30d P50 target: $${quant.stage3Predictive?.monteCarlo?.horizon30d?.p50USD}`);
+  assert(typeof quant.stage3Predictive?.monteCarlo?.horizon365d?.p50USD === 'number', `Monte Carlo 365d P50 target: $${quant.stage3Predictive?.monteCarlo?.horizon365d?.p50USD}`);
+  assert(typeof quant.stage3Predictive?.factorModel === 'object', 'Multi-factor asset scoring model exists');
+  assert(typeof quant.stage3Predictive?.factorModel?.portfolioCompositeScore === 'number', `Portfolio factor score: ${quant.stage3Predictive?.factorModel?.portfolioCompositeScore}/100`);
+  assert(Array.isArray(quant.stage3Predictive?.macroScenarios) && quant.stage3Predictive.macroScenarios.length >= 4, `4 Forward macro stress scenarios computed (${quant.stage3Predictive?.macroScenarios?.length} scenarios)`);
+  assert(Array.isArray(quant.stage3Predictive?.metricsExplanations) && quant.stage3Predictive.metricsExplanations.length >= 5, `Plain-language metric explanations exist (${quant.stage3Predictive?.metricsExplanations?.length} items)`);
+} else {
+  console.warn('  ⚠️ quant_metrics.json not present (optional)');
+}
+
+// 7. Validate README.md and Navigation Anchors
+console.log('\n📄 Checking README.md...');
+const readmePath = path.join(rootDir, 'README.md');
+assert(fs.existsSync(readmePath), 'README.md exists');
+const readmeContent = fs.readFileSync(readmePath, 'utf8');
+assert(readmeContent.length > 5000, `README.md has comprehensive content (${readmeContent.length} bytes)`);
+assert(readmeContent.includes('תמונת מצב מנהלים'), 'README contains Executive Snapshot');
+assert(readmeContent.includes('ביצועי מניות והחזקות'), 'README contains Holdings Performance');
+assert(readmeContent.includes('השוואת תחזיות ותרחישים'), 'README contains Forecast Comparisons');
+assert(readmeContent.includes('השוואת מודלים וגישות'), 'README contains Multi-Model Comparisons (3.1)');
+assert(readmeContent.includes('השוואת אופקי זמן'), 'README contains Multi-Horizon Comparisons (3.2)');
+assert(readmeContent.includes('ניתוח תרחישי הסתברות'), 'README contains Probability Scenarios (3.3)');
+assert(readmeContent.includes('מטריצת אותות וסיכונים'), 'README contains Asset Signals Matrix (3.4)');
+assert(readmeContent.includes('מדדי מאקרו ומפת שוק'), 'README contains Macroeconomic Indicators (Section 4)');
+assert(readmeContent.includes('מדדי סיכון כמותיים ומטריצת קורלציות'), 'README contains Quantitative Risk & Correlations (Section 5)');
+assert(readmeContent.includes('מנוע חיזוי רב-גורמי, סימולציית מונטה קרלו ותרחישי עתיד'), 'README contains Stage 3 Predictive Synthesis (Section 6)');
+assert(readmeContent.includes('יומן דיבידנדים'), 'README contains Dividends Journal');
+assert(readmeContent.includes('גרפים ומגמות חזותיות'), 'README contains Visual Analytics section');
+assert(readmeContent.includes('ארכיטקטורה ואוטומציה'), 'README contains Architecture section');
+assert(readmeContent.includes('id="snapshot"') || readmeContent.includes('#snapshot'), 'README contains snapshot navigation anchor');
+assert(readmeContent.includes('id="forecasts"') || readmeContent.includes('#forecasts'), 'README contains forecast comparisons navigation anchor');
+assert(readmeContent.includes('id="macro"') || readmeContent.includes('#macro'), 'README contains macro navigation anchor');
+assert(readmeContent.includes('id="risk-metrics"') || readmeContent.includes('#risk-metrics'), 'README contains risk-metrics navigation anchor');
+assert(readmeContent.includes('id="stage3-predictive"') || readmeContent.includes('#stage3-predictive'), 'README contains stage3 navigation anchor');
+
+// 8. Validate Standalone PHP Dashboard & GitHub Pages Action
+console.log('\n🐘 Checking PHP Dashboard & GitHub Pages Action...');
+assert(fs.existsSync(path.join(rootDir, 'php', 'index.php')), 'php/index.php dashboard exists');
+assert(fs.existsSync(path.join(rootDir, 'php', 'api.php')), 'php/api.php JSON API endpoint exists');
+assert(fs.existsSync(path.join(rootDir, 'index.php')), 'root index.php delegator exists');
+const deployWorkflowPath = path.join(rootDir, '.github', 'workflows', 'deploy_php_dashboard.yml');
+assert(fs.existsSync(deployWorkflowPath), 'PHP deployment GitHub Action workflow exists');
+const workflowYaml = fs.readFileSync(deployWorkflowPath, 'utf8');
+assert(workflowYaml.includes('deploy-pages') && workflowYaml.includes('github-pages'), 'deploy_php_dashboard.yml contains GitHub Pages deployment job');
+
+const phpContent = fs.readFileSync(path.join(rootDir, 'php', 'index.php'), 'utf8');
+assert(phpContent.includes('כיצד זה משפיע על תיק המניות שלי') || phpContent.includes('כיצד זה משפיע על התיק שלי'), 'PHP dashboard contains simple plain explanations of metric impacts');
+assert(phpContent.includes('stage3Predictive') || phpContent.includes('monteCarloChart'), 'PHP dashboard incorporates Stage 3 predictive visualizations');
+
+// 9. Validate data_hub Charts
+console.log('\n🖼️ Checking data_hub charts...');
+const dataHubDir = path.join(rootDir, 'data_hub');
+assert(fs.existsSync(dataHubDir), 'data_hub directory exists');
+assert(fs.existsSync(path.join(dataHubDir, 'timesfm_forecast.png')), 'timesfm_forecast.png chart exists');
+assert(fs.existsSync(path.join(dataHubDir, 'portfolio_performance.png')), 'portfolio_performance.png chart exists');
+assert(fs.existsSync(path.join(dataHubDir, 'asset_allocation.png')), 'asset_allocation.png chart exists');
+
 console.log('\n' + '='.repeat(50));
 console.log(`📊 Result: ${passed} passed, ${failed} failed`);
 console.log('='.repeat(50) + '\n');

@@ -1,0 +1,149 @@
+name: Deploy PHP Portfolio Dashboard to GitHub Pages & Artifacts
+
+on:
+  workflow_dispatch:
+  push:
+    branches: ['main']
+    paths:
+      - 'php/**'
+      - 'index.php'
+      - 'public/data/**'
+      - 'scripts/**'
+  workflow_run:
+    workflows: ["Update Stock Data & Deploy"]
+    types: [completed]
+
+concurrency:
+  group: "php-deployment"
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  validate-and-build:
+    name: Validate PHP, Render Site & Package
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up PHP 8.2
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: mbstring, json, curl
+
+      - name: Validate PHP Syntax (Linting)
+        run: |
+          echo "🔍 Linting PHP files..."
+          php -l index.php
+          php -l php/index.php
+          php -l php/api.php
+          echo "✅ All PHP files passed syntax linting."
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Validate Data Pipeline Integrity
+        run: npm run test:data
+
+      - name: Render PHP Dashboard for GitHub Pages
+        run: |
+          echo "🌐 Rendering PHP site to static HTML for GitHub Pages..."
+          mkdir -p dist-pages/data
+          mkdir -p dist-pages/data_hub
+          mkdir -p dist-pages/php
+
+          # Execute PHP to render dynamic template into high-performance index.html
+          php index.php > dist-pages/index.html
+
+          # Copy data files for client-side charts & API calls
+          cp -r public/data/* dist-pages/data/
+          cp -r public/data/* dist-pages/data_hub/ 2>/dev/null || true
+
+          # Copy visual charts if available
+          if [ -d "data_hub" ]; then
+            cp -r data_hub/* dist-pages/data_hub/
+          fi
+
+          # Copy raw PHP scripts for user direct download
+          cp index.php dist-pages/php/
+          cp php/index.php dist-pages/php/
+          cp php/api.php dist-pages/php/
+
+          # Prevent GitHub Pages from ignoring files beginning with underscore
+          touch dist-pages/.nojekyll
+
+          echo "✅ Rendered dist-pages/ successfully."
+
+      - name: Assemble Standalone PHP Distribution Bundle
+        run: |
+          echo "📦 Assembling PHP distribution bundle..."
+          mkdir -p dist-php/data
+          mkdir -p dist-php/data_hub
+          mkdir -p dist-php/php
+
+          cp index.php dist-php/
+          cp php/index.php dist-php/php/
+          cp php/api.php dist-php/php/
+          cp -r public/data/* dist-php/data/
+          cp -r public/data/* dist-php/php/data/ 2>/dev/null || true
+
+          if [ -d "data_hub" ]; then
+            cp -r data_hub/* dist-php/data_hub/
+          fi
+
+          cat << 'EOF' > dist-php/start_server.sh
+          #!/usr/bin/env bash
+          echo "🚀 Starting PHP Portfolio Tracker on http://localhost:8000 ..."
+          php -S 0.0.0.0:8000
+          EOF
+          chmod +x dist-php/start_server.sh
+          echo "✅ PHP distribution assembled in dist-php/ directory."
+
+      - name: Upload PHP Dashboard Server Bundle Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: php-portfolio-dashboard-bundle
+          path: dist-php/
+          retention-days: 30
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload GitHub Pages Artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist-pages/
+
+      - name: Summary & Deployment Instructions
+        run: |
+          echo "### 🚀 PHP Dashboard Package & GitHub Pages Ready!" >> $GITHUB_STEP_SUMMARY
+          echo "The complete standalone PHP Portfolio Intelligence Dashboard has been validated, rendered and packaged." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Deployment Options:**" >> $GITHUB_STEP_SUMMARY
+          echo "1. **GitHub Pages**: Automatically deployed to your repository GitHub Pages URL." >> $GITHUB_STEP_SUMMARY
+          echo "2. **cPanel / Apache / Nginx**: Upload contents of \`dist-php/\` into \`public_html\`." >> $GITHUB_STEP_SUMMARY
+          echo "3. **Docker / Container**: Run with \`php:8.2-apache\` using \`dist-php/\` as document root." >> $GITHUB_STEP_SUMMARY
+          echo "4. **Local Preview**: Run \`php -S localhost:8000\` inside \`dist-php/\`." >> $GITHUB_STEP_SUMMARY
+
+  deploy-to-pages:
+    name: Deploy to GitHub Pages
+    needs: validate-and-build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

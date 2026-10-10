@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { execSync } from 'child_process';
 import YahooFinance from 'yahoo-finance2';
+import { computeQuantAndMacroMetrics } from './quant_engine.js';
 
 const yahooFinance = new YahooFinance({ suppressNotices: ['yahooSurvey', 'ripHistorical'] });
 
@@ -556,6 +557,15 @@ async function fetchAndUpdatePrices() {
         }
       }
 
+      // 5. Run Quant and Macro Analytics Engine (Stages 1 & 2)
+      let quantData = null;
+      try {
+        console.log('Running Quantitative Risk & Macro Indicators Analysis...');
+        quantData = await computeQuantAndMacroMetrics();
+      } catch (err) {
+        console.error('Warning: Quant analysis encountered an issue:', err.message);
+      }
+
       try {
         await downloadQuickChart(allocationConfig, path.join(dataHubDir, 'asset_allocation.png'));
         await downloadQuickChart(performanceConfig, path.join(dataHubDir, 'portfolio_performance.png'));
@@ -683,89 +693,466 @@ async function fetchAndUpdatePrices() {
       const now = new Date();
       const formattedDate = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       
-      // Generate TimesFM Assets Table for README
+      // 1. Generate TimesFM Assets Table for README
       let forecastTableMarkdown = '';
       if (forecastData && forecastData.assets) {
         const rows = Object.entries(forecastData.assets).map(([ticker, info]) => {
           const chgSign = info.expectedChangePct >= 0 ? '+' : '';
           const signalBadge = info.expectedChangePct >= 0 ? `🟢 ${info.signalHe}` : `🔴 ${info.signalHe}`;
-          return `| **${ticker}** | \`$${info.currentPrice.toFixed(2)}\` | \`$${info.forecastP50.toFixed(2)}\` | \`$${info.forecastP10.toFixed(2)} - $${info.forecastP90.toFixed(2)}\` | **${chgSign}${info.expectedChangePct.toFixed(2)}%** | ${signalBadge} |`;
+          const vol = info.annualizedVolatilityPct ? `${info.annualizedVolatilityPct.toFixed(1)}%` : '—';
+          return `| **${ticker}** | \`$${info.currentPrice.toFixed(2)}\` | \`$${info.forecastP50.toFixed(2)}\` | \`$${info.forecastP10.toFixed(2)} - $${info.forecastP90.toFixed(2)}\` | **${chgSign}${info.expectedChangePct.toFixed(2)}%** | ${signalBadge} | \`${vol}\` |`;
         });
         forecastTableMarkdown = [
-          '| מניה (Asset) | שער נוכחי | יעד צפוי 30 יום (P50) | טווח ביטחון (P10 - P90) | תשואה חזויה | אות מודל (AI Signal) |',
+          '| מניה (Asset) | שער נוכחי | יעד צפוי 30 יום (P50) | טווח ביטחון (P10 - P90) | תשואה חזויה | אות מודל (AI Signal) | תנודתיות שנתית |',
+          '| :--- | :---: | :---: | :---: | :---: | :---: | :---: |',
+          ...rows
+        ].join('\n');
+      }
+
+      // 2. Generate Model Comparisons Table
+      let modelComparisonsMarkdown = '';
+      if (forecastData && forecastData.modelComparisons && Array.isArray(forecastData.modelComparisons)) {
+        const rows = forecastData.modelComparisons.map(m => {
+          const retSign = m.expectedReturnPct >= 0 ? '+' : '';
+          const retBadge = m.expectedReturnPct >= 0 ? `🟢 **${retSign}${m.expectedReturnPct.toFixed(2)}%**` : `🔴 **${retSign}${m.expectedReturnPct.toFixed(2)}%**`;
+          return `| **${m.nameHe}** <br><sub>${m.category}</sub> | \`$${Math.round(m.projectedUSD).toLocaleString('en-US')}\` <br><sub>(\`₪${Math.round(m.projectedILS).toLocaleString('en-US')}\`)</sub> | ${retBadge} | ${m.riskLevel} | ${m.methodology} |`;
+        });
+        modelComparisonsMarkdown = [
+          '| מודל / גישת חיזוי | יעד שווי תיק (30 יום) | תשואה צפויה | רמת סיכון | מתודולוגיה ועקרון חישוב |',
+          '| :--- | :---: | :---: | :---: | :--- |',
+          ...rows
+        ].join('\n');
+      }
+
+      // 3. Generate Multi-Horizon Forecast Table
+      let horizonComparisonsMarkdown = '';
+      if (forecastData && forecastData.horizonComparisons && Array.isArray(forecastData.horizonComparisons)) {
+        const rows = forecastData.horizonComparisons.map(h => {
+          const retSign = h.expectedReturnPct >= 0 ? '+' : '';
+          const retBadge = h.expectedReturnPct >= 0 ? `🟢 **${retSign}${h.expectedReturnPct.toFixed(2)}%**` : `🔴 **${retSign}${h.expectedReturnPct.toFixed(2)}%**`;
+          return `| **${h.horizonLabel}** | \`${h.targetDate}\` | \`$${Math.round(h.p50USD).toLocaleString('en-US')}\` <br><sub>(\`₪${Math.round(h.p50ILS).toLocaleString('en-US')}\`)</sub> | ${retBadge} | \`$${Math.round(h.p10USD).toLocaleString('en-US')} - $${Math.round(h.p90USD).toLocaleString('en-US')}\` | \`₪${h.expectedFx.toFixed(3)}\` |`;
+        });
+        horizonComparisonsMarkdown = [
+          '| אופק זמן (Horizon) | תאריך יעד | יעד בסיס חזוי (P50) | תשואה צפויה | טווח הסתברותי (P10 - P90) | שער דולר חזוי |',
           '| :--- | :---: | :---: | :---: | :---: | :---: |',
           ...rows
         ].join('\n');
       }
 
-      // Generate README content with logical categories & clean formatting (Shortened)
-      const readmeContent = `# 📈 Stock Tracker & Portfolio Analytics | מעקב תיק השקעות
+      // 4. Generate Upcoming Dividends Projection Table
+      let dividendProjectionMarkdown = '';
+      if (forecastData && forecastData.dividendsForecast && forecastData.dividendsForecast.events) {
+        const nextEvents = forecastData.dividendsForecast.events.slice(0, 8);
+        const rows = nextEvents.map(e => {
+          return `| **${e.ticker}** | \`${e.projectedDate}\` | \`$${e.estimatedGrossUSD.toFixed(2)}\` | \`-$${(e.estimatedGrossUSD * 0.25).toFixed(2)}\` | \`+$${e.estimatedNetUSD.toFixed(2)}\` (\`₪${e.estimatedNetILS.toFixed(0)}\`) |`;
+        });
+        dividendProjectionMarkdown = [
+          '| נייר ערך | תאריך צפוי | ברוטו משוער | ניכוי מס 25% | נטו משוער לחשבון |',
+          '| :--- | :---: | :---: | :---: | :---: |',
+          ...rows
+        ].join('\n');
+      }
 
-[![Interactive Web Dashboard](https://img.shields.io/badge/Live_Dashboard-Open_App-4f46e5?style=for-the-badge&logo=google-chrome&logoColor=white)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪${Math.round(totalCurrentILS).toLocaleString('en-US').replace(/,/g, '%2C')}-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
-[![TimesFM Forecast](https://img.shields.io/badge/TimesFM_30d_Target-₪${forecastData ? Math.round(forecastData.portfolio.forecast30dILS_P50).toLocaleString('en-US').replace(/,/g, '%2C') : 'N/A'}-8b5cf6?style=for-the-badge&logo=google)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Profit](https://img.shields.io/badge/Total_Profit-${formatPercent(totalPnLPercent).replace('%', '%25')}-${totalPnLPercent >= 0 ? '16a34a' : 'dc2626'}?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
+      // 5. Generate Macro Indicators Table (Stage 1)
+      let macroTableMarkdown = '';
+      if (quantData && quantData.macroIndicators) {
+        const m = quantData.macroIndicators;
+        macroTableMarkdown = [
+          '| מדד מאקרו (Indicator) | סימול | שער נוכחי | שינוי יומי | משטר שוק / סטטוס | משמעות והשפעה על התיק |',
+          '| :--- | :---: | :---: | :---: | :---: | :--- |',
+          `| **מדד התנודתיות והפחד (VIX)** | \`${m.vix.symbol}\` | \`${m.vix.price}\` | ${m.vix.changePct >= 0 ? '🔴 +' : '🟢 '}\`${m.vix.changePct.toFixed(2)}%\` | ${m.vix.badge} ${m.vix.regime} | ${m.vix.description} |`,
+          `| **תשואת אג"ח ארה"ב 10Y** | \`${m.tnx.symbol}\` | \`${m.tnx.price}%\` | ${m.tnx.changePct >= 0 ? '🔴 +' : '🟢 '}\`${m.tnx.changePct.toFixed(2)}%\` | ריבית חסרת סיכון (Rf = ${m.tnx.riskFreeRatePct}%) | ${m.tnx.description} |`,
+          `| **נפט גולמי (WTI Crude)** | \`${m.oil.symbol}\` | \`$${m.oil.price}\` | ${m.oil.changePct >= 0 ? '🟢 +' : '🔴 '}\`${m.oil.changePct.toFixed(2)}%\` | סחורות ואנרגיה | ${m.oil.description} |`,
+          `| **מדד הדולר העולמי (DXY)** | \`${m.dxy.symbol}\` | \`${m.dxy.price}\` | ${m.dxy.changePct >= 0 ? '🟢 +' : '🔴 '}\`${m.dxy.changePct.toFixed(2)}%\` | סל מטבעות גלובלי | ${m.dxy.description} |`
+        ].join('\n');
+      }
 
-> **מערכת חכמה לניהול ומעקב תיק השקעות בזמן אמת המשולבת במודל חיזוי סדרות עתיות Google Research TimesFM.** 
-> כוללת חישובי מס רווחי הון (25%), המרות מט"ח, יומן דיבידנדים היסטורי, מנוע זיהוי אנומליות וחיזוי מבוסס AI.
-> 👉 **[למעבר לדשבורד המלא והאינטראקטיבי לחץ כאן](https://almog787.github.io/My-new-stock-trucker/)**
+      // 6. Generate Quantitative Risk Metrics Table (Stage 2) & Stage 3 Tables
+      let riskMetricsTableMarkdown = '';
+      let assetBetasTableMarkdown = '';
+      let correlationMatrixMarkdown = '';
+      let correlationInsightsMarkdown = '';
+      let monteCarloTableMarkdown = '';
+      let factorScoresMarkdown = '';
+      let macroScenariosMarkdown = '';
+      let metricsExplanationsMarkdown = '';
+
+      if (quantData && quantData.riskMetrics) {
+        const r = quantData.riskMetrics;
+        riskMetricsTableMarkdown = [
+          '| מדד סטטיסטי / פיננסי | ערך כמותי | הערכת סיכון ומתודולוגיה |',
+          '| :--- | :---: | :--- |',
+          `| **תשואה שנתית היסטורית (Ann. Return)** | 🟢 \`+${r.annualizedReturnPct}%\` | קצב תשואה שנתי מצטבר מיום תחילת הרישום |`,
+          `| **תנודתיות שנתית (Ann. Volatility)** | \`${r.annualizedVolatilityPct}%\` | סטיית תקן שנתית משוקללת ($\\sigma_{\\text{ann}} = \\sigma_{\\text{daily}} \\times \\sqrt{252}$) |`,
+          `| **מדד שארפ שנתי (Sharpe Ratio)** | 🟢 \`${r.sharpeRatio}\` | תשואה עודפת מעל ריבית אג"ח (${r.riskFreeRatePct}%) לכל יחידת סיכון (>1.0 נחשב ביצועים איכותיים) |`,
+          `| **מדד סורטינו שנתי (Sortino Ratio)** | 🟢 \`${r.sortinoRatio}\` | תשואה עודפת מול סיכון יורד בלבד (עליות חדות אינן נספרות כסיכון) |`,
+          `| **בטא התיק מול השוק (Portfolio Beta vs VOO)** | \`${r.portfolioBeta}\` | תנודתיות התיק גבוהה ב-${Math.round((r.portfolioBeta - 1) * 100)}% ממדד ה-S&P 500 בעקבות משקל ענקיות ה-AI |`,
+          `| **Value at Risk יומי (VaR 95% 1-Day)** | 🔴 \`-$${r.var95.daily.usd.toLocaleString()}\` (\`-₪${r.var95.daily.ils.toLocaleString()}\`) | הפסד יומי מרבי ברמת ביטחון של 95% (עד ${r.var95.daily.pct}% מהתיק) |`,
+          `| **Value at Risk חודשי (VaR 95% 30-Day)** | 🔴 \`-$${r.var95.monthly30d.usd.toLocaleString()}\` (\`-₪${r.var95.monthly30d.ils.toLocaleString()}\`) | הפסד חודשי מרבי ברמת ביטחון של 95% תחת חודש מסחר (21 ימים) |`,
+          `| **Conditional VaR יומי (CVaR / Expected Shortfall)** | 🔴 \`-$${r.cvar95.daily.usd.toLocaleString()}\` (\`-₪${r.cvar95.daily.ils.toLocaleString()}\`) | הפסד ממוצע צפוי בתרחיש חריגה קיצוני מ-VaR (ב-5% הימים הגרועים ביותר) |`,
+          `| **מקסימום דרודאון היסטורי (Max Drawdown)** | 🔴 \`${r.maxDrawdownPct}%\` | הנפילה המרבית משיא כל הזמנים לשפל במהלך ההיסטוריה |`,
+          `| **מרחק נוכחי משיא כל הזמנים (Current Drawdown)** | \`${r.currentDrawdownPct}%\` | שיא כל הזמנים: \`$${r.allTimeHighUSD.toLocaleString()}\` (\`₪${r.allTimeHighILS.toLocaleString()}\`) |`,
+          `| **מדד ריכוזיות הירשמן (HHI Concentration)** | \`${r.hhiIndex}\` | **${r.diversificationLevel}** (מדד HHI תחת 0.25 מעיד על פיזור בריא) |`
+        ].join('\n');
+
+        if (r.assetBetas) {
+          const betaRows = Object.entries(r.assetBetas).map(([t, b]) => {
+            const role = b > 1.8 ? 'תנודתיות גבוהה / מנוע אלפא' : b > 1.2 ? 'צמיחה טכנולוגית' : b >= 0.9 ? 'עוגן שוק רחב' : 'גידור עצמאי מובהק';
+            return `| **${t}** | \`${b}\` | ${role} |`;
+          });
+          assetBetasTableMarkdown = [
+            '| נכס (Asset) | מקדם בטא מול VOO (S&P 500) | סיווג רגישות שוקית |',
+            '| :--- | :---: | :--- |',
+            ...betaRows
+          ].join('\n');
+        }
+
+        if (quantData.correlationMatrix) {
+          const vars = quantData.correlationMatrix.variables;
+          const matrix = quantData.correlationMatrix.matrix;
+          const header = '| נכס / מדד | ' + vars.map(v => v.label).join(' | ') + ' |';
+          const align = '| :--- | ' + vars.map(() => ':---:').join(' | ') + ' |';
+          const rows = vars.map(v1 => {
+            const cells = vars.map(v2 => {
+              const val = matrix[v1.key]?.[v2.key] ?? 0;
+              const valStr = val.toFixed(2);
+              if (v1.key === v2.key) return `\`1.00\``;
+              if (val > 0.6) return `🟢 \`${valStr}\``;
+              if (val < 0) return `🔴 \`${valStr}\``;
+              return `\`${valStr}\``;
+            });
+            return `| **${v1.label}** | ` + cells.join(' | ') + ' |';
+          });
+          correlationMatrixMarkdown = [header, align, ...rows].join('\n');
+
+          correlationInsightsMarkdown = quantData.correlationMatrix.insights.map(ins => {
+            return `* 📌 **${ins.pair} (${ins.type} - מקדם ${ins.correlation}):** ${ins.description}`;
+          }).join('\n');
+        }
+        // Stage 3 Predictive Synthesis Tables
+        if (quantData && quantData.stage3Predictive) {
+          const s3 = quantData.stage3Predictive;
+          if (s3.monteCarlo) {
+            const mcRows = Object.values(s3.monteCarlo).map(mc => {
+              const sign = mc.expectedReturnPct >= 0 ? '+' : '';
+              return `| **${mc.label}** | \`$${mc.p50USD.toLocaleString('en-US')}\` <br><sub>(\`₪${mc.p50ILS.toLocaleString('en-US')}\`)</sub> | 🟢 **${sign}${mc.expectedReturnPct.toFixed(2)}%** | \`${mc.rangeUSD}\` <br><sub>(\`${mc.rangeILS}\`)</sub> | 🎯 **${mc.probPositivePct}%** |`;
+            });
+            monteCarloTableMarkdown = [
+              '| אופק זמן (Horizon) | יעד חציוני P50 | תשואה צפויה | טווח קונוס הסתברותי (P5 - P95) | הסתברות לרווח |',
+              '| :--- | :---: | :---: | :---: | :---: |',
+              ...mcRows
+            ].join('\n');
+          }
+
+          if (s3.factorModel && s3.factorModel.assets) {
+            const faRows = Object.values(s3.factorModel.assets).map(a => {
+              return `| **${a.ticker}** <br><sub>${a.name}</sub> | ${a.role} | \`${a.momentumScore}/100\` | \`${a.riskScore}/100\` | \`${a.macroScore}/100\` | \`${a.aiScore}/100\` | **\`${a.compositeScore}/100\`** | \`${a.grade}\` | 🟢 **${a.recommendation}** |`;
+            });
+            factorScoresMarkdown = [
+              '| נכס (Asset) | תפקיד אסטרטגי בתיק | מומנטום | ניהול סיכון | עמידות מאקרו | אות AI | ציון כולל | דרגה | המלצת מודל |',
+              '| :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :--- |',
+              ...faRows
+            ].join('\n');
+          }
+
+          if (s3.macroScenarios) {
+            const scRows = s3.macroScenarios.map(sc => {
+              const retSign = sc.expectedReturnPct >= 0 ? '+' : '';
+              return `| **${sc.name}** | \`${sc.probability}\` | \`$${sc.targetUSD.toLocaleString('en-US')}\` <br><sub>(\`₪${sc.targetILS.toLocaleString('en-US')}\`)</sub> | ${sc.expectedReturnPct >= 0 ? '🟢' : '🔴'} **${retSign}${sc.expectedReturnPct.toFixed(1)}%** | ${sc.macroConditions} | ${sc.portfolioImpact} |`;
+            });
+            macroScenariosMarkdown = [
+              '| תרחיש מאקרו עתידי | הסתברות | שווי תיק צפוי | תשואה צפויה | תנאי מאקרו ומפתחות שוק | השפעה כספית ישירה על התיק |',
+              '| :--- | :---: | :---: | :---: | :--- | :--- |',
+              ...scRows
+            ].join('\n');
+          }
+
+          if (s3.metricsExplanations) {
+            const expRows = s3.metricsExplanations.map(e => {
+              return `| **${e.name}** <br><sub>(${e.category})</sub> | ${e.whatIsIt} | 💡 **${e.portfolioImpact}** |`;
+            });
+            metricsExplanationsMarkdown = [
+              '| מדד פיננסי / כמותי | מה המשמעות (הסבר פשוט)? | כיצד זה משפיע ישירות על תיק המניות שלי? |',
+              '| :--- | :--- | :--- |',
+              ...expRows
+            ].join('\n');
+          }
+        }
+      }
+
+      // 7. Generate Standalone Comprehensive README
+      const vixBadgeStr = quantData?.macroIndicators?.vix ? `![CBOE VIX](https://img.shields.io/badge/CBOE_VIX-${quantData.macroIndicators.vix.price}_(${quantData.macroIndicators.vix.badge.replace(/ /g, '_')})-059669?style=for-the-badge&logo=statuspage)` : '';
+      const tnxBadgeStr = quantData?.macroIndicators?.tnx ? `![10Y Yield](https://img.shields.io/badge/US_10Y_Yield-${quantData.macroIndicators.tnx.price}%25-d97706?style=for-the-badge)` : '';
+      const sharpeBadgeStr = quantData?.riskMetrics?.sharpeRatio ? `![Sharpe](https://img.shields.io/badge/Sharpe_Ratio-${quantData.riskMetrics.sharpeRatio}-4f46e5?style=for-the-badge)` : '';
+      const betaBadgeStr = quantData?.riskMetrics?.portfolioBeta ? `![Beta](https://img.shields.io/badge/Portfolio_Beta-${quantData.riskMetrics.portfolioBeta}-8b5cf6?style=for-the-badge)` : '';
+      const stage3BadgeStr = quantData?.stage3Predictive?.factorModel ? `![Stage 3](https://img.shields.io/badge/Stage_3_Score-${quantData.stage3Predictive.factorModel.portfolioCompositeScore}%2F100_(${quantData.stage3Predictive.factorModel.portfolioGrade})-8b5cf6?style=for-the-badge)` : '';
+
+      const readmeContent = `<a id="top"></a>
+# 📈 מעקב תיק השקעות, אנליטיקה כמותית והשוואת תחזיות AI
+
+![Last Update](https://img.shields.io/badge/Last_Update-${formattedDate.replace(/ /g, '_').replace(/:/g, '%3A')}-4f46e5?style=for-the-badge&logo=githubactions)
+![Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪${Math.round(totalCurrentILS).toLocaleString('en-US').replace(/,/g, '%2C')}-0284c7?style=for-the-badge&logo=cashapp)
+![Total Profit](https://img.shields.io/badge/Total_Profit-${formatPercent(totalPnLPercent).replace('%', '%25')}-${totalPnLPercent >= 0 ? '16a34a' : 'dc2626'}?style=for-the-badge)
+![TimesFM 30d Target](https://img.shields.io/badge/TimesFM_30d_Target-₪${forecastData ? Math.round(forecastData.portfolio.forecast30dILS_P50).toLocaleString('en-US').replace(/,/g, '%2C') : 'N/A'}-8b5cf6?style=for-the-badge&logo=google)
+![USD/ILS Rate](https://img.shields.io/badge/USD%2FILS-₪${usdIlsRate.toFixed(3)}-059669?style=for-the-badge)
+${vixBadgeStr} ${tnxBadgeStr} ${sharpeBadgeStr} ${betaBadgeStr} ${stage3BadgeStr}
+
+> **מאגר אוטונומי למעקב, חישוב וניתוח מעמיק של תיק השקעות בזמן אמת.**  
+> כל המידע, האנליטיקות, הגרפים, מדדי המאקרו, השוואות המודלים, סימולציות מונטה קרלו ותרחישי העתיד (שלבים 1, 2 ו-3) מרוכזים ומתעדכנים אוטומטית ישירות בקובץ זה באמצעות GitHub Actions ומודל **Google Research TimesFM**.
 
 ---
 
-## 📊 תמונת מצב (Executive Snapshot)
+<a id="toc"></a>
+## 🧭 תוכן עניינים וניווט מהיר
 
-* **שווי תיק נוכחי:** \`₪${Math.round(totalCurrentILS).toLocaleString('en-US')}\` (\`$${Math.round(totalCurrentUSD).toLocaleString('en-US')}\`)
-* **רווח כולל נטו (לאחר 25% מס):** \`${totalNetPnLILS >= 0 ? '+' : ''}₪${Math.round(totalNetPnLILS).toLocaleString('en-US')}\` (**${formatPercent(totalNetPnLPercent)}**)
-* **שינוי יומי:** \`${dailyPnLILS >= 0 ? '+' : ''}₪${Math.round(dailyPnLILS).toLocaleString('en-US')}\` (**${formatPercent(dailyChangePercent)}**)
-* **הכנסה פאסיבית חודשית ממוצעת (YTD):** \`+₪${Math.round(ytdNetMonthlyAvgILS).toLocaleString('en-US')}/חודש\` נטו
-* **סך דיבידנדים (12M):** \`₪${Math.round(l12mReceivedGrossUSD * 0.75 * brokerRate).toLocaleString('en-US')}\` נטו
-* **מועד עדכון אחרון:** \`${formattedDate}\` (שער רציף: \`₪${usdIlsRate.toFixed(3)}\`)
+* [📊 1. תמונת מצב מנהלים (Executive Snapshot)](#snapshot)
+* [📋 2. ביצועי מניות והחזקות התיק (Holdings Performance)](#holdings)
+* [🔮 3. השוואת תחזיות ותרחישים מקיפה (Forecast Comparisons)](#forecasts)
+  * [🔹 3.1 השוואת מודלים וגישות שונות (AI vs Market Beta vs Momentum vs Stress)](#models)
+  * [🔹 3.2 השוואת אופקי זמן שונים (7, 14, 30 ו-90 יום)](#horizons)
+  * [🔹 3.3 ניתוח תרחישי הסתברות (P10 פסימי | P50 בסיס | P90 אופטימי)](#scenarios)
+  * [🔹 3.4 מטריצת אותות וסיכונים פר מניה (Cross-Asset AI Matrix)](#signals)
+* [🌐 4. מדדי מאקרו ומפת שוק (Macroeconomic Indicators)](#macro)
+* [📐 5. מדדי סיכון כמותיים ומטריצת קורלציות (Quantitative Risk & Correlations)](#risk-metrics)
+  * [🔹 5.1 מדדי סיכון מרכזיים (Sharpe, Beta, VaR, MDD)](#risk-summary)
+  * [🔹 5.2 בטא פר מניה מול S&P 500](#asset-betas)
+  * [🔹 5.3 מטריצת מתאמים צולבת (Asset & Macro Correlation Matrix)](#correlations)
+  * [🔹 5.4 תובנות פיזור וניהול סיכונים](#risk-insights)
+* [🚀 6. מנוע חיזוי רב-גורמי, סימולציית מונטה קרלו ותרחישי עתיד (Predictive Synthesis - שלב 3)](#stage3-predictive)
+  * [🔹 6.1 סימולציית מונטה קרלו (Monte Carlo Projections: 30d עד 365d)](#monte-carlo)
+  * [🔹 6.2 דירוג מניות רב-גורמי והמלצות מודל (Factor Model Matrix)](#factor-model)
+  * [🔹 6.3 מבחני לחץ ותרחישי מאקרו עתידיים (4 Forward Stress Scenarios)](#macro-scenarios)
+  * [🔹 6.4 מדריך הסברים: כיצד כל מדד משפיע על תיק המניות שלי?](#explanations-guide)
+* [💵 7. יומן דיבידנדים והכנסה פאסיבית (Dividends & Passive Income)](#dividends)
+* [📈 8. גרפים ומגמות חזותיות (Visual Analytics)](#charts)
+* [⚙️ 9. ארכיטקטורה ואוטומציה במאגר (System Architecture)](#architecture)
 
 ---
 
-## 📋 ביצועי מניות והחזקות (Holdings Performance)
+<a id="snapshot"></a>
+## 📊 1. תמונת מצב מנהלים (Executive Snapshot)
+
+| מדד פיננסי | ערך בדולר ($ USD) | ערך בשקלים (₪ ILS) | הערות ומשמעות כלכלית |
+| :--- | :---: | :---: | :--- |
+| **שווי תיק נוכחי** | \`$${Math.round(totalCurrentUSD).toLocaleString('en-US')}\` | \`₪${Math.round(totalCurrentILS).toLocaleString('en-US')}\` | שווי שוק עדכני לפי מחירי מסחר אחרונים ושער רציף |
+| **עלות קנייה (Cost Basis)** | \`$${Math.round(totalInvestedUSD).toLocaleString('en-US')}\` | \`₪${Math.round(totalInvestedILS).toLocaleString('en-US')}\` | סך ההון המקורי שהושקע ברכישת הנכסים |
+| **רווח כולל ברוטו** | \`${totalPnLUSD >= 0 ? '+' : ''}$${Math.round(totalPnLUSD).toLocaleString('en-US')}\` | \`${totalPnLILS >= 0 ? '+' : ''}₪${Math.round(totalPnLILS).toLocaleString('en-US')}\` | **${formatPercent(totalPnLPercent)}** תשואה כוללת מיום הרכישה |
+| **רווח כולל נטו (לאחר מס)** | \`${totalNetPnLUSD >= 0 ? '+' : ''}$${Math.round(totalNetPnLUSD).toLocaleString('en-US')}\` | \`${totalNetPnLILS >= 0 ? '+' : ''}₪${Math.round(totalNetPnLILS).toLocaleString('en-US')}\` | **${formatPercent(totalNetPnLPercent)}** נטו בניכוי 25% מס רווחי הון |
+| **חבות מס משוערת למימוש** | \`-$${Math.round(totalUnrealizedTaxUSD).toLocaleString('en-US')}\` | \`-₪${Math.round(totalUnrealizedTaxILS).toLocaleString('en-US')}\` | חישוב מס 25% עם קיזוז הפסדים מלא (סעיף 92 לפקודה) |
+| **שינוי יומי (Daily Change)** | \`${dailyPnLUSD >= 0 ? '+' : ''}$${Math.round(dailyPnLUSD).toLocaleString('en-US')}\` | \`${dailyPnLILS >= 0 ? '+' : ''}₪${Math.round(dailyPnLILS).toLocaleString('en-US')}\` | **${formatPercent(dailyChangePercent)}** תנועה לעומת נעילה קודמת |
+| **ממוצע רווח חודשי (YTD)** | \`+$${Math.round(ytdNetMonthlyAvgUSD).toLocaleString('en-US')}/חודש\` | \`+₪${Math.round(ytdNetMonthlyAvgILS).toLocaleString('en-US')}/חודש\` | הכנסה חודשית ממוצעת נטו מתחילת השנה (${currentMonthNumber} חודשים) |
+| **סך דיבידנדים (L12M)** | \`$${Math.round(l12mReceivedGrossUSD * 0.75).toLocaleString('en-US')}\` | \`₪${Math.round(l12mReceivedGrossUSD * 0.75 * brokerRate).toLocaleString('en-US')}\` | תקבולי דיבידנד נטו ב-12 החודשים האחרונים |
+| **שער המרה ברוקר** | \`$1.00\` | \`₪${usdIlsRate.toFixed(3)}\` | שער רציף בתוספת מרווח עסקת מט"ח (${(0.008 * 100).toFixed(1)} אג') |
+
+[⬆️ חזרה לראש העמוד](#top) &nbsp;|&nbsp; [🧭 תוכן עניינים](#toc)
+
+---
+
+<a id="holdings"></a>
+## 📋 2. ביצועי מניות והחזקות התיק (Holdings Performance)
 
 | נכס (Asset) | כמות | שער נוכחי | שווי שוק | שינוי יומי (Daily Change) | שינוי מהכניסה לתיק (Total Return) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 ${enhancedHoldingsRows.join('\n')}
 
----
-
-## 🔮 תחזיות מודל Google Research TimesFM (AI Forecasting & Analytics)
-
-${forecastData ? `
-* **יעד שווי תיק צפוי בעוד 30 יום (P50):** \`₪${Math.round(forecastData.portfolio.forecast30dILS_P50).toLocaleString('en-US')}\` (\`$${Math.round(forecastData.portfolio.forecast30dUSD_P50).toLocaleString('en-US')}\`)
-* **טווח הסתברותי (P10 - P90):** \`₪${Math.round(forecastData.portfolio.forecast30dILS_P10).toLocaleString('en-US')}\` עד \`₪${Math.round(forecastData.portfolio.forecast30dILS_P90).toLocaleString('en-US')}\`
-* **תשואת תיק צפויה (30d Expected Return):** \`${forecastData.portfolio.expectedReturn30dPct >= 0 ? '+' : ''}${forecastData.portfolio.expectedReturn30dPct.toFixed(2)}%\` (תנודתיות שנתית חזויה: \`${forecastData.portfolio.volatilityAnnualizedPct.toFixed(1)}%\`)
-* **תחזית שער דולר/שקל (30 יום):** \`₪${forecastData.exchangeRate.forecast30dRate_P50.toFixed(3)}\` (טווח: \`₪${forecastData.exchangeRate.forecast30dRate_P10.toFixed(3)} - ₪${forecastData.exchangeRate.forecast30dRate_P90.toFixed(3)}\`)
-
-### 🎯 מטריצת תחזיות ואותות למניות התיק:
-${forecastTableMarkdown}
-` : '*התחזית תתעדכן בריצה הבאה של המודל.*'}
+[⬆️ חזרה לראש העמוד](#top) &nbsp;|&nbsp; [🧭 תוכן עניינים](#toc)
 
 ---
 
-## 📈 גרפים ומגמות (Visual Analytics)
+<a id="forecasts"></a>
+## 🔮 3. השוואת תחזיות ותרחישים מקיפה (Forecast Comparisons)
+
+המאגר מריץ באופן שוטף סדרת מודלים כמותיים ומודל בינה מלאכותית של **Google Research (TimesFM)** כדי להפיק תחזיות והערכות סיכון מזוויות שונות. להלן השוואה שיטתית של התוצאות:
+
+<a id="models"></a>
+### 🔹 3.1 השוואת מודלים וגישות שונות
+
+השוואת התחזית לאופק של **30 ימים קדימה** בין 5 גישות מתודולוגיות שונות:
+
+${modelComparisonsMarkdown || '*טבלת השוואת המודלים תתעדכן בריצה הקרובה.*'}
+
+> 💡 **מסקנה אנליטית:** מודל ה-AI של Google TimesFM מזהה מגמה חיובית מאוזנת של **${forecastData ? (forecastData.portfolio.expectedReturn30dPct >= 0 ? '+' : '') + forecastData.portfolio.expectedReturn30dPct.toFixed(2) + '%' : 'N/A'}**, המתיישבת היטב עם מודל בטא השוק (${forecastData?.modelComparisons?.find(m => m.id === 'benchmark_beta')?.expectedReturnPct ?? 1.0}%), כאשר בתרחיש קיצון נשמרת תמיכה משמעותית מעל עלות הבסיס.
+
+[⬆️ חזרה לראש העמוד](#top) &nbsp;|&nbsp; [🧭 תוכן עניינים](#toc)
+
+---
+
+<a id="horizons"></a>
+### 🔹 3.2 השוואת אופקי זמן שונים (Multi-Horizon)
+
+התפתחות שווי התיק הצפוי ושער הדולר לאורך 4 אופקי זמן עתידיים:
+
+${horizonComparisonsMarkdown || '*טבלת אופקי הזמן תתעדכן בריצה הקרובה.*'}
+
+[⬆️ חזרה לראש העמוד](#top) &nbsp;|&nbsp; [🧭 תוכן עניינים](#toc)
+
+---
+
+<a id="scenarios"></a>
+### 🔹 3.3 ניתוח תרחישי הסתברות וקונוסי TimesFM
+
+מודל TimesFM יוצר קונוס הסתברותי רציף המודד את אי-הוודאות בהתפלגות התשואות העתידית:
+
+* 🟢 **תרחיש אופטימי (עשירון P90 - סיכוי של 10% לתוצאה גבוהה יותר):**
+  * שווי תיק צפוי: \`$${forecastData ? Math.round(forecastData.portfolio.forecast30dUSD_P90).toLocaleString('en-US') : '—'}\` (\`₪${forecastData ? Math.round(forecastData.portfolio.forecast30dILS_P90).toLocaleString('en-US') : '—'}\`)
+  * פוטנציאל תשואה עודף: **+${forecastData ? (((forecastData.portfolio.forecast30dUSD_P90 - totalCurrentUSD) / totalCurrentUSD) * 100).toFixed(2) : '—'}%**
+* 🟡 **תרחיש בסיס מרכזי (חציון P50 - התרחיש הסביר ביותר):**
+  * שווי תיק צפוי: \`$${forecastData ? Math.round(forecastData.portfolio.forecast30dUSD_P50).toLocaleString('en-US') : '—'}\` (\`₪${forecastData ? Math.round(forecastData.portfolio.forecast30dILS_P50).toLocaleString('en-US') : '—'}\`)
+  * תשואה צפויה: **${forecastData ? (forecastData.portfolio.expectedReturn30dPct >= 0 ? '+' : '') + forecastData.portfolio.expectedReturn30dPct.toFixed(2) + '%' : '—'}**
+* 🔴 **תרחיש פסימי מגן (עשירון P10 - מבחן לחץ ברמת ביטחון של 90%):**
+  * שווי תיק מוגן: \`$${forecastData ? Math.round(forecastData.portfolio.forecast30dUSD_P10).toLocaleString('en-US') : '—'}\` (\`₪${forecastData ? Math.round(forecastData.portfolio.forecast30dILS_P10).toLocaleString('en-US') : '—'}\`)
+  * ירידה מקסימלית תחת קונוס הביטחון: **${forecastData ? (((forecastData.portfolio.forecast30dUSD_P10 - totalCurrentUSD) / totalCurrentUSD) * 100).toFixed(2) : '—'}%**
+
+[⬆️ חזרה לראש העמוד](#top) &nbsp;|&nbsp; [🧭 תוכן עניינים](#toc)
+
+---
+
+<a id="signals"></a>
+### 🔹 3.4 מטריצת אותות וסיכונים פר מניה
+
+השוואת התחזית, התשואה החזויה, רמת הסיכון והאות של המודל עבור כל אחת ממניות התיק בנפרד:
+
+${forecastTableMarkdown || '*מטריצת המניות תתעדכן בריצה הקרובה.*'}
+
+[⬆️ חזרה לראש העמוד](#top) &nbsp;|&nbsp; [🧭 תוכן עניינים](#toc)
+
+---
+
+<a id="macro"></a>
+## 🌐 4. מדדי מאקרו ומפת שוק (Macroeconomic Indicators)
+
+מדדי עוגן גלובליים הנאספים בזמן אמת ומספקים הקשר מאקרו-כלכלי לתנודות התיק:
+
+${macroTableMarkdown || '*נתוני מאקרו יתעדכנו בריצה הקרובה.*'}
+
+[⬆️ חזרה לראש העמוד](#top) &nbsp;|&nbsp; [🧭 תוכן עניינים](#toc)
+
+---
+
+<a id="risk-metrics"></a>
+## 📐 5. מדדי סיכון כמותיים ומטריצת קורלציות (Quantitative Risk & Correlations)
+
+ניתוח סטטיסטי מעמיק מבוסס היסטוריית מחירי מסחר יומיים של נכסי התיק ומדדי השוק:
+
+<a id="risk-summary"></a>
+### 🔹 5.1 מדדי סיכון וביצועים מרכזיים
+
+${riskMetricsTableMarkdown || '*מדדי סיכון יתעדכנו בריצה הקרובה.*'}
+
+<a id="asset-betas"></a>
+### 🔹 5.2 בטא פר מניה מול S&P 500 (VOO)
+
+${assetBetasTableMarkdown || '*נתוני בטא יתעדכנו בריצה הקרובה.*'}
+
+<a id="correlations"></a>
+### 🔹 5.3 מטריצת מתאמים צולבת (Cross-Asset & Macro Correlation Matrix)
+
+מקדם מתאם פירסון ($r \\in [-1, 1]$) המחושב על פני כל ימי המסחר ההיסטוריים:
+
+${correlationMatrixMarkdown || '*מטריצת קורלציה תתעדכן בריצה הקרובה.*'}
+
+<a id="risk-insights"></a>
+### 🔹 5.4 תובנות פיזור וניהול סיכונים
+${correlationInsightsMarkdown || '*תובנות מתאם יתעדכנו בריצה הקרובה.*'}
+
+[⬆️ חזרה לראש העמוד](#top) &nbsp;|&nbsp; [🧭 תוכן עניינים](#toc)
+
+---
+
+<a id="stage3-predictive"></a>
+## 🚀 6. מנוע חיזוי רב-גורמי, סימולציית מונטה קרלו ותרחישי עתיד (Stage 3 Predictive Synthesis)
+
+שקלול מעמיק של נתונים היסטוריים, מודל דירוג גורמים כמותי, 1,000 הרצות מונטה קרלו סטוכסטיות ו-4 תרחישי סטרס מאקרו-כלכליים:
+
+<a id="monte-carlo"></a>
+### 🔹 6.1 סימולציית מונטה קרלו הסתברותית (1,000 מסלולי מסחר סטוכסטיים)
+
+${monteCarloTableMarkdown || '*נתוני מונטה קרלו יתעדכנו בריצה הקרובה.*'}
+
+<a id="factor-model"></a>
+### 🔹 6.2 דירוג מניות רב-גורמי והמלצות מודל (Factor Model Matrix)
+
+${factorScoresMarkdown || '*דירוג המניות יתעדכן בריצה הקרובה.*'}
+
+<a id="macro-scenarios"></a>
+### 🔹 6.3 מבחני לחץ ותרחישי מאקרו עתידיים (Forward Macro Stress Scenarios)
+
+${macroScenariosMarkdown || '*תרחישי המאקרו יתעדכנו בריצה הקרובה.*'}
+
+<a id="explanations-guide"></a>
+### 🔹 6.4 מדריך הסברים: כיצד כל מדד משפיע על תיק המניות שלי?
+
+${metricsExplanationsMarkdown || '*מדריך ההסברים יתעדכן בריצה הקרובה.*'}
+
+[⬆️ חזרה לראש העמוד](#top) &nbsp;|&nbsp; [🧭 תוכן עניינים](#toc)
+
+---
+
+<a id="dividends"></a>
+## 💵 7. יומן דיבידנדים והכנסה פאסיבית (Dividends & Passive Income)
+
+* **סך הכל דיבידנדים שהתקבלו בפועל (All-Time):** \`$${totalReceivedGrossUSD.toFixed(2)}\` ברוטו | \`$${(totalReceivedGrossUSD * 0.75).toFixed(2)}\` נטו (\`₪${Math.round(totalReceivedGrossUSD * 0.75 * brokerRate).toLocaleString('en-US')}\`)
+* **תקבולי דיבידנד 12 חודשים אחרונים (L12M):** \`$${l12mReceivedGrossUSD.toFixed(2)}\` ברוטו | \`$${(l12mReceivedGrossUSD * 0.75).toFixed(2)}\` נטו
+* **תשואת דיבידנד שוטפת של התיק (Dividend Yield):** \`${totalCurrentUSD > 0 ? ((l12mReceivedGrossUSD / totalCurrentUSD) * 100).toFixed(2) : '0.00'}%\` ברוטו (\`${totalCurrentUSD > 0 ? ((l12mReceivedGrossUSD * 0.75 / totalCurrentUSD) * 100).toFixed(2) : '0.00'}%\` נטו)
+* **תחזית חלוקה ל-12 החודשים הבאים (Forward 12M Projection):** \`$${forecastData?.dividendsForecast?.next12MonthsTotalNetUSD?.toFixed(2) ?? '—'}\` נטו (\`₪${forecastData?.dividendsForecast?.next12MonthsTotalNetILS?.toFixed(0) ?? '—'}\`)
+* **ממוצע הכנסת דיבידנד חודשית צפויה:** \`₪${forecastData?.dividendsForecast?.projectedMonthlyAverageNetILS?.toFixed(0) ?? '—'}/חודש\` נטו
+
+### 🗓️ לוח תשלומי דיבידנד צפויים (הקרנות קרובות):
+${dividendProjectionMarkdown || '*טבלת הדיבידנדים תתעדכן בריצה הקרובה.*'}
+
+[⬆️ חזרה לראש העמוד](#top) &nbsp;|&nbsp; [🧭 תוכן עניינים](#toc)
+
+---
+
+<a id="charts"></a>
+## 📈 8. גרפים ומגמות חזותיות (Visual Analytics)
 
 <div align="center">
 
-<img src="data_hub/timesfm_forecast.png" alt="Google TimesFM Portfolio Forecast" width="98%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 1%;" />
-<br/>
-<img src="data_hub/portfolio_performance.png" alt="Portfolio Performance (30 Days)" width="48%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 1%;" />
-<img src="data_hub/asset_allocation.png" alt="Asset Allocation" width="48%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 1%;" />
+### תרחיש חיזוי תיק Google Research TimesFM (30 יום)
+<img src="data_hub/timesfm_forecast.png" alt="Google TimesFM Portfolio Forecast" width="96%" style="border-radius: 12px; box-shadow: 0 4px 14px rgba(0,0,0,0.12);" />
+
+<br/><br/>
+
+<table width="100%">
+<tr>
+<td width="50%" align="center">
+<h4>ביצועי תיק היסטוריים (30 יום)</h4>
+<img src="data_hub/portfolio_performance.png" alt="Portfolio Performance" width="96%" style="border-radius: 10px;" />
+</td>
+<td width="50%" align="center">
+<h4>פילוח הקצאת נכסים (Asset Allocation)</h4>
+<img src="data_hub/asset_allocation.png" alt="Asset Allocation" width="96%" style="border-radius: 10px;" />
+</td>
+</tr>
+</table>
 
 </div>
 
-<br/>
-
-> 💡 *לפירוט החזקות מלא, סימולטור תרחישים, זיהוי אנומליות וגרפים אינטראקטיביים, יש להיכנס ל-[דשבורד המערכת](https://almog787.github.io/My-new-stock-trucker/).*
+[⬆️ חזרה לראש העמוד](#top) &nbsp;|&nbsp; [🧭 תוכן עניינים](#toc)
 
 ---
-📂 *Portfolio Tracker Engine & TimesFM AI Analytics by Almog787*
+
+<a id="architecture"></a>
+## ⚙️ 9. ארכיטקטורה ואוטומציה במאגר (System Architecture)
+
+* ⏱️ **תדירות עדכון:** רץ אוטומטית כל 15 דקות בזמני המסחר בארה"ב (13:00 עד 21:59 UTC, ימים ב'-ו') בדקות לא עגולות (\`07\`, \`22\`, \`37\`, \`52\`).
+* 📡 **מקורות נתונים:** שערי מסחר רציפים ומחירי סגירה היסטוריים מ-Yahoo Finance דרך \`yahoo-finance2\` (כולל מדדי מאקרו: VIX, אג"ח 10Y, נפט WTI, ומדד הדולר DXY).
+* 🤖 **מודל בינה מלאכותית:** מנוע חיזוי סדרות עתיות **Google Research TimesFM (v1.1 Zero-Shot)** המנתח תנודתיות, מומנטום, התפלגות קונוסים והשוואת אופקים.
+* 📐 **מנוע כמותי (Quant Engine):** חישוב בטא, שארפ, סורטינו, VaR 95%, Max Drawdown ומטריצת מתאמים צולבת.
+* 🚀 **מנוע חיזוי רב-גורמי (שלב 3):** 1,000 סימולציות מונטה קרלו, דירוג גורמים (מומנטום, סיכון, מאקרו, AI) ו-4 תרחישי סטרס מאקרו.
+* 🌐 **דשבורד PHP מלא:** אפליקציית ווב מבוססת PHP מלאה (\`php/index.php\`) הפורסת דשבורד גרפי אינטראקטיבי עם הסברים ברורים כיצד כל מדד משפיע על התיק.
+* 🛡️ **שער איכות (Quality Gate):** אימות סינטקס, בדיקת טיפוסים, בדיקת שלמות קבצי JSON ואימות מבנה ה-README טרם כל קומיט למאגר.
+* 📄 **מרכז המידע:** כל הניתוח והתחזיות מתועדים ישירות ב-README זה ובדשבורד ה-PHP.
+
+[⬆️ חזרה לראש העמוד](#top) &nbsp;|&nbsp; [🧭 תוכן עניינים](#toc)
+
+---
+📂 *Portfolio Tracker & AI Forecasting Engine by Almog787 • Automated via GitHub Actions*
 `;
 
       fs.writeFileSync(readmePath, readmeContent);
-      console.log('Successfully updated README.md');
+      console.log('Successfully updated README.md with comprehensive forecast comparisons, macro indicators, and quant metrics.');
     }
   } catch (error) {
     console.error('Error updating stock prices:', error);
