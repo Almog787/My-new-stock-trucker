@@ -1,11 +1,11 @@
 {
-  "updatedAt": "2026-10-13T19:50:42.649Z",
+  "updatedAt": "2026-10-13T19:53:09.244Z",
   "macroIndicators": {
     "vix": {
       "symbol": "^VIX",
       "name": "מדד התנודתיות והפחד (CBOE VIX)",
-      "price": 15.32,
-      "changePct": 0.72,
+      "price": 15.33,
+      "changePct": 0.79,
       "regime": "שוק שגרתי ותקין (Normal Volatility)",
       "badge": "🟢 רגיל",
       "description": "משקף את תנודתיות האופציות ב-S&P 500 ל-30 יום קדימה"
@@ -22,8 +22,8 @@
     "oil": {
       "symbol": "CL=F",
       "name": "נפט גולמי (WTI Crude)",
-      "price": 94.44,
-      "changePct": 0.75,
+      "price": 94.5,
+      "changePct": 0.81,
       "description": "מניע מרכזי באינפלציה העולמית ובעל מתאם ישיר לתוצאות ExxonMobil (XOM)"
     },
     "dxy": {
@@ -35,7 +35,7 @@
     }
   },
   "riskMetrics": {
-    "annualizedReturnPct": 32.42,
+    "annualizedReturnPct": 32.41,
     "annualizedVolatilityPct": 26.48,
     "sharpeRatio": 1.03,
     "sortinoRatio": 1.57,
@@ -50,28 +50,28 @@
     },
     "riskFreeRatePct": 5.22,
     "maxDrawdownPct": -25.31,
-    "currentDrawdownPct": -4.38,
+    "currentDrawdownPct": -4.39,
     "allTimeHighUSD": 64703,
-    "allTimeHighILS": 199247,
+    "allTimeHighILS": 199286,
     "hhiIndex": 0.224,
     "diversificationLevel": "מפוזר היטב (Diversified)",
     "var95": {
       "daily": {
         "pct": 2.74,
-        "usd": 1698,
+        "usd": 1697,
         "ils": 5228
       },
       "monthly30d": {
         "pct": 12.57,
         "usd": 7779,
-        "ils": 23956
+        "ils": 23959
       }
     },
     "cvar95": {
       "daily": {
         "pct": 3.74,
         "usd": 2316,
-        "ils": 7131
+        "ils": 7132
       }
     }
   },
@@ -237,82 +237,82 @@
     ]
   },
   "stage3Predictive": {
-    "generatedAt": "2026-10-13T19:50:42.649Z",
+    "generatedAt": "2026-10-13T19:53:09.244Z",
     "monteCarlo": {
       "horizon30d": {
         "label": "30 יום (חודש)",
         "daysForward": 30,
-        "p5USD": 55414,
-        "p25USD": 59832,
-        "p50USD": 63777,
-        "p75USD": 67681,
-        "p95USD": 73609,
-        "p50ILS": 196395,
-        "meanUSD": 63939,
-        "expectedReturnPct": 3.09,
-        "probPositivePct": 62.7,
-        "rangeUSD": "$55,414 - $73,609",
-        "rangeILS": "₪170,642 - ₪226,671"
+        "p5USD": 54704,
+        "p25USD": 59605,
+        "p50USD": 63668,
+        "p75USD": 67829,
+        "p95USD": 72785,
+        "p50ILS": 196099,
+        "meanUSD": 63796,
+        "expectedReturnPct": 2.92,
+        "probPositivePct": 61.4,
+        "rangeUSD": "$54,704 - $72,785",
+        "rangeILS": "₪168,487 - ₪224,177"
       },
       "horizon60d": {
         "label": "60 יום (חודשיים)",
         "daysForward": 60,
-        "p5USD": 53155,
-        "p25USD": 60229,
-        "p50USD": 65339,
-        "p75USD": 70598,
-        "p95USD": 80017,
-        "p50ILS": 201206,
-        "meanUSD": 65838,
-        "expectedReturnPct": 5.61,
-        "probPositivePct": 67.1,
-        "rangeUSD": "$53,155 - $80,017",
-        "rangeILS": "₪163,686 - ₪246,404"
+        "p5USD": 53110,
+        "p25USD": 60741,
+        "p50USD": 65350,
+        "p75USD": 71631,
+        "p95USD": 80501,
+        "p50ILS": 201277,
+        "meanUSD": 66265,
+        "expectedReturnPct": 5.64,
+        "probPositivePct": 68.7,
+        "rangeUSD": "$53,110 - $80,501",
+        "rangeILS": "₪163,580 - ₪247,944"
       },
       "horizon90d": {
         "label": "90 יום (רבעון)",
         "daysForward": 90,
-        "p5USD": 53444,
-        "p25USD": 60522,
-        "p50USD": 67493,
-        "p75USD": 74974,
-        "p95USD": 85904,
-        "p50ILS": 207839,
-        "meanUSD": 68264,
-        "expectedReturnPct": 9.1,
-        "probPositivePct": 71.4,
-        "rangeUSD": "$53,444 - $85,904",
-        "rangeILS": "₪164,577 - ₪264,534"
+        "p5USD": 53373,
+        "p25USD": 60938,
+        "p50USD": 67538,
+        "p75USD": 75232,
+        "p95USD": 86237,
+        "p50ILS": 208016,
+        "meanUSD": 68474,
+        "expectedReturnPct": 9.18,
+        "probPositivePct": 71.6,
+        "rangeUSD": "$53,373 - $86,237",
+        "rangeILS": "₪164,388 - ₪265,609"
       },
       "horizon180d": {
         "label": "180 יום (חצי שנה)",
         "daysForward": 180,
-        "p5USD": 52360,
-        "p25USD": 63620,
-        "p50USD": 73335,
-        "p75USD": 84965,
-        "p95USD": 103353,
-        "p50ILS": 225828,
-        "meanUSD": 75199,
-        "expectedReturnPct": 18.54,
-        "probPositivePct": 79.1,
-        "rangeUSD": "$52,360 - $103,353",
-        "rangeILS": "₪161,236 - ₪318,265"
+        "p5USD": 51061,
+        "p25USD": 63436,
+        "p50USD": 74231,
+        "p75USD": 85805,
+        "p95USD": 104887,
+        "p50ILS": 228633,
+        "meanUSD": 75471,
+        "expectedReturnPct": 20,
+        "probPositivePct": 78.6,
+        "rangeUSD": "$51,061 - $104,887",
+        "rangeILS": "₪157,267 - ₪323,051"
       },
       "horizon365d": {
         "label": "365 יום (שנה)",
         "daysForward": 252,
-        "p5USD": 51856,
-        "p25USD": 65758,
-        "p50USD": 79426,
-        "p75USD": 92084,
-        "p95USD": 119410,
-        "p50ILS": 244583,
-        "meanUSD": 81080,
-        "expectedReturnPct": 28.38,
-        "probPositivePct": 83,
-        "rangeUSD": "$51,856 - $119,410",
-        "rangeILS": "₪159,686 - ₪367,711"
+        "p5USD": 52122,
+        "p25USD": 67496,
+        "p50USD": 79435,
+        "p75USD": 95121,
+        "p95USD": 122508,
+        "p50ILS": 244660,
+        "meanUSD": 82631,
+        "expectedReturnPct": 28.41,
+        "probPositivePct": 84.9,
+        "rangeUSD": "$52,122 - $122,508",
+        "rangeILS": "₪160,536 - ₪377,323"
       }
     },
     "factorModel": {
@@ -413,8 +413,8 @@
         "name": "תרחיש 1: נחיתה רכה וראלי AI (Soft Landing & Tech Boom)",
         "probability": "35%",
         "expectedReturnPct": 11.2,
-        "targetUSD": 68795,
-        "targetILS": 211848,
+        "targetUSD": 68789,
+        "targetILS": 211871,
         "macroConditions": "VIX יורד ל-12.5 | תשואת 10Y יורדת ל-4.25% | הדולר יציב (₪3.07)",
         "driverAssets": "NVDA (+16%), ASML (+14%), GOOGL (+11%), VOO (+8%)",
         "portfolioImpact": "עלייה כוללת של כ-+$6,970 (+₪21,385).",
@@ -425,8 +425,8 @@
         "name": "תרחיש 2: ריבית גבוהה לאורך זמן ולחץ מכפילים (Higher-For-Longer Squeeze)",
         "probability": "30%",
         "expectedReturnPct": -5.9,
-        "targetUSD": 58216,
-        "targetILS": 179271,
+        "targetUSD": 58211,
+        "targetILS": 179290,
         "macroConditions": "תשואת 10Y מזנקת ל-5.75% | VIX עולה ל-21 | הדולר עולה קלות (₪3.12)",
         "driverAssets": "TSLA (-12%), NVDA (-8%), ASML (-7%), XOM (+4% גידור)",
         "portfolioImpact": "ירידה מתונה של -$3,670 (-₪11,260).",
@@ -437,8 +437,8 @@
         "name": "תרחיש 3: הלם אנרגיה, מתיחות גיאופוליטית וסטגפלציה (Oil Shock & Stagflation)",
         "probability": "20%",
         "expectedReturnPct": -2.3,
-        "targetUSD": 60443,
-        "targetILS": 200672,
+        "targetUSD": 60438,
+        "targetILS": 200654,
         "macroConditions": "הנפט מזנק ל-$110 | VIX עולה ל-27 | הדולר מזנק מול השקל ל-₪3.32",
         "driverAssets": "XOM (+18%), VOO (-6%), NVDA (-6%), הדולר (+8.2%)",
         "portfolioImpact": "ירידה דולרית של -$1,450 (-2.3%), אך עלייה בשקלים (+₪10,400) הודות לדולר ול-XOM!",
@@ -449,8 +449,8 @@
         "name": "תרחיש 4: מיתון עולמי וקפיצת תנודתיות חריפה (Recession & Volatility Spike)",
         "probability": "15%",
         "expectedReturnPct": -14.2,
-        "targetUSD": 53081,
-        "targetILS": 163458,
+        "targetUSD": 53077,
+        "targetILS": 163476,
         "macroConditions": "VIX קופץ ל-35+ | שוק המניות הרחב S&P 500 נופל ב-16%",
         "driverAssets": "כלל הנכסים יורדים בסערה שוקית זמנית (TSLA -22%, NVDA -19%, VOO -15%)",
         "portfolioImpact": "ירידה זמנית של -$8,840 (-₪27,120), אך התיק נותר ברווח כולל של +24% מיום הרכישה.",
