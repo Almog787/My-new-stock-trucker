@@ -4,7 +4,7 @@
     "version": "v1.1-zero-shot",
     "contextLength": 438,
     "forecastHorizonDays": 30,
-    "generatedAt": "2026-10-13T23:42:49.893803",
+    "generatedAt": "2026-10-13T23:44:56.423707",
     "quantiles": [
       0.1,
       0.5,
@@ -13,7 +13,7 @@
   },
   "portfolio": {
     "currentUSD": 61895.68,
-    "currentILS": 190292.08,
+    "currentILS": 190273.51,
     "forecast30dUSD_P50": 63345.19,
     "forecast30dUSD_P10": 55941.76,
     "forecast30dUSD_P90": 71728.4,
@@ -71,7 +71,7 @@
         "p10USD": 60113.43,
         "p50USD": 62073.81,
         "p90USD": 64098.13,
-        "p50ILS": 191187.33,
+        "p50ILS": 190566.6,
         "p10ILS": 182143.69,
         "p90ILS": 199986.17
       },
@@ -362,10 +362,10 @@
     "forecast30dRate_P50": 3.08,
     "forecast30dRate_P10": 2.92,
     "forecast30dRate_P90": 3.25,
-    "expectedChangePct": 0.18,
+    "expectedChangePct": 0.19,
     "timeline": [
       3.07,
-      3.08,
+      3.07,
       3.08,
       3.08,
       3.08,
@@ -1059,7 +1059,7 @@
       "nameHe": "תשואת שוק מותאמת בטא (S&P 500)",
       "category": "מדד ייחוס שוקי",
       "projectedUSD": 62873.63,
-      "projectedILS": 193298.69,
+      "projectedILS": 193279.83,
       "expectedReturnPct": 1.58,
       "methodology": "הכפלת תחזית קרן VOO במקדם בטא התיק (β = 1.18)",
       "riskLevel": "מותאם שוק"
@@ -1070,7 +1070,7 @@
       "nameHe": "מומנטום וסחיפת מגמה (30 יום)",
       "category": "ניתוח טכני וכמותי",
       "projectedUSD": 62799.36,
-      "projectedILS": 193070.35,
+      "projectedILS": 193051.51,
       "expectedReturnPct": 1.46,
       "methodology": "אקסטרפולציה מרוסנת של תשואת התיק בחודש האחרון",
       "riskLevel": "מותאם מומנטום"
@@ -1081,7 +1081,7 @@
       "nameHe": "חזרה מתונה לממוצע (שמרני)",
       "category": "שמרני / מגן",
       "projectedUSD": 59042.01,
-      "projectedILS": 181518.76,
+      "projectedILS": 181501.04,
       "expectedReturnPct": -4.61,
       "methodology": "שקלול 85% שווי נוכחי עם 15% מחיר עלות בסיסי",
       "riskLevel": "שמרני"
@@ -1162,8 +1162,8 @@
   ],
   "dividendsForecast": {
     "next12MonthsTotalNetUSD": 241.56,
-    "next12MonthsTotalNetILS": 742.64,
-    "projectedMonthlyAverageNetILS": 61.89,
+    "next12MonthsTotalNetILS": 742.52,
+    "projectedMonthlyAverageNetILS": 61.88,
     "events": [
       {
         "ticker": "GOOGL",
@@ -1177,7 +1177,7 @@
         "projectedDate": "2027-01-11",
         "estimatedGrossUSD": 9.08,
         "estimatedNetUSD": 6.81,
-        "estimatedNetILS": 20.94
+        "estimatedNetILS": 20.93
       },
       {
         "ticker": "XOM",
@@ -1191,14 +1191,14 @@
         "projectedDate": "2027-01-11",
         "estimatedGrossUSD": 14.25,
         "estimatedNetUSD": 10.69,
-        "estimatedNetILS": 32.86
+        "estimatedNetILS": 32.85
       },
       {
         "ticker": "VOO",
         "projectedDate": "2027-01-11",
         "estimatedGrossUSD": 44.57,
         "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 102.76
+        "estimatedNetILS": 102.75
       },
       {
         "ticker": "GOOGL",
@@ -1212,7 +1212,7 @@
         "projectedDate": "2027-04-11",
         "estimatedGrossUSD": 9.08,
         "estimatedNetUSD": 6.81,
-        "estimatedNetILS": 20.94
+        "estimatedNetILS": 20.93
       },
       {
         "ticker": "XOM",
@@ -1226,14 +1226,14 @@
         "projectedDate": "2027-04-11",
         "estimatedGrossUSD": 14.25,
         "estimatedNetUSD": 10.69,
-        "estimatedNetILS": 32.86
+        "estimatedNetILS": 32.85
       },
       {
         "ticker": "VOO",
         "projectedDate": "2027-04-11",
         "estimatedGrossUSD": 44.57,
         "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 102.76
+        "estimatedNetILS": 102.75
       },
       {
         "ticker": "GOOGL",
@@ -1247,7 +1247,7 @@
         "projectedDate": "2027-07-10",
         "estimatedGrossUSD": 9.08,
         "estimatedNetUSD": 6.81,
-        "estimatedNetILS": 20.94
+        "estimatedNetILS": 20.93
       },
       {
         "ticker": "XOM",
@@ -1261,14 +1261,14 @@
         "projectedDate": "2027-07-10",
         "estimatedGrossUSD": 14.25,
         "estimatedNetUSD": 10.69,
-        "estimatedNetILS": 32.86
+        "estimatedNetILS": 32.85
       },
       {
         "ticker": "VOO",
         "projectedDate": "2027-07-10",
         "estimatedGrossUSD": 44.57,
         "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 102.76
+        "estimatedNetILS": 102.75
       },
       {
         "ticker": "GOOGL",
@@ -1282,7 +1282,7 @@
         "projectedDate": "2027-10-08",
         "estimatedGrossUSD": 9.08,
         "estimatedNetUSD": 6.81,
-        "estimatedNetILS": 20.94
+        "estimatedNetILS": 20.93
       },
       {
         "ticker": "XOM",
@@ -1296,14 +1296,14 @@
         "projectedDate": "2027-10-08",
         "estimatedGrossUSD": 14.25,
         "estimatedNetUSD": 10.69,
-        "estimatedNetILS": 32.86
+        "estimatedNetILS": 32.85
       },
       {
         "ticker": "VOO",
         "projectedDate": "2027-10-08",
         "estimatedGrossUSD": 44.57,
         "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 102.76
+        "estimatedNetILS": 102.75
       }
     ]
   }
