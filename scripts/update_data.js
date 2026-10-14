@@ -37,6 +37,196 @@ async function downloadQuickChart(chartConfig, outputPath) {
   fs.writeFileSync(outputPath, Buffer.from(arrayBuffer));
 }
 
+const STOCK_COLORS = {
+  GOOGL: '#2563eb', // Royal Blue
+  NVDA: '#10b981',  // Emerald Green
+  TSLA: '#e11d48',  // Crimson Red
+  ASML: '#8b5cf6',  // Purple
+  VOO: '#f59e0b',   // Amber
+  XOM: '#0d9488'    // Teal
+};
+
+function buildStockMovementChartConfig(history, portfolio, days) {
+  const tickers = Object.keys(portfolio);
+  if (!history || history.length === 0) return null;
+
+  const latestEntry = history[history.length - 1];
+  const latestDate = new Date(latestEntry.timestamp);
+  const startTs = latestDate.getTime() - days * 24 * 60 * 60 * 1000;
+
+  // Baseline prices at startTs (forward fill from last entry <= startTs)
+  let baseEntry = null;
+  for (const h of history) {
+    if (new Date(h.timestamp).getTime() <= startTs) {
+      baseEntry = h;
+    } else {
+      break;
+    }
+  }
+  if (!baseEntry) baseEntry = history[0];
+
+  const basePrices = {};
+  for (const t of tickers) {
+    basePrices[t] = baseEntry.prices?.[t] || latestEntry.prices?.[t] || portfolio[t].avg_price;
+  }
+
+  const points = [];
+  const weekends = [];
+  let currentWeekend = null;
+  let lastKnownPrices = { ...basePrices };
+
+  const cur = new Date(startTs);
+  cur.setUTCHours(0, 0, 0, 0);
+  const end = new Date(latestDate);
+
+  while (cur <= end) {
+    const dayOfWeek = cur.getUTCDay(); // 0 = Sun, 6 = Sat
+    const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+    const dateStr = cur.toISOString().split('T')[0];
+    const displayDate = `${String(cur.getUTCDate()).padStart(2, '0')}/${String(cur.getUTCMonth() + 1).padStart(2, '0')}`;
+
+    if (isWeekend) {
+      const dayName = dayOfWeek === 6 ? 'שבת' : 'א\'';
+      const label = `${displayDate} (${dayName} סופ״ש)`;
+
+      if (dayOfWeek === 6) {
+        currentWeekend = { startLabel: label, endLabel: label };
+      } else if (currentWeekend) {
+        currentWeekend.endLabel = label;
+        weekends.push({ ...currentWeekend });
+        currentWeekend = null;
+      }
+
+      points.push({
+        label,
+        isWeekend: true,
+        prices: { ...lastKnownPrices }
+      });
+    } else {
+      if (currentWeekend) {
+        weekends.push({ ...currentWeekend });
+        currentWeekend = null;
+      }
+      const dayPoints = history.filter(h => h.timestamp.startsWith(dateStr));
+      if (dayPoints.length === 0) {
+        points.push({
+          label: displayDate,
+          isWeekend: false,
+          prices: { ...lastKnownPrices }
+        });
+      } else {
+        const step = days <= 7 ? Math.max(1, Math.floor(dayPoints.length / 3)) : Math.max(1, Math.floor(dayPoints.length / 2));
+        const selectedIndices = new Set();
+        for (let i = 0; i < dayPoints.length; i += step) selectedIndices.add(i);
+        selectedIndices.add(dayPoints.length - 1);
+
+        const sortedIndices = Array.from(selectedIndices).sort((a, b) => a - b);
+        for (const idx of sortedIndices) {
+          const item = dayPoints[idx];
+          for (const t of tickers) {
+            if (item.prices?.[t]) lastKnownPrices[t] = item.prices[t];
+          }
+          const time = item.timestamp.split('T')[1].slice(0, 5);
+          const label = `${displayDate} ${time}`;
+          points.push({
+            label,
+            isWeekend: false,
+            prices: { ...lastKnownPrices }
+          });
+        }
+      }
+    }
+    cur.setUTCDate(cur.getUTCDate() + 1);
+  }
+
+  if (currentWeekend) {
+    weekends.push({ ...currentWeekend });
+  }
+
+  const labels = points.map(p => p.label);
+  const datasets = tickers.map(t => {
+    const baseP = basePrices[t] || 1;
+    const data = points.map(p => {
+      const curP = p.prices[t] || baseP;
+      const pct = ((curP - baseP) / baseP) * 100;
+      return parseFloat(pct.toFixed(2));
+    });
+    const lastP = points[points.length - 1].prices[t] || baseP;
+    const finalPct = ((lastP - baseP) / baseP) * 100;
+    const sign = finalPct >= 0 ? '+' : '';
+    const label = `${t} (${sign}${finalPct.toFixed(2)}% | $${lastP.toFixed(2)})`;
+
+    return {
+      label,
+      data,
+      borderColor: STOCK_COLORS[t] || '#6366f1',
+      backgroundColor: 'transparent',
+      borderWidth: 2.5,
+      pointRadius: days <= 7 ? 2.5 : 1.5,
+      pointHoverRadius: 5,
+      tension: 0.25
+    };
+  });
+
+  const annotations = {};
+  weekends.forEach((w, idx) => {
+    annotations[`weekend_${idx}`] = {
+      type: 'box',
+      xMin: w.startLabel,
+      xMax: w.endLabel,
+      backgroundColor: 'rgba(243, 244, 246, 0.85)',
+      borderColor: 'rgba(209, 213, 219, 0.9)',
+      borderWidth: 1.5,
+      label: {
+        display: true,
+        content: 'סוף שבוע (מסחר סגור)',
+        position: 'top',
+        font: { size: 11, weight: 'bold', family: 'sans-serif' },
+        color: '#4b5563'
+      }
+    };
+  });
+
+  const titleText = days <= 7 
+    ? 'תנועת מניות שבועית (שבוע אחרון) - שינוי תשואה מצטבר (%)'
+    : 'תנועת מניות דו-שבועית (14 ימים) - שינוי תשואה מצטבר (%)';
+
+  return {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      layout: { padding: 20 },
+      plugins: {
+        legend: {
+          display: true,
+          position: 'top',
+          labels: { font: { size: 12, family: 'sans-serif', weight: 'bold' }, usePointStyle: true, padding: 12 }
+        },
+        title: {
+          display: true,
+          text: titleText,
+          font: { size: 17, family: 'sans-serif', weight: 'bold' },
+          padding: { bottom: 12 }
+        },
+        annotation: { annotations }
+      },
+      scales: {
+        y: {
+          grid: { color: '#f3f4f6' },
+          ticks: {
+            font: { size: 11 },
+            callback: 'function(val) { return (val >= 0 ? "+" : "") + val.toFixed(1) + "%"; }'
+          }
+        },
+        x: {
+          grid: { color: 'rgba(243, 244, 246, 0.6)' },
+          ticks: { font: { size: 10, family: 'sans-serif' }, maxTicksLimit: days <= 7 ? 12 : 14 }
+        }
+      }
+    }
+  };
+}
+
 async function fetchAndUpdatePrices() {
   try {
     console.log('Fetching stock prices and dividend data...');
@@ -677,6 +867,23 @@ async function fetchAndUpdatePrices() {
         }
       }
 
+      // 5. Generate Weekly & Bi-Weekly Stocks Movement Charts (with weekend annotations)
+      try {
+        console.log('Generating weekly and bi-weekly stocks movement charts...');
+        const weeklyConfig = buildStockMovementChartConfig(finalHistory, portfolio, 7);
+        const biweeklyConfig = buildStockMovementChartConfig(finalHistory, portfolio, 14);
+
+        if (weeklyConfig) {
+          await downloadQuickChart(weeklyConfig, path.join(dataHubDir, 'weekly_stocks_movement.png'));
+        }
+        if (biweeklyConfig) {
+          await downloadQuickChart(biweeklyConfig, path.join(dataHubDir, 'biweekly_stocks_movement.png'));
+        }
+        console.log('Weekly and bi-weekly stocks movement charts generated successfully.');
+      } catch (movementErr) {
+        console.error('Failed to generate weekly/bi-weekly movement charts:', movementErr.message);
+      }
+
       console.log('Charts generated successfully.');
 
       // Formatting Date: DD/MM/YYYY HH:MM
@@ -746,6 +953,21 @@ ${forecastTableMarkdown}
 ---
 
 ## 📈 גרפים ומגמות (Visual Analytics)
+
+### 📊 תנועת מניות התיק (שבועית ודו-שבועית כולל ציון סופי שבוע)
+> **מעקב רציף אחר ביצועי כל מניות התיק בחתך שבועי (7 ימים) ודו-שבועי (14 ימים), עם ציון והדגשה ברורה של סופי השבוע (שבת וראשון שבהם המסחר סגור בבורסות ארה"ב).**
+
+<div align="center">
+
+#### 🗓️ תנועת מניות שבועית (שבוע מסחר אחרון)
+<img src="data_hub/weekly_stocks_movement.png" alt="תנועת מניות שבועית (שבוע אחרון עם ציון סוף שבוע)" width="98%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px;" />
+
+#### 📅 תנועת מניות דו-שבועית (14 ימי מסחר)
+<img src="data_hub/biweekly_stocks_movement.png" alt="תנועת מניות דו-שבועית (14 ימים עם ציון סופי שבוע)" width="98%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin-bottom: 20px;" />
+
+</div>
+
+### 🔮 תחזית ביצועים והקצאת נכסים
 
 <div align="center">
 
