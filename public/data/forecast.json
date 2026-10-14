@@ -4,7 +4,7 @@
     "version": "v1.1-zero-shot",
     "contextLength": 436,
     "forecastHorizonDays": 30,
-    "generatedAt": "2026-10-14T21:46:10.094052",
+    "generatedAt": "2026-10-14T21:53:50.057118",
     "quantiles": [
       0.1,
       0.5,
@@ -13,7 +13,7 @@
   },
   "portfolio": {
     "currentUSD": 60576.36,
-    "currentILS": 188198.64,
+    "currentILS": 188192.58,
     "forecast30dUSD_P50": 61638.73,
     "forecast30dUSD_P10": 54248.25,
     "forecast30dUSD_P90": 70036.06,
@@ -301,9 +301,9 @@
         "p10USD": 54779.15,
         "p50USD": 61553.17,
         "p90USD": 69164.87,
-        "p50ILS": 192045.89,
+        "p50ILS": 191430.36,
         "p10ILS": 162146.28,
-        "p90ILS": 226860.77
+        "p90ILS": 226169.12
       },
       {
         "date": "2026-11-09",
@@ -333,7 +333,7 @@
         "p90USD": 69697.62,
         "p50ILS": 192214.15,
         "p10ILS": 160644.4,
-        "p90ILS": 229305.17
+        "p90ILS": 228608.19
       },
       {
         "date": "2026-11-12",
@@ -362,7 +362,7 @@
     "forecast30dRate_P50": 3.12,
     "forecast30dRate_P10": 2.95,
     "forecast30dRate_P90": 3.29,
-    "expectedChangePct": 0.42,
+    "expectedChangePct": 0.43,
     "timeline": [
       3.11,
       3.11,
@@ -388,7 +388,7 @@
       3.11,
       3.11,
       3.11,
-      3.12,
+      3.11,
       3.12,
       3.12,
       3.12,
