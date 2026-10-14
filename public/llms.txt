@@ -1,0 +1,22 @@
+# Stock Tracker PRO - תיק השקעות PRO ומודל חיזוי TimesFM AI
+
+> דשבורד כמותי מתקדם לניהול, אנליזה ומעקב תיק השקעות בזמן אמת, חישובי מס רווחי הון ישראלי (25%), חיזוי סדרות עתיות ל-30 יום באמצעות מודל Google Research TimesFM, יומן דיבידנדים ומנוע זיהוי אנומליות.
+
+## מטרות המערכת
+- מעקב שווי תיק השקעות רציף כולל המרות שער דולר/שקל בזמן אמת (ILS/USD).
+- חישוב רווח והפסד ברוטו ונטו לפי תקנות מס רווחי הון בישראל (25%).
+- חיזוי הסתברותי ל-30 יום על בסיס מודל Google Research TimesFM (מדדי P10, P50, P90).
+- מעקב דיבידנדים היסטורי וחישוב הכנסה פאסיבית חודשית ממוצעת.
+- מנוע זיהוי אנומליות ותנודתיות יתר במניות התיק.
+
+## נכסים במעקב
+- GOOGL (Alphabet Inc.)
+- ASML (ASML Holding N.V.)
+- XOM (Exxon Mobil Corp.)
+- NVDA (NVIDIA Corporation)
+- TSLA (Tesla Inc.)
+- VOO (Vanguard S&P 500 ETF)
+
+## קישורים
+- Live Dashboard: https://almog787.github.io/My-new-stock-trucker/
+- Source Repository: https://github.com/almog787/My-new-stock-trucker
