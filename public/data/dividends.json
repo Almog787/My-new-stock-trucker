@@ -1,5 +1,5 @@
 {
-  "lastUpdate": "2026-10-19T19:22:07.484Z",
+  "lastUpdate": "2026-10-19T19:26:26.691Z",
   "exchangeRate": 3.1092,
   "summary": {
     "totalReceivedGrossUSD": 893.0919999999998,
@@ -20,8 +20,8 @@
     "ytdReceivedTaxILS": 179.56407299999998,
     "ytdReceivedNetUSD": 173.2575,
     "ytdReceivedNetILS": 538.692219,
-    "trailingPortfolioYieldPct": 0.4870019481835697,
-    "trailingPortfolioNetYieldPct": 0.3652514611376773,
+    "trailingPortfolioYieldPct": 0.486721803920674,
+    "trailingPortfolioNetYieldPct": 0.36504135294050555,
     "eventsCount": 70
   },
   "byTicker": {
@@ -117,7 +117,7 @@
       "l12mGrossILS": 554.2833023999999,
       "l12mNetUSD": 133.704,
       "l12mNetILS": 415.71247680000005,
-      "declaredRate": 7.428,
+      "declaredRate": 5.437,
       "declaredYield": 1.06,
       "exDividendDate": null
     }
