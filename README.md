@@ -1,7 +1,7 @@
 # 📈 Stock Tracker & Portfolio Analytics | מעקב תיק השקעות
 
 [![Interactive Web Dashboard](https://img.shields.io/badge/Live_Dashboard-Open_App-4f46e5?style=for-the-badge&logo=google-chrome&logoColor=white)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪186%2C216-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
+[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪186%2C084-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
 [![TimesFM Forecast](https://img.shields.io/badge/TimesFM_30d_Target-₪186%2C064-8b5cf6?style=for-the-badge&logo=google)](https://almog787.github.io/My-new-stock-trucker/)
 [![Total Profit](https://img.shields.io/badge/Total_Profit-+39.93%25-16a34a?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
 
@@ -13,12 +13,12 @@
 
 ## 📊 תמונת מצב (Executive Snapshot)
 
-* **שווי תיק נוכחי:** `₪186,216` (`$59,988`)
-* **רווח כולל נטו (לאחר 25% מס):** `+₪39,852` (**+29.95%**)
-* **שינוי יומי:** `₪-382` (**-0.20%**)
-* **הכנסה פאסיבית חודשית ממוצעת (YTD):** `+₪1,345/חודש` נטו
-* **סך דיבידנדים (12M):** `₪684` נטו
-* **מועד עדכון אחרון:** `20/10/2026 21:48` (שער רציף: `₪3.104`)
+* **שווי תיק נוכחי:** `₪186,084` (`$59,988`)
+* **רווח כולל נטו (לאחר 25% מס):** `+₪39,823` (**+29.95%**)
+* **שינוי יומי:** `₪-381` (**-0.20%**)
+* **הכנסה פאסיבית חודשית ממוצעת (YTD):** `+₪1,344/חודש` נטו
+* **סך דיבידנדים (12M):** `₪683` נטו
+* **מועד עדכון אחרון:** `20/10/2026 21:56` (שער רציף: `₪3.102`)
 
 ---
 
@@ -26,12 +26,12 @@
 
 | נכס (Asset) | כמות | שער נוכחי | שווי שוק | שינוי יומי (Daily Change) | שינוי מהכניסה לתיק (Total Return) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $340.27 | ₪50,702 <br><sub>($16,333)</sub> | 🔴 -1.13% <br><sub>₪-582</sub> | 🟢 +81.01% <br><sub>+₪22,691</sub> |
-| **ASML** <br><sub>ASML Holding</sub> | 4 | $1630.84 | ₪20,250 <br><sub>($6,523)</sub> | 🔴 -0.99% <br><sub>₪-202</sub> | 🟢 +74.51% <br><sub>+₪8,646</sub> |
-| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $177.86 | ₪1,104 <br><sub>($356)</sub> | 🔴 -0.24% <br><sub>₪-3</sub> | 🟢 +41.07% <br><sub>+₪321</sub> |
-| **NVDA** <br><sub>NVIDIA Corp</sub> | 57 | $216.47 | ₪38,302 <br><sub>($12,339)</sub> | 🔴 -0.29% <br><sub>₪-110</sub> | 🟢 +45.65% <br><sub>+₪12,005</sub> |
-| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $373.71 | ₪23,201 <br><sub>($7,474)</sub> | 🟢 +1.54% <br><sub>+₪351</sub> | 🔴 -14.38% <br><sub>₪-3,895</sub> |
-| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $706.80 | ₪52,657 <br><sub>($16,963)</sub> | 🟢 +0.31% <br><sub>+₪164</sub> | 🟢 +34.02% <br><sub>+₪13,367</sub> |
+| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $340.27 | ₪50,666 <br><sub>($16,333)</sub> | 🔴 -1.13% <br><sub>₪-581</sub> | 🟢 +81.01% <br><sub>+₪22,675</sub> |
+| **ASML** <br><sub>ASML Holding</sub> | 4 | $1630.84 | ₪20,235 <br><sub>($6,523)</sub> | 🔴 -0.99% <br><sub>₪-202</sub> | 🟢 +74.51% <br><sub>+₪8,640</sub> |
+| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $177.86 | ₪1,103 <br><sub>($356)</sub> | 🔴 -0.24% <br><sub>₪-3</sub> | 🟢 +41.07% <br><sub>+₪321</sub> |
+| **NVDA** <br><sub>NVIDIA Corp</sub> | 57 | $216.47 | ₪38,275 <br><sub>($12,339)</sub> | 🔴 -0.29% <br><sub>₪-110</sub> | 🟢 +45.65% <br><sub>+₪11,997</sub> |
+| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $373.71 | ₪23,185 <br><sub>($7,474)</sub> | 🟢 +1.54% <br><sub>+₪351</sub> | 🔴 -14.38% <br><sub>₪-3,892</sub> |
+| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $706.80 | ₪52,620 <br><sub>($16,963)</sub> | 🟢 +0.31% <br><sub>+₪164</sub> | 🟢 +34.02% <br><sub>+₪13,357</sub> |
 
 ---
 
@@ -39,9 +39,9 @@
 
 
 * **יעד שווי תיק צפוי בעוד 30 יום (P50):** `₪186,064` (`$59,828`)
-* **טווח הסתברותי (P10 - P90):** `₪160,964` עד `₪215,821`
+* **טווח הסתברותי (P10 - P90):** `₪160,418` עד `₪215,821`
 * **תשואת תיק צפויה (30d Expected Return):** `-0.27%` (תנודתיות שנתית חזויה: `16.2%`)
-* **תחזית שער דולר/שקל (30 יום):** `₪3.110` (טווח: `₪2.950 - ₪3.290`)
+* **תחזית שער דולר/שקל (30 יום):** `₪3.110` (טווח: `₪2.940 - ₪3.290`)
 
 ### 🎯 מטריצת תחזיות ואותות למניות התיק:
 | מניה (Asset) | שער נוכחי | יעד צפוי 30 יום (P50) | טווח ביטחון (P10 - P90) | תשואה חזויה | אות מודל (AI Signal) |

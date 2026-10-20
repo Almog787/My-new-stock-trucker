@@ -4,7 +4,7 @@
     "version": "v1.1-zero-shot",
     "contextLength": 440,
     "forecastHorizonDays": 30,
-    "generatedAt": "2026-10-20T21:48:40.360988",
+    "generatedAt": "2026-10-20T21:56:06.693860",
     "quantiles": [
       0.1,
       0.5,
@@ -13,12 +13,12 @@
   },
   "portfolio": {
     "currentUSD": 59988.47,
-    "currentILS": 186216.21,
+    "currentILS": 186084.23,
     "forecast30dUSD_P50": 59827.62,
     "forecast30dUSD_P10": 54563.91,
     "forecast30dUSD_P90": 65599.11,
     "forecast30dILS_P50": 186063.9,
-    "forecast30dILS_P10": 160963.53,
+    "forecast30dILS_P10": 160417.9,
     "forecast30dILS_P90": 215821.07,
     "expectedReturn30dPct": -0.27,
     "volatilityAnnualizedPct": 16.23,
@@ -63,7 +63,7 @@
         "p90USD": 60995.22,
         "p50ILS": 185932.48,
         "p10ILS": 181062.98,
-        "p90ILS": 191524.99
+        "p90ILS": 190915.04
       },
       {
         "date": "2026-10-22",
@@ -71,7 +71,7 @@
         "p10USD": 58559.32,
         "p50USD": 59968.48,
         "p90USD": 61411.54,
-        "p50ILS": 186501.97,
+        "p50ILS": 185902.29,
         "p10ILS": 179191.52,
         "p90ILS": 193446.35
       },
@@ -81,7 +81,7 @@
         "p10USD": 58238.22,
         "p50USD": 59959.23,
         "p90USD": 61731.09,
-        "p50ILS": 186473.21,
+        "p50ILS": 185873.61,
         "p10ILS": 177626.57,
         "p90ILS": 195070.24
       },
@@ -91,7 +91,7 @@
         "p10USD": 57967.93,
         "p50USD": 59950.44,
         "p90USD": 62000.75,
-        "p50ILS": 186445.87,
+        "p50ILS": 185846.36,
         "p10ILS": 176222.51,
         "p90ILS": 196542.38
       },
@@ -101,8 +101,8 @@
         "p10USD": 57730.26,
         "p50USD": 59942.09,
         "p90USD": 62238.67,
-        "p50ILS": 186419.9,
-        "p10ILS": 175499.99,
+        "p50ILS": 185820.48,
+        "p10ILS": 174922.69,
         "p90ILS": 197918.97
       },
       {
@@ -111,9 +111,9 @@
         "p10USD": 57515.86,
         "p50USD": 59934.17,
         "p90USD": 62454.15,
-        "p50ILS": 186395.27,
+        "p50ILS": 185795.93,
         "p10ILS": 174273.06,
-        "p90ILS": 199228.74
+        "p90ILS": 198604.2
       },
       {
         "date": "2026-10-27",
@@ -122,7 +122,7 @@
         "p50USD": 59926.64,
         "p90USD": 62652.72,
         "p50ILS": 186371.85,
-        "p10ILS": 173677.09,
+        "p10ILS": 173103.89,
         "p90ILS": 199862.18
       },
       {
@@ -142,7 +142,7 @@
         "p50USD": 59912.69,
         "p90USD": 63012.35,
         "p50ILS": 186328.47,
-        "p10ILS": 172035.84,
+        "p10ILS": 171466.19,
         "p90ILS": 201639.52
       },
       {
@@ -162,7 +162,7 @@
         "p50USD": 59900.1,
         "p90USD": 63335.4,
         "p50ILS": 186289.31,
-        "p10ILS": 170519.93,
+        "p10ILS": 169953.42,
         "p90ILS": 203306.63
       },
       {
@@ -183,7 +183,7 @@
         "p90USD": 63631.77,
         "p50ILS": 186254.01,
         "p10ILS": 169097.7,
-        "p90ILS": 205530.62
+        "p90ILS": 204894.3
       },
       {
         "date": "2026-11-03",
@@ -212,7 +212,7 @@
         "p50USD": 59873.76,
         "p90USD": 64039.16,
         "p50ILS": 186207.39,
-        "p10ILS": 167378.08,
+        "p10ILS": 166818.28,
         "p90ILS": 207486.88
       },
       {
@@ -233,7 +233,7 @@
         "p90USD": 64291.53,
         "p50ILS": 186180.06,
         "p10ILS": 166114.71,
-        "p90ILS": 208947.47
+        "p90ILS": 208304.56
       },
       {
         "date": "2026-11-08",
@@ -242,7 +242,7 @@
         "p50USD": 59860.91,
         "p90USD": 64412.95,
         "p50ILS": 186167.43,
-        "p10ILS": 165779.07,
+        "p10ILS": 165222.76,
         "p90ILS": 209342.09
       },
       {
@@ -253,7 +253,7 @@
         "p90USD": 64531.55,
         "p50ILS": 186155.43,
         "p10ILS": 164897.85,
-        "p90ILS": 210372.85
+        "p90ILS": 209727.54
       },
       {
         "date": "2026-11-10",
@@ -283,7 +283,7 @@
         "p90USD": 64872.39,
         "p50ILS": 186122.89,
         "p10ILS": 163422.01,
-        "p90ILS": 212132.72
+        "p90ILS": 211483.99
       },
       {
         "date": "2026-11-13",
@@ -312,8 +312,8 @@
         "p50USD": 59837.62,
         "p90USD": 65194.17,
         "p50ILS": 186095.0,
-        "p10ILS": 162566.69,
-        "p90ILS": 213836.88
+        "p10ILS": 162017.48,
+        "p90ILS": 213184.94
       },
       {
         "date": "2026-11-16",
@@ -343,7 +343,7 @@
         "p90USD": 65500.18,
         "p50ILS": 186071.08,
         "p10ILS": 161219.12,
-        "p90ILS": 215495.59
+        "p90ILS": 214840.59
       },
       {
         "date": "2026-11-19",
@@ -352,7 +352,7 @@
         "p50USD": 59827.62,
         "p90USD": 65599.11,
         "p50ILS": 186063.9,
-        "p10ILS": 160963.53,
+        "p10ILS": 160417.9,
         "p90ILS": 215821.07
       }
     ]
@@ -360,16 +360,16 @@
   "exchangeRate": {
     "currentRate": 3.1,
     "forecast30dRate_P50": 3.11,
-    "forecast30dRate_P10": 2.95,
+    "forecast30dRate_P10": 2.94,
     "forecast30dRate_P90": 3.29,
-    "expectedChangePct": 0.19,
+    "expectedChangePct": 0.26,
     "timeline": [
       3.1,
-      3.11,
-      3.11,
-      3.11,
-      3.11,
-      3.11,
+      3.1,
+      3.1,
+      3.1,
+      3.1,
+      3.1,
       3.11,
       3.11,
       3.11,
@@ -1043,148 +1043,148 @@
   "anomalies": [],
   "dividendsForecast": {
     "next12MonthsTotalNetUSD": 241.56,
-    "next12MonthsTotalNetILS": 749.88,
-    "projectedMonthlyAverageNetILS": 62.49,
+    "next12MonthsTotalNetILS": 749.28,
+    "projectedMonthlyAverageNetILS": 62.44,
     "events": [
       {
         "ticker": "GOOGL",
         "projectedDate": "2027-01-18",
         "estimatedGrossUSD": 10.56,
         "estimatedNetUSD": 7.92,
-        "estimatedNetILS": 24.59
+        "estimatedNetILS": 24.57
       },
       {
         "ticker": "ASML",
         "projectedDate": "2027-01-18",
         "estimatedGrossUSD": 9.08,
         "estimatedNetUSD": 6.81,
-        "estimatedNetILS": 21.14
+        "estimatedNetILS": 21.12
       },
       {
         "ticker": "XOM",
         "projectedDate": "2027-01-18",
         "estimatedGrossUSD": 2.06,
         "estimatedNetUSD": 1.54,
-        "estimatedNetILS": 4.8
+        "estimatedNetILS": 4.79
       },
       {
         "ticker": "NVDA",
         "projectedDate": "2027-01-18",
         "estimatedGrossUSD": 14.25,
         "estimatedNetUSD": 10.69,
-        "estimatedNetILS": 33.18
+        "estimatedNetILS": 33.15
       },
       {
         "ticker": "VOO",
         "projectedDate": "2027-01-18",
         "estimatedGrossUSD": 44.57,
         "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 103.76
+        "estimatedNetILS": 103.69
       },
       {
         "ticker": "GOOGL",
         "projectedDate": "2027-04-18",
         "estimatedGrossUSD": 10.56,
         "estimatedNetUSD": 7.92,
-        "estimatedNetILS": 24.59
+        "estimatedNetILS": 24.57
       },
       {
         "ticker": "ASML",
         "projectedDate": "2027-04-18",
         "estimatedGrossUSD": 9.08,
         "estimatedNetUSD": 6.81,
-        "estimatedNetILS": 21.14
+        "estimatedNetILS": 21.12
       },
       {
         "ticker": "XOM",
         "projectedDate": "2027-04-18",
         "estimatedGrossUSD": 2.06,
         "estimatedNetUSD": 1.54,
-        "estimatedNetILS": 4.8
+        "estimatedNetILS": 4.79
       },
       {
         "ticker": "NVDA",
         "projectedDate": "2027-04-18",
         "estimatedGrossUSD": 14.25,
         "estimatedNetUSD": 10.69,
-        "estimatedNetILS": 33.18
+        "estimatedNetILS": 33.15
       },
       {
         "ticker": "VOO",
         "projectedDate": "2027-04-18",
         "estimatedGrossUSD": 44.57,
         "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 103.76
+        "estimatedNetILS": 103.69
       },
       {
         "ticker": "GOOGL",
         "projectedDate": "2027-07-17",
         "estimatedGrossUSD": 10.56,
         "estimatedNetUSD": 7.92,
-        "estimatedNetILS": 24.59
+        "estimatedNetILS": 24.57
       },
       {
         "ticker": "ASML",
         "projectedDate": "2027-07-17",
         "estimatedGrossUSD": 9.08,
         "estimatedNetUSD": 6.81,
-        "estimatedNetILS": 21.14
+        "estimatedNetILS": 21.12
       },
       {
         "ticker": "XOM",
         "projectedDate": "2027-07-17",
         "estimatedGrossUSD": 2.06,
         "estimatedNetUSD": 1.54,
-        "estimatedNetILS": 4.8
+        "estimatedNetILS": 4.79
       },
       {
         "ticker": "NVDA",
         "projectedDate": "2027-07-17",
         "estimatedGrossUSD": 14.25,
         "estimatedNetUSD": 10.69,
-        "estimatedNetILS": 33.18
+        "estimatedNetILS": 33.15
       },
       {
         "ticker": "VOO",
         "projectedDate": "2027-07-17",
         "estimatedGrossUSD": 44.57,
         "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 103.76
+        "estimatedNetILS": 103.69
       },
       {
         "ticker": "GOOGL",
         "projectedDate": "2027-10-15",
         "estimatedGrossUSD": 10.56,
         "estimatedNetUSD": 7.92,
-        "estimatedNetILS": 24.59
+        "estimatedNetILS": 24.57
       },
       {
         "ticker": "ASML",
         "projectedDate": "2027-10-15",
         "estimatedGrossUSD": 9.08,
         "estimatedNetUSD": 6.81,
-        "estimatedNetILS": 21.14
+        "estimatedNetILS": 21.12
       },
       {
         "ticker": "XOM",
         "projectedDate": "2027-10-15",
         "estimatedGrossUSD": 2.06,
         "estimatedNetUSD": 1.54,
-        "estimatedNetILS": 4.8
+        "estimatedNetILS": 4.79
       },
       {
         "ticker": "NVDA",
         "projectedDate": "2027-10-15",
         "estimatedGrossUSD": 14.25,
         "estimatedNetUSD": 10.69,
-        "estimatedNetILS": 33.18
+        "estimatedNetILS": 33.15
       },
       {
         "ticker": "VOO",
         "projectedDate": "2027-10-15",
         "estimatedGrossUSD": 44.57,
         "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 103.76
+        "estimatedNetILS": 103.69
       }
     ]
   }
