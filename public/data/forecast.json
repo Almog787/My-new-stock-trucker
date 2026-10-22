@@ -4,7 +4,7 @@
     "version": "v1.1-zero-shot",
     "contextLength": 442,
     "forecastHorizonDays": 30,
-    "generatedAt": "2026-10-22T21:52:20.369843",
+    "generatedAt": "2026-10-22T21:57:40.569985",
     "quantiles": [
       0.1,
       0.5,
@@ -13,7 +13,7 @@
   },
   "portfolio": {
     "currentUSD": 58603.95,
-    "currentILS": 182750.56,
+    "currentILS": 182779.86,
     "forecast30dUSD_P50": 58218.28,
     "forecast30dUSD_P10": 52888.28,
     "forecast30dUSD_P90": 64085.42,
@@ -92,7 +92,7 @@
         "p50USD": 58512.63,
         "p90USD": 60600.51,
         "p50ILS": 182559.41,
-        "p10ILS": 172879.84,
+        "p10ILS": 173444.81,
         "p90ILS": 192709.62
       },
       {
@@ -141,7 +141,7 @@
         "p10USD": 55428.98,
         "p50USD": 58422.06,
         "p90USD": 61576.76,
-        "p50ILS": 182276.83,
+        "p50ILS": 182861.05,
         "p10ILS": 168504.1,
         "p90ILS": 197661.4
       },
@@ -362,7 +362,7 @@
     "forecast30dRate_P50": 3.13,
     "forecast30dRate_P10": 2.98,
     "forecast30dRate_P90": 3.29,
-    "expectedChangePct": 0.37,
+    "expectedChangePct": 0.36,
     "timeline": [
       3.12,
       3.12,
@@ -372,7 +372,7 @@
       3.12,
       3.12,
       3.12,
-      3.12,
+      3.13,
       3.13,
       3.13,
       3.13,
@@ -1048,13 +1048,13 @@
       "title": "תנודתיות חריגה ב-ASML",
       "description": "המניה רשמה שינוי חריג של -5.42% ביחס לטווח הנורמטיבי של מודל TimesFM.",
       "deviationPct": -5.42,
-      "timestamp": "2026-10-22T21:52:20.369088"
+      "timestamp": "2026-10-22T21:57:40.569246"
     }
   ],
   "dividendsForecast": {
     "next12MonthsTotalNetUSD": 205.72,
-    "next12MonthsTotalNetILS": 641.56,
-    "projectedMonthlyAverageNetILS": 53.46,
+    "next12MonthsTotalNetILS": 641.6,
+    "projectedMonthlyAverageNetILS": 53.47,
     "events": [
       {
         "ticker": "GOOGL",
@@ -1089,7 +1089,7 @@
         "projectedDate": "2027-01-20",
         "estimatedGrossUSD": 32.62,
         "estimatedNetUSD": 24.47,
-        "estimatedNetILS": 76.3
+        "estimatedNetILS": 76.31
       },
       {
         "ticker": "GOOGL",
@@ -1124,7 +1124,7 @@
         "projectedDate": "2027-04-20",
         "estimatedGrossUSD": 32.62,
         "estimatedNetUSD": 24.47,
-        "estimatedNetILS": 76.3
+        "estimatedNetILS": 76.31
       },
       {
         "ticker": "GOOGL",
@@ -1159,7 +1159,7 @@
         "projectedDate": "2027-07-19",
         "estimatedGrossUSD": 32.62,
         "estimatedNetUSD": 24.47,
-        "estimatedNetILS": 76.3
+        "estimatedNetILS": 76.31
       },
       {
         "ticker": "GOOGL",
@@ -1194,7 +1194,7 @@
         "projectedDate": "2027-10-17",
         "estimatedGrossUSD": 32.62,
         "estimatedNetUSD": 24.47,
-        "estimatedNetILS": 76.3
+        "estimatedNetILS": 76.31
       }
     ]
   }
