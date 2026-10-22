@@ -4,7 +4,7 @@
     "version": "v1.1-zero-shot",
     "contextLength": 442,
     "forecastHorizonDays": 30,
-    "generatedAt": "2026-10-22T21:29:15.367244",
+    "generatedAt": "2026-10-22T21:42:09.738074",
     "quantiles": [
       0.1,
       0.5,
@@ -1048,7 +1048,7 @@
       "title": "תנודתיות חריגה ב-ASML",
       "description": "המניה רשמה שינוי חריג של -5.42% ביחס לטווח הנורמטיבי של מודל TimesFM.",
       "deviationPct": -5.42,
-      "timestamp": "2026-10-22T21:29:15.366470"
+      "timestamp": "2026-10-22T21:42:09.737654"
     }
   ],
   "dividendsForecast": {
