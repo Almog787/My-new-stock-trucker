@@ -4,7 +4,7 @@
     "version": "v1.1-zero-shot",
     "contextLength": 445,
     "forecastHorizonDays": 30,
-    "generatedAt": "2026-10-26T23:16:14.207801",
+    "generatedAt": "2026-10-26T23:23:38.094820",
     "quantiles": [
       0.1,
       0.5,
@@ -1048,7 +1048,7 @@
       "title": "תנודתיות חריגה ב-TSLA",
       "description": "המניה רשמה שינוי חריג של +5.21% ביחס לטווח הנורמטיבי של מודל TimesFM.",
       "deviationPct": 5.21,
-      "timestamp": "2026-10-26T23:16:14.207248"
+      "timestamp": "2026-10-26T23:23:38.094289"
     }
   ],
   "dividendsForecast": {
