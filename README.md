@@ -1,7 +1,7 @@
 # 📈 Stock Tracker & Portfolio Analytics | מעקב תיק השקעות
 
 [![Interactive Web Dashboard](https://img.shields.io/badge/Live_Dashboard-Open_App-4f46e5?style=for-the-badge&logo=google-chrome&logoColor=white)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪181%2C737-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
+[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪181%2C713-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
 [![TimesFM Forecast](https://img.shields.io/badge/TimesFM_30d_Target-₪181%2C222-8b5cf6?style=for-the-badge&logo=google)](https://almog787.github.io/My-new-stock-trucker/)
 [![Total Profit](https://img.shields.io/badge/Total_Profit-+37.54%25-16a34a?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
 
@@ -13,12 +13,12 @@
 
 ## 📊 תמונת מצב (Executive Snapshot)
 
-* **שווי תיק נוכחי:** `₪181,737` (`$58,965`)
-* **רווח כולל נטו (לאחר 25% מס):** `+₪37,203` (**+28.16%**)
-* **שינוי יומי:** `+₪2,178` (**+1.21%**)
-* **הכנסה פאסיבית חודשית ממוצעת (YTD):** `+₪1,099/חודש` נטו
+* **שווי תיק נוכחי:** `₪181,713` (`$58,965`)
+* **רווח כולל נטו (לאחר 25% מס):** `+₪37,198` (**+28.16%**)
+* **שינוי יומי:** `+₪2,177` (**+1.21%**)
+* **הכנסה פאסיבית חודשית ממוצעת (YTD):** `+₪1,098/חודש` נטו
 * **סך דיבידנדים (12M):** `₪679` נטו
-* **מועד עדכון אחרון:** `26/10/2026 23:47` (שער רציף: `₪3.082`)
+* **מועד עדכון אחרון:** `26/10/2026 23:56` (שער רציף: `₪3.082`)
 
 ---
 
@@ -26,12 +26,12 @@
 
 | נכס (Asset) | כמות | שער נוכחי | שווי שוק | שינוי יומי (Daily Change) | שינוי מהכניסה לתיק (Total Return) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $316.80 | ₪46,868 <br><sub>($15,206)</sub> | 🔴 -1.06% <br><sub>₪-504</sub> | 🟢 +68.52% <br><sub>+₪19,056</sub> |
-| **ASML** <br><sub>ASML Holding</sub> | 4 | $1590.90 | ₪19,613 <br><sub>($6,364)</sub> | 🟢 +1.22% <br><sub>+₪235</sub> | 🟢 +70.24% <br><sub>+₪8,092</sub> |
-| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $184.54 | ₪1,138 <br><sub>($369)</sub> | 🟢 +0.73% <br><sub>+₪8</sub> | 🟢 +46.37% <br><sub>+₪360</sub> |
-| **NVDA** <br><sub>NVIDIA Corp</sub> | 57 | $216.00 | ₪37,947 <br><sub>($12,312)</sub> | 🟢 +2.39% <br><sub>+₪885</sub> | 🟢 +45.34% <br><sub>+₪11,837</sub> |
-| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $391.62 | ₪24,140 <br><sub>($7,832)</sub> | 🟢 +5.21% <br><sub>+₪1,196</sub> | 🔴 -10.27% <br><sub>₪-2,763</sub> |
-| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $703.41 | ₪52,032 <br><sub>($16,882)</sub> | 🟢 +0.69% <br><sub>+₪357</sub> | 🟢 +33.38% <br><sub>+₪13,021</sub> |
+| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $316.80 | ₪46,862 <br><sub>($15,206)</sub> | 🔴 -1.06% <br><sub>₪-504</sub> | 🟢 +68.52% <br><sub>+₪19,054</sub> |
+| **ASML** <br><sub>ASML Holding</sub> | 4 | $1590.90 | ₪19,611 <br><sub>($6,364)</sub> | 🟢 +1.22% <br><sub>+₪235</sub> | 🟢 +70.24% <br><sub>+₪8,091</sub> |
+| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $184.54 | ₪1,137 <br><sub>($369)</sub> | 🟢 +0.73% <br><sub>+₪8</sub> | 🟢 +46.37% <br><sub>+₪360</sub> |
+| **NVDA** <br><sub>NVIDIA Corp</sub> | 57 | $216.00 | ₪37,942 <br><sub>($12,312)</sub> | 🟢 +2.39% <br><sub>+₪885</sub> | 🟢 +45.34% <br><sub>+₪11,836</sub> |
+| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $391.62 | ₪24,137 <br><sub>($7,832)</sub> | 🟢 +5.21% <br><sub>+₪1,196</sub> | 🔴 -10.27% <br><sub>₪-2,763</sub> |
+| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $703.41 | ₪52,025 <br><sub>($16,882)</sub> | 🟢 +0.69% <br><sub>+₪357</sub> | 🟢 +33.38% <br><sub>+₪13,019</sub> |
 
 ---
 

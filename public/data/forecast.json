@@ -4,7 +4,7 @@
     "version": "v1.1-zero-shot",
     "contextLength": 445,
     "forecastHorizonDays": 30,
-    "generatedAt": "2026-10-26T23:47:08.656268",
+    "generatedAt": "2026-10-26T23:56:05.975674",
     "quantiles": [
       0.1,
       0.5,
@@ -13,7 +13,7 @@
   },
   "portfolio": {
     "currentUSD": 58965.32,
-    "currentILS": 181737.01,
+    "currentILS": 181713.43,
     "forecast30dUSD_P50": 58647.78,
     "forecast30dUSD_P10": 53255.38,
     "forecast30dUSD_P90": 64586.19,
@@ -82,7 +82,7 @@
         "p50USD": 58907.53,
         "p90USD": 60731.91,
         "p50ILS": 181435.19,
-        "p10ILS": 173699.34,
+        "p10ILS": 173127.96,
         "p90ILS": 190090.88
       },
       {
@@ -111,9 +111,9 @@
         "p10USD": 56373.21,
         "p50USD": 58858.02,
         "p90USD": 61452.36,
-        "p50ILS": 181871.28,
+        "p50ILS": 181282.7,
         "p10ILS": 170247.09,
-        "p90ILS": 194189.46
+        "p90ILS": 193574.93
       },
       {
         "date": "2026-11-02",
@@ -243,7 +243,7 @@
         "p90USD": 63397.62,
         "p50ILS": 181424.5,
         "p10ILS": 161494.76,
-        "p90ILS": 204140.34
+        "p90ILS": 203506.36
       },
       {
         "date": "2026-11-15",
@@ -252,7 +252,7 @@
         "p50USD": 58705.82,
         "p90USD": 63515.92,
         "p50ILS": 181400.98,
-        "p10ILS": 161152.14,
+        "p10ILS": 160609.54,
         "p90ILS": 204521.26
       },
       {
@@ -303,7 +303,7 @@
         "p90USD": 64073.34,
         "p50ILS": 181299.85,
         "p10ILS": 158497.57,
-        "p90ILS": 207597.62
+        "p90ILS": 206956.89
       },
       {
         "date": "2026-11-21",
@@ -362,14 +362,14 @@
     "forecast30dRate_P50": 3.09,
     "forecast30dRate_P10": 2.94,
     "forecast30dRate_P90": 3.25,
-    "expectedChangePct": 0.26,
+    "expectedChangePct": 0.27,
     "timeline": [
       3.08,
       3.08,
       3.08,
       3.08,
       3.08,
-      3.09,
+      3.08,
       3.09,
       3.09,
       3.09,
@@ -1048,12 +1048,12 @@
       "title": "תנודתיות חריגה ב-TSLA",
       "description": "המניה רשמה שינוי חריג של +5.21% ביחס לטווח הנורמטיבי של מודל TimesFM.",
       "deviationPct": 5.21,
-      "timestamp": "2026-10-26T23:47:08.655750"
+      "timestamp": "2026-10-26T23:56:05.975133"
     }
   ],
   "dividendsForecast": {
     "next12MonthsTotalNetUSD": 241.56,
-    "next12MonthsTotalNetILS": 744.48,
+    "next12MonthsTotalNetILS": 744.44,
     "projectedMonthlyAverageNetILS": 62.04,
     "events": [
       {
@@ -1089,7 +1089,7 @@
         "projectedDate": "2027-01-24",
         "estimatedGrossUSD": 44.57,
         "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 103.02
+        "estimatedNetILS": 103.01
       },
       {
         "ticker": "GOOGL",
@@ -1124,7 +1124,7 @@
         "projectedDate": "2027-04-24",
         "estimatedGrossUSD": 44.57,
         "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 103.02
+        "estimatedNetILS": 103.01
       },
       {
         "ticker": "GOOGL",
@@ -1159,7 +1159,7 @@
         "projectedDate": "2027-07-23",
         "estimatedGrossUSD": 44.57,
         "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 103.02
+        "estimatedNetILS": 103.01
       },
       {
         "ticker": "GOOGL",
@@ -1194,7 +1194,7 @@
         "projectedDate": "2027-10-21",
         "estimatedGrossUSD": 44.57,
         "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 103.02
+        "estimatedNetILS": 103.01
       }
     ]
   }
