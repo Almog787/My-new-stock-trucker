@@ -1,9 +1,9 @@
 # 📈 Stock Tracker & Portfolio Analytics | מעקב תיק השקעות
 
 [![Interactive Web Dashboard](https://img.shields.io/badge/Live_Dashboard-Open_App-4f46e5?style=for-the-badge&logo=google-chrome&logoColor=white)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪182%2C489-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
-[![TimesFM Forecast](https://img.shields.io/badge/TimesFM_30d_Target-₪182%2C307-8b5cf6?style=for-the-badge&logo=google)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Profit](https://img.shields.io/badge/Total_Profit-+37.85%25-16a34a?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
+[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪182%2C586-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
+[![TimesFM Forecast](https://img.shields.io/badge/TimesFM_30d_Target-₪182%2C412-8b5cf6?style=for-the-badge&logo=google)](https://almog787.github.io/My-new-stock-trucker/)
+[![Total Profit](https://img.shields.io/badge/Total_Profit-+37.91%25-16a34a?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
 
 > **מערכת חכמה לניהול ומעקב תיק השקעות בזמן אמת המשולבת במודל חיזוי סדרות עתיות Google Research TimesFM.** 
 > כוללת חישובי מס רווחי הון (25%), המרות מט"ח, יומן דיבידנדים היסטורי, מנוע זיהוי אנומליות וחיזוי מבוסס AI.
@@ -13,12 +13,12 @@
 
 ## 📊 תמונת מצב (Executive Snapshot)
 
-* **שווי תיק נוכחי:** `₪182,489` (`$59,096`)
-* **רווח כולל נטו (לאחר 25% מס):** `+₪37,577` (**+28.38%**)
-* **שינוי יומי:** `+₪2,586` (**+1.44%**)
-* **הכנסה פאסיבית חודשית ממוצעת (YTD):** `+₪1,131/חודש` נטו
+* **שווי תיק נוכחי:** `₪182,586` (`$59,124`)
+* **רווח כולל נטו (לאחר 25% מס):** `+₪37,643` (**+28.43%**)
+* **שינוי יומי:** `+₪2,671` (**+1.48%**)
+* **הכנסה פאסיבית חודשית ממוצעת (YTD):** `+₪1,137/חודש` נטו
 * **סך דיבידנדים (12M):** `₪680` נטו
-* **מועד עדכון אחרון:** `26/10/2026 19:11` (שער רציף: `₪3.088`)
+* **מועד עדכון אחרון:** `26/10/2026 19:23` (שער רציף: `₪3.088`)
 
 ---
 
@@ -26,32 +26,32 @@
 
 | נכס (Asset) | כמות | שער נוכחי | שווי שוק | שינוי יומי (Daily Change) | שינוי מהכניסה לתיק (Total Return) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $317.27 | ₪47,027 <br><sub>($15,229)</sub> | 🔴 -0.92% <br><sub>₪-436</sub> | 🟢 +68.77% <br><sub>+₪19,162</sub> |
-| **ASML** <br><sub>ASML Holding</sub> | 4 | $1594.87 | ₪19,700 <br><sub>($6,379)</sub> | 🟢 +1.47% <br><sub>+₪285</sub> | 🟢 +70.66% <br><sub>+₪8,157</sub> |
-| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $184.51 | ₪1,140 <br><sub>($369)</sub> | 🟢 +0.71% <br><sub>+₪8</sub> | 🟢 +46.34% <br><sub>+₪361</sub> |
-| **NVDA** <br><sub>NVIDIA Corp</sub> | 57 | $216.51 | ₪38,109 <br><sub>($12,341)</sub> | 🟢 +2.63% <br><sub>+₪977</sub> | 🟢 +45.68% <br><sub>+₪11,950</sub> |
-| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $394.73 | ₪24,379 <br><sub>($7,895)</sub> | 🟢 +6.05% <br><sub>+₪1,390</sub> | 🔴 -9.56% <br><sub>₪-2,577</sub> |
-| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $703.46 | ₪52,135 <br><sub>($16,883)</sub> | 🟢 +0.70% <br><sub>+₪362</sub> | 🟢 +33.39% <br><sub>+₪13,050</sub> |
+| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $317.25 | ₪47,027 <br><sub>($15,228)</sub> | 🔴 -0.92% <br><sub>₪-439</sub> | 🟢 +68.76% <br><sub>+₪19,161</sub> |
+| **ASML** <br><sub>ASML Holding</sub> | 4 | $1596.20 | ₪19,718 <br><sub>($6,385)</sub> | 🟢 +1.55% <br><sub>+₪301</sub> | 🟢 +70.81% <br><sub>+₪8,174</sub> |
+| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $184.28 | ₪1,138 <br><sub>($369)</sub> | 🟢 +0.58% <br><sub>+₪7</sub> | 🟢 +46.16% <br><sub>+₪359</sub> |
+| **NVDA** <br><sub>NVIDIA Corp</sub> | 57 | $216.75 | ₪38,153 <br><sub>($12,354)</sub> | 🟢 +2.74% <br><sub>+₪1,018</sub> | 🟢 +45.84% <br><sub>+₪11,992</sub> |
+| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $394.71 | ₪24,379 <br><sub>($7,894)</sub> | 🟢 +6.04% <br><sub>+₪1,389</sub> | 🔴 -9.56% <br><sub>₪-2,578</sub> |
+| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $703.90 | ₪52,171 <br><sub>($16,894)</sub> | 🟢 +0.76% <br><sub>+₪394</sub> | 🟢 +33.47% <br><sub>+₪13,083</sub> |
 
 ---
 
 ## 🔮 תחזיות מודל Google Research TimesFM (AI Forecasting & Analytics)
 
 
-* **יעד שווי תיק צפוי בעוד 30 יום (P50):** `₪182,307` (`$58,809`)
-* **טווח הסתברותי (P10 - P90):** `₪157,442` עד `₪211,254`
-* **תשואת תיק צפויה (30d Expected Return):** `-0.49%` (תנודתיות שנתית חזויה: `17.1%`)
+* **יעד שווי תיק צפוי בעוד 30 יום (P50):** `₪182,412` (`$58,843`)
+* **טווח הסתברותי (P10 - P90):** `₪157,511` עד `₪211,404`
+* **תשואת תיק צפויה (30d Expected Return):** `-0.48%` (תנודתיות שנתית חזויה: `17.1%`)
 * **תחזית שער דולר/שקל (30 יום):** `₪3.100` (טווח: `₪2.950 - ₪3.260`)
 
 ### 🎯 מטריצת תחזיות ואותות למניות התיק:
 | מניה (Asset) | שער נוכחי | יעד צפוי 30 יום (P50) | טווח ביטחון (P10 - P90) | תשואה חזויה | אות מודל (AI Signal) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **GOOGL** | `$317.27` | `$311.06` | `$272.46 - $355.13` | **-1.96%** | 🔴 דשדוש / ניטרלי |
-| **ASML** | `$1594.87` | `$1557.21` | `$1261.72 - $1921.90` | **-2.36%** | 🔴 תיקון יורד (Bearish) |
-| **XOM** | `$184.51` | `$189.44` | `$165.19 - $217.25` | **+2.67%** | 🟢 מגמה חיובית מתונה |
-| **NVDA** | `$216.51` | `$216.94` | `$179.62 - $262.01` | **+0.20%** | 🟢 דשדוש / ניטרלי |
-| **TSLA** | `$394.73` | `$402.70` | `$319.57 - $507.45` | **+2.02%** | 🟢 מגמה חיובית מתונה |
-| **VOO** | `$703.46` | `$703.40` | `$666.51 - $742.33` | **-0.01%** | 🔴 דשדוש / ניטרלי |
+| **GOOGL** | `$317.25` | `$311.04` | `$272.44 - $355.10` | **-1.96%** | 🔴 דשדוש / ניטרלי |
+| **ASML** | `$1596.20` | `$1558.83` | `$1262.86 - $1924.15` | **-2.34%** | 🔴 תיקון יורד (Bearish) |
+| **XOM** | `$184.28` | `$189.14` | `$164.94 - $216.90` | **+2.64%** | 🟢 מגמה חיובית מתונה |
+| **NVDA** | `$216.75` | `$217.23` | `$179.81 - $262.44` | **+0.22%** | 🟢 דשדוש / ניטרלי |
+| **TSLA** | `$394.71` | `$402.67` | `$319.56 - $507.41` | **+2.02%** | 🟢 מגמה חיובית מתונה |
+| **VOO** | `$703.90` | `$703.95` | `$666.92 - $743.02` | **+0.01%** | 🟢 דשדוש / ניטרלי |
 
 
 ---
