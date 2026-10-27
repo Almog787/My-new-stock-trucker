@@ -581,11 +581,25 @@ async function fetchAndUpdatePrices() {
       const totalPnLILS = totalCurrentILS - totalInvestedILS;
       const totalPnLPercent = totalInvestedILS > 0 ? ((totalCurrentILS / totalInvestedILS) - 1) * 100 : 0;
       
-      // Calculate Israeli Capital Gains Tax (25%) with portfolio loss offsetting (סעיף 92 לפקודת מס הכנסה)
-      const totalUnrealizedTaxUSD = totalPnLUSD > 0 ? totalPnLUSD * 0.25 : 0;
-      const totalUnrealizedTaxILS = totalPnLILS > 0 ? totalPnLILS * 0.25 : 0;
-      const totalNetPnLUSD = totalPnLUSD > 0 ? totalPnLUSD * 0.75 : totalPnLUSD;
-      const totalNetPnLILS = totalPnLILS > 0 ? totalPnLILS * 0.75 : totalPnLILS;
+      // Calculate Israeli Capital Gains Tax (25%) per profitable position WITHOUT loss offsetting
+      let totalUnrealizedTaxUSD = 0;
+      quotes.forEach(quote => {
+        if (quote && quote.symbol && quote.regularMarketPrice) {
+          const ticker = quote.symbol;
+          const currentPrice = quote.regularMarketPrice;
+          const shares = portfolio[ticker].amount;
+          const avgPrice = portfolio[ticker].avg_price;
+          const costBasisUSD = shares * avgPrice;
+          const currentValueUSD = shares * currentPrice;
+          const pnlUSD = currentValueUSD - costBasisUSD;
+          if (pnlUSD > 0) {
+            totalUnrealizedTaxUSD += pnlUSD * 0.25;
+          }
+        }
+      });
+      const totalUnrealizedTaxILS = totalUnrealizedTaxUSD * brokerRate;
+      const totalNetPnLUSD = totalPnLUSD - totalUnrealizedTaxUSD;
+      const totalNetPnLILS = totalPnLILS - totalUnrealizedTaxILS;
       const totalNetPnLPercent = totalInvestedUSD > 0 ? (totalNetPnLUSD / totalInvestedUSD) * 100 : 0;
       
       // Calculate YTD Added Monthly Income (for household income)

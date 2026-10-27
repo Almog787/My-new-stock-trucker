@@ -875,10 +875,16 @@ function App() {
     const lifetimeMonthlyAvgUSD = totalPnLUSD / totalMonthsLifetime;
     const lifetimeMonthlyAvgILS = totalPnLILS / totalMonthsLifetime;
 
-    const totalTaxUSD = Math.max(0, totalPnLUSD) * 0.25;
-    const totalTaxILS = Math.max(0, totalPnLILS) * 0.25;
-    const totalNetPnLUSD = totalPnLUSD > 0 ? totalPnLUSD * 0.75 : totalPnLUSD;
-    const totalNetPnLILS = totalPnLILS > 0 ? totalPnLILS * 0.75 : totalPnLILS;
+    // Tax calculated strictly per profitable position without loss offsetting ("אל תחשב קיזוז הפסדים")
+    let totalTaxUSD = 0;
+    holdingsList.forEach(item => {
+      if (item.taxUSD > 0) {
+        totalTaxUSD += item.taxUSD;
+      }
+    });
+    const totalTaxILS = totalTaxUSD * usdToIls;
+    const totalNetPnLUSD = totalPnLUSD - totalTaxUSD;
+    const totalNetPnLILS = totalPnLILS - totalTaxILS;
     const netPortfolioTotalUSD = currentTotalUSD - totalTaxUSD;
     const netPortfolioTotalILS = (currentTotalUSD * usdToIls) - totalTaxILS;
     const totalNetReturnPct = costTotalUSD > 0 ? (totalNetPnLUSD / costTotalUSD) * 100 : 0;
