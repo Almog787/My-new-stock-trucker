@@ -4,7 +4,7 @@
     "version": "v1.1-zero-shot",
     "contextLength": 449,
     "forecastHorizonDays": 30,
-    "generatedAt": "2026-10-30T23:01:16.859662",
+    "generatedAt": "2026-10-30T23:08:14.143945",
     "quantiles": [
       0.1,
       0.5,
@@ -1042,9 +1042,9 @@
   },
   "anomalies": [],
   "dividendsForecast": {
-    "next12MonthsTotalNetUSD": 242.24,
-    "next12MonthsTotalNetILS": 762.12,
-    "projectedMonthlyAverageNetILS": 63.51,
+    "next12MonthsTotalNetUSD": 206.4,
+    "next12MonthsTotalNetILS": 649.36,
+    "projectedMonthlyAverageNetILS": 54.11,
     "events": [
       {
         "ticker": "GOOGL",
@@ -1077,9 +1077,9 @@
       {
         "ticker": "VOO",
         "projectedDate": "2027-01-28",
-        "estimatedGrossUSD": 44.57,
-        "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 105.16
+        "estimatedGrossUSD": 32.62,
+        "estimatedNetUSD": 24.47,
+        "estimatedNetILS": 76.97
       },
       {
         "ticker": "GOOGL",
@@ -1112,9 +1112,9 @@
       {
         "ticker": "VOO",
         "projectedDate": "2027-04-28",
-        "estimatedGrossUSD": 44.57,
-        "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 105.16
+        "estimatedGrossUSD": 32.62,
+        "estimatedNetUSD": 24.47,
+        "estimatedNetILS": 76.97
       },
       {
         "ticker": "GOOGL",
@@ -1147,9 +1147,9 @@
       {
         "ticker": "VOO",
         "projectedDate": "2027-07-27",
-        "estimatedGrossUSD": 44.57,
-        "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 105.16
+        "estimatedGrossUSD": 32.62,
+        "estimatedNetUSD": 24.47,
+        "estimatedNetILS": 76.97
       },
       {
         "ticker": "GOOGL",
@@ -1182,9 +1182,9 @@
       {
         "ticker": "VOO",
         "projectedDate": "2027-10-25",
-        "estimatedGrossUSD": 44.57,
-        "estimatedNetUSD": 33.43,
-        "estimatedNetILS": 105.16
+        "estimatedGrossUSD": 32.62,
+        "estimatedNetUSD": 24.47,
+        "estimatedNetILS": 76.97
       }
     ]
   }
