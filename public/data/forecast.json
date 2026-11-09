@@ -4,7 +4,7 @@
     "version": "v1.1-zero-shot",
     "contextLength": 456,
     "forecastHorizonDays": 30,
-    "generatedAt": "2026-11-09T23:06:57.463017",
+    "generatedAt": "2026-11-09T23:11:01.035606",
     "quantiles": [
       0.1,
       0.5,
@@ -1048,7 +1048,7 @@
       "title": "תנודתיות חריגה ב-ASML",
       "description": "המניה רשמה שינוי חריג של +6.21% ביחס לטווח הנורמטיבי של מודל TimesFM.",
       "deviationPct": 6.21,
-      "timestamp": "2026-11-09T23:06:57.462379"
+      "timestamp": "2026-11-09T23:11:01.035098"
     },
     {
       "ticker": "TSLA",
@@ -1057,13 +1057,13 @@
       "title": "תנודתיות חריגה ב-TSLA",
       "description": "המניה רשמה שינוי חריג של +5.54% ביחס לטווח הנורמטיבי של מודל TimesFM.",
       "deviationPct": 5.54,
-      "timestamp": "2026-11-09T23:06:57.462576"
+      "timestamp": "2026-11-09T23:11:01.035215"
     }
   ],
   "dividendsForecast": {
-    "next12MonthsTotalNetUSD": 206.64,
-    "next12MonthsTotalNetILS": 653.68,
-    "projectedMonthlyAverageNetILS": 54.47,
+    "next12MonthsTotalNetUSD": 242.48,
+    "next12MonthsTotalNetILS": 767.04,
+    "projectedMonthlyAverageNetILS": 63.92,
     "events": [
       {
         "ticker": "GOOGL",
@@ -1096,9 +1096,9 @@
       {
         "ticker": "VOO",
         "projectedDate": "2027-02-07",
-        "estimatedGrossUSD": 32.62,
-        "estimatedNetUSD": 24.47,
-        "estimatedNetILS": 77.39
+        "estimatedGrossUSD": 44.57,
+        "estimatedNetUSD": 33.43,
+        "estimatedNetILS": 105.73
       },
       {
         "ticker": "GOOGL",
@@ -1131,9 +1131,9 @@
       {
         "ticker": "VOO",
         "projectedDate": "2027-05-08",
-        "estimatedGrossUSD": 32.62,
-        "estimatedNetUSD": 24.47,
-        "estimatedNetILS": 77.39
+        "estimatedGrossUSD": 44.57,
+        "estimatedNetUSD": 33.43,
+        "estimatedNetILS": 105.73
       },
       {
         "ticker": "GOOGL",
@@ -1166,9 +1166,9 @@
       {
         "ticker": "VOO",
         "projectedDate": "2027-08-06",
-        "estimatedGrossUSD": 32.62,
-        "estimatedNetUSD": 24.47,
-        "estimatedNetILS": 77.39
+        "estimatedGrossUSD": 44.57,
+        "estimatedNetUSD": 33.43,
+        "estimatedNetILS": 105.73
       },
       {
         "ticker": "GOOGL",
@@ -1201,9 +1201,9 @@
       {
         "ticker": "VOO",
         "projectedDate": "2027-11-04",
-        "estimatedGrossUSD": 32.62,
-        "estimatedNetUSD": 24.47,
-        "estimatedNetILS": 77.39
+        "estimatedGrossUSD": 44.57,
+        "estimatedNetUSD": 33.43,
+        "estimatedNetILS": 105.73
       }
     ]
   }
