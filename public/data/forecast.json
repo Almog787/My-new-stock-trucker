@@ -4,7 +4,7 @@
     "version": "v1.1-zero-shot",
     "contextLength": 456,
     "forecastHorizonDays": 30,
-    "generatedAt": "2026-11-09T22:57:43.410794",
+    "generatedAt": "2026-11-09T23:01:16.381186",
     "quantiles": [
       0.1,
       0.5,
@@ -1048,7 +1048,7 @@
       "title": "תנודתיות חריגה ב-ASML",
       "description": "המניה רשמה שינוי חריג של +6.21% ביחס לטווח הנורמטיבי של מודל TimesFM.",
       "deviationPct": 6.21,
-      "timestamp": "2026-11-09T22:57:43.410329"
+      "timestamp": "2026-11-09T23:01:16.380457"
     },
     {
       "ticker": "TSLA",
@@ -1057,7 +1057,7 @@
       "title": "תנודתיות חריגה ב-TSLA",
       "description": "המניה רשמה שינוי חריג של +5.54% ביחס לטווח הנורמטיבי של מודל TimesFM.",
       "deviationPct": 5.54,
-      "timestamp": "2026-11-09T22:57:43.410444"
+      "timestamp": "2026-11-09T23:01:16.380695"
     }
   ],
   "dividendsForecast": {
