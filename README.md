@@ -1,9 +1,9 @@
 # 📈 Stock Tracker & Portfolio Analytics | מעקב תיק השקעות
 
 [![Interactive Web Dashboard](https://img.shields.io/badge/Live_Dashboard-Open_App-4f46e5?style=for-the-badge&logo=google-chrome&logoColor=white)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪170%2C716-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
-[![TimesFM Forecast](https://img.shields.io/badge/TimesFM_30d_Target-₪166%2C730-8b5cf6?style=for-the-badge&logo=google)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Profit](https://img.shields.io/badge/Total_Profit-+24.82%25-16a34a?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
+[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪171%2C488-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
+[![TimesFM Forecast](https://img.shields.io/badge/TimesFM_30d_Target-₪167%2C556-8b5cf6?style=for-the-badge&logo=google)](https://almog787.github.io/My-new-stock-trucker/)
+[![Total Profit](https://img.shields.io/badge/Total_Profit-+25.64%25-16a34a?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
 
 > **מערכת חכמה לניהול ומעקב תיק השקעות בזמן אמת המשולבת במודל חיזוי סדרות עתיות Google Research TimesFM.** 
 > כוללת חישובי מס רווחי הון (25%), המרות מט"ח, יומן דיבידנדים היסטורי, מנוע זיהוי אנומליות וחיזוי מבוסס AI.
@@ -13,12 +13,12 @@
 
 ## 📊 תמונת מצב (Executive Snapshot)
 
-* **שווי תיק נוכחי:** `₪170,716` (`$53,513`)
-* **רווח כולל נטו (לאחר 25% מס):** `+₪24,475` (**+17.90%**)
-* **שינוי יומי:** `₪-3,353` (**-1.93%**)
-* **הכנסה פאסיבית חודשית ממוצעת (YTD):** `+₪-203/חודש` נטו
-* **סך דיבידנדים (12M):** `₪705` נטו
-* **מועד עדכון אחרון:** `10/11/2026 17:44` (שער רציף: `₪3.190`)
+* **שווי תיק נוכחי:** `₪171,488` (`$53,863`)
+* **רווח כולל נטו (לאחר 25% מס):** `+₪25,313` (**+18.55%**)
+* **שינוי יומי:** `₪-2,232` (**-1.28%**)
+* **הכנסה פאסיבית חודשית ממוצעת (YTD):** `+₪-101/חודש` נטו
+* **סך דיבידנדים (12M):** `₪703` נטו
+* **מועד עדכון אחרון:** `10/11/2026 20:26` (שער רציף: `₪3.184`)
 
 ---
 
@@ -26,32 +26,32 @@
 
 | נכס (Asset) | כמות | שער נוכחי | שווי שוק | שינוי יומי (Daily Change) | שינוי מהכניסה לתיק (Total Return) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $286.25 | ₪43,833 <br><sub>($13,740)</sub> | 🔴 -0.66% <br><sub>₪-292</sub> | 🟢 +52.27% <br><sub>+₪15,046</sub> |
-| **ASML** <br><sub>ASML Holding</sub> | 4 | $1496.25 | ₪19,093 <br><sub>($5,985)</sub> | 🔴 -1.12% <br><sub>₪-217</sub> | 🟢 +60.11% <br><sub>+₪7,168</sub> |
-| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $164.41 | ₪1,049 <br><sub>($329)</sub> | 🔴 -0.19% <br><sub>₪-2</sub> | 🟢 +30.40% <br><sub>+₪245</sub> |
-| **NVDA** <br><sub>NVIDIA Corp</sub> | 57 | $166.89 | ₪30,348 <br><sub>($9,513)</sub> | 🔴 -6.59% <br><sub>₪-2,142</sub> | 🟢 +12.29% <br><sub>+₪3,322</sub> |
-| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $374.59 | ₪23,900 <br><sub>($7,492)</sub> | 🔴 -0.92% <br><sub>₪-221</sub> | 🔴 -14.17% <br><sub>₪-3,947</sub> |
-| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $685.61 | ₪52,494 <br><sub>($16,455)</sub> | 🔴 -0.90% <br><sub>₪-479</sub> | 🟢 +30.00% <br><sub>+₪12,115</sub> |
+| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $287.43 | ₪43,926 <br><sub>($13,797)</sub> | 🔴 -0.25% <br><sub>₪-110</sub> | 🟢 +52.90% <br><sub>+₪15,197</sub> |
+| **ASML** <br><sub>ASML Holding</sub> | 4 | $1509.60 | ₪19,225 <br><sub>($6,038)</sub> | 🔴 -0.24% <br><sub>₪-46</sub> | 🟢 +61.54% <br><sub>+₪7,324</sub> |
+| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $164.62 | ₪1,048 <br><sub>($329)</sub> | 🔴 -0.07% <br><sub>₪-1</sub> | 🟢 +30.57% <br><sub>+₪245</sub> |
+| **NVDA** <br><sub>NVIDIA Corp</sub> | 57 | $168.59 | ₪30,595 <br><sub>($9,610)</sub> | 🔴 -5.64% <br><sub>₪-1,829</sub> | 🟢 +13.44% <br><sub>+₪3,624</sub> |
+| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $377.86 | ₪24,060 <br><sub>($7,557)</sub> | 🔴 -0.05% <br><sub>₪-12</sub> | 🔴 -13.43% <br><sub>₪-3,731</sub> |
+| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $688.82 | ₪52,634 <br><sub>($16,532)</sub> | 🔴 -0.44% <br><sub>₪-233</sub> | 🟢 +30.61% <br><sub>+₪12,336</sub> |
 
 ---
 
 ## 🔮 תחזיות מודל Google Research TimesFM (AI Forecasting & Analytics)
 
 
-* **יעד שווי תיק צפוי בעוד 30 יום (P50):** `₪166,730` (`$51,941`)
-* **טווח הסתברותי (P10 - P90):** `₪134,610` עד `₪205,863`
-* **תשואת תיק צפויה (30d Expected Return):** `-2.94%` (תנודתיות שנתית חזויה: `27.5%`)
-* **תחזית שער דולר/שקל (30 יום):** `₪3.210` (טווח: `₪3.030 - ₪3.390`)
+* **יעד שווי תיק צפוי בעוד 30 יום (P50):** `₪167,556` (`$52,361`)
+* **טווח הסתברותי (P10 - P90):** `₪135,889` עד `₪206,631`
+* **תשואת תיק צפויה (30d Expected Return):** `-2.79%` (תנודתיות שנתית חזויה: `27.3%`)
+* **תחזית שער דולר/שקל (30 יום):** `₪3.200` (טווח: `₪3.030 - ₪3.380`)
 
 ### 🎯 מטריצת תחזיות ואותות למניות התיק:
 | מניה (Asset) | שער נוכחי | יעד צפוי 30 יום (P50) | טווח ביטחון (P10 - P90) | תשואה חזויה | אות מודל (AI Signal) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **GOOGL** | `$286.25` | `$275.08` | `$221.99 - $340.87` | **-3.90%** | 🔴 תיקון יורד (Bearish) |
-| **ASML** | `$1496.25` | `$1439.28` | `$1093.53 - $1894.34` | **-3.81%** | 🔴 תיקון יורד (Bearish) |
-| **XOM** | `$164.41` | `$165.26` | `$141.48 - $193.04` | **+0.52%** | 🟢 מגמה חיובית מתונה |
-| **NVDA** | `$166.89` | `$155.41` | `$120.88 - $199.80` | **-6.88%** | 🔴 תיקון יורד (Bearish) |
-| **TSLA** | `$374.59` | `$376.50` | `$285.30 - $496.84` | **+0.51%** | 🟢 מגמה חיובית מתונה |
-| **VOO** | `$685.61` | `$681.44` | `$619.06 - $750.11` | **-0.61%** | 🔴 דשדוש / ניטרלי |
+| **GOOGL** | `$287.43` | `$276.49` | `$223.21 - $342.50` | **-3.81%** | 🔴 תיקון יורד (Bearish) |
+| **ASML** | `$1509.60` | `$1455.19` | `$1105.66 - $1915.21` | **-3.60%** | 🔴 תיקון יורד (Bearish) |
+| **XOM** | `$164.62` | `$165.52` | `$141.71 - $193.34` | **+0.55%** | 🟢 מגמה חיובית מתונה |
+| **NVDA** | `$168.59` | `$157.37` | `$123.02 - $201.32` | **-6.66%** | 🔴 תיקון יורד (Bearish) |
+| **TSLA** | `$377.86` | `$380.56` | `$288.51 - $502.00` | **+0.72%** | 🟢 מגמה חיובית מתונה |
+| **VOO** | `$688.82` | `$685.39` | `$623.07 - $753.95` | **-0.50%** | 🔴 דשדוש / ניטרלי |
 
 
 ---
