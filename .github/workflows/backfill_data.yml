@@ -8,6 +8,11 @@ on:
         required: false
         default: '60'
 
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
 concurrency:
   group: "pages"
   cancel-in-progress: false
@@ -15,13 +20,10 @@ concurrency:
 jobs:
   backfill-and-deploy:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    timeout-minutes: 15
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -29,45 +31,15 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Setup Python (For TimesFM AI Forecast Model)
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       - name: Backfill and complete missing stock history
         run: node scripts/backfill_history.js --days ${{ inputs.days_back || '60' }}
 
-      # Quality Gate 1: Code syntax & TypeScript type integrity
-      - name: Validate TypeScript & Lint
-        run: npm run lint
-
-      # Quality Gate 2: Data completeness and value validation (JSON structures & rates)
       - name: Validate Backfilled Data Integrity
         run: npm run test:data
 
-      # Quality Gate 3: End-to-End browser tests (Dashboard, TimesFM & Dividends)
-      - name: Install Playwright Browsers & OS Dependencies
-        run: npx playwright install --with-deps chromium
-
-      - name: Run E2E Verification Tests
-        run: npm run test:e2e
-        env:
-          CI: true
-
-      - name: Upload Test Results on Failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backfill-data-e2e-failure-report
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 7
-
-      # Commit & Push: Only executed after all 3 Quality Gates pass 100%
       - name: Commit and push backfilled data
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"

@@ -15,6 +15,12 @@ const formatPercent = (val) => {
   return `${sign}${val.toFixed(2)}%`;
 };
 
+const formatSignedILS = (val) => {
+  const rounded = Math.round(val);
+  const sign = rounded >= 0 ? '+' : '-';
+  return `${sign}₪${Math.abs(rounded).toLocaleString('en-US')}`;
+};
+
 async function downloadQuickChart(chartConfig, outputPath) {
   const url = 'https://quickchart.io/chart';
   const response = await fetch(url, {
@@ -287,7 +293,6 @@ async function fetchAndUpdatePrices() {
     let totalCurrentUSD = 0;
     let totalPreviousUSD = 0;
     
-    const holdingsRows = [];
     const allocationLabels = [];
     const allocationData = [];
 
@@ -313,17 +318,14 @@ async function fetchAndUpdatePrices() {
         const costBasisUSD = shares * avgPrice;
         const currentValueUSD = shares * currentPrice;
         
-        // previous day's close for this stock
-        const previousValueUSD = currentValueUSD / (1 + changePercent / 100);
+        // previous day's close for this stock (prefer exact regularMarketPreviousClose when available)
+        const previousValueUSD = quote.regularMarketPreviousClose
+          ? shares * quote.regularMarketPreviousClose
+          : currentValueUSD / (1 + changePercent / 100);
         
         totalInvestedUSD += costBasisUSD;
         totalCurrentUSD += currentValueUSD;
         totalPreviousUSD += previousValueUSD;
-        
-        const pnlPercent = ((currentPrice / avgPrice) - 1) * 100;
-        const pnlILS = (currentValueUSD - costBasisUSD) * brokerRate;
-        
-        const icon = pnlPercent >= 0 ? '🟢' : '🔴';
         
         allocationLabels.push(ticker);
         allocationData.push(currentValueUSD);
@@ -389,9 +391,6 @@ async function fetchAndUpdatePrices() {
           declaredYield,
           exDividendDate: quote.exDividendDate ? new Date(quote.exDividendDate).toISOString().slice(0, 10) : null
         };
-
-        const divBadge = tickerL12mGrossUSD > 0 ? `💵 $${tickerL12mGrossUSD.toFixed(1)}/שנה` : '—';
-        holdingsRows.push(`| ${ticker} | ${shares} | $${avgPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} | $${currentPrice.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})} | ${icon} ${formatPercent(pnlPercent)} | ₪${Math.round(pnlILS).toLocaleString('en-US')} | ${divBadge} |`);
       }
     });
 
@@ -555,18 +554,20 @@ async function fetchAndUpdatePrices() {
           const currentValueILS = currentValueUSD * brokerRate;
           
           // Daily Change calculation
-          const previousValueUSD = currentValueUSD / (1 + changePercent / 100);
+          const previousValueUSD = quote.regularMarketPreviousClose
+            ? shares * quote.regularMarketPreviousClose
+            : currentValueUSD / (1 + changePercent / 100);
           const dailyChangeUSD = currentValueUSD - previousValueUSD;
           const dailyChangeILS = dailyChangeUSD * brokerRate;
           const dailyBadge = changePercent >= 0 ? `🟢 +${changePercent.toFixed(2)}%` : `🔴 ${changePercent.toFixed(2)}%`;
-          const dailyAmountStr = `${dailyChangeILS >= 0 ? '+' : ''}₪${Math.round(dailyChangeILS).toLocaleString('en-US')}`;
+          const dailyAmountStr = formatSignedILS(dailyChangeILS);
 
           // Inception / Total Change calculation
           const totalReturnUSD = currentValueUSD - costBasisUSD;
           const totalReturnILS = totalReturnUSD * brokerRate;
           const totalReturnPercent = ((currentPrice / avgPrice) - 1) * 100;
           const totalBadge = totalReturnPercent >= 0 ? `🟢 +${totalReturnPercent.toFixed(2)}%` : `🔴 ${totalReturnPercent.toFixed(2)}%`;
-          const totalAmountStr = `${totalReturnILS >= 0 ? '+' : ''}₪${Math.round(totalReturnILS).toLocaleString('en-US')}`;
+          const totalAmountStr = formatSignedILS(totalReturnILS);
 
           const assetName = ASSET_META[ticker]?.name || ticker;
 
@@ -602,24 +603,43 @@ async function fetchAndUpdatePrices() {
       const totalNetPnLILS = totalPnLILS - totalUnrealizedTaxILS;
       const totalNetPnLPercent = totalInvestedUSD > 0 ? (totalNetPnLUSD / totalInvestedUSD) * 100 : 0;
       
-      // Calculate YTD Added Monthly Income (for household income)
+      // Calculate YTD Added Monthly Income (25% tax per profitable asset WITHOUT loss offsetting)
       const currentMonthNumber = new Date().getMonth() + 1; // 1-12
-      const pointsPriorToYear = history.filter(h => new Date(h.timestamp).getFullYear() < currentYear);
+      const pointsPriorToYear = finalHistory.filter(h => new Date(h.timestamp).getFullYear() < currentYear);
       let startOfYearUSD = totalInvestedUSD;
+      const startOfYearPrices = {};
       if (pointsPriorToYear.length > 0) {
         const lastPriorPoint = pointsPriorToYear[pointsPriorToYear.length - 1];
         let val = 0;
         for (const [t, d] of Object.entries(portfolio)) {
-          val += (lastPriorPoint.prices[t] || d.avg_price) * d.amount;
+          const p = lastPriorPoint.prices[t] || d.avg_price;
+          startOfYearPrices[t] = p;
+          val += p * d.amount;
         }
         startOfYearUSD = val;
+      } else {
+        for (const [t, d] of Object.entries(portfolio)) {
+          startOfYearPrices[t] = d.avg_price;
+        }
       }
       const ytdPnLUSD = totalCurrentUSD - startOfYearUSD;
       const ytdPnLILS = ytdPnLUSD * brokerRate;
+      let ytdTaxUSD = 0;
+      for (const [t, d] of Object.entries(portfolio)) {
+        const curP = prices[t] || d.avg_price;
+        const baseP = startOfYearPrices[t] || d.avg_price;
+        const assetYtdPnL = (curP - baseP) * d.amount;
+        if (assetYtdPnL > 0) {
+          ytdTaxUSD += assetYtdPnL * 0.25;
+        }
+      }
+      const ytdTaxILS = ytdTaxUSD * brokerRate;
+      const ytdNetPnLUSD = ytdPnLUSD - ytdTaxUSD;
+      const ytdNetPnLILS = ytdPnLILS - ytdTaxILS;
       const ytdMonthlyAvgILS = ytdPnLILS / currentMonthNumber;
       const ytdMonthlyAvgUSD = ytdPnLUSD / currentMonthNumber;
-      const ytdNetMonthlyAvgILS = (ytdPnLILS > 0 ? ytdPnLILS * 0.75 : ytdPnLILS) / currentMonthNumber;
-      const ytdNetMonthlyAvgUSD = (ytdPnLUSD > 0 ? ytdPnLUSD * 0.75 : ytdPnLUSD) / currentMonthNumber;
+      const ytdNetMonthlyAvgILS = ytdNetPnLILS / currentMonthNumber;
+      const ytdNetMonthlyAvgUSD = ytdNetPnLUSD / currentMonthNumber;
 
       let dailyChangePercent = 0;
       let dailyPnLUSD = 0;
@@ -675,7 +695,7 @@ async function fetchAndUpdatePrices() {
       const dailyMap = new Map();
       let lastKnownPrices = {};
       
-      history.forEach(entry => {
+      finalHistory.forEach(entry => {
         for (const [t, p] of Object.entries(entry.prices)) {
            lastKnownPrices[t] = p;
         }
@@ -925,7 +945,7 @@ async function fetchAndUpdatePrices() {
 [![Interactive Web Dashboard](https://img.shields.io/badge/Live_Dashboard-Open_App-4f46e5?style=for-the-badge&logo=google-chrome&logoColor=white)](https://almog787.github.io/My-new-stock-trucker/)
 [![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪${Math.round(totalCurrentILS).toLocaleString('en-US').replace(/,/g, '%2C')}-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
 [![TimesFM Forecast](https://img.shields.io/badge/TimesFM_30d_Target-₪${forecastData ? Math.round(forecastData.portfolio.forecast30dILS_P50).toLocaleString('en-US').replace(/,/g, '%2C') : 'N/A'}-8b5cf6?style=for-the-badge&logo=google)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Profit](https://img.shields.io/badge/Total_Profit-${formatPercent(totalPnLPercent).replace('%', '%25')}-${totalPnLPercent >= 0 ? '16a34a' : 'dc2626'}?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
+[![Net Profit](https://img.shields.io/badge/Net_Profit-${formatPercent(totalNetPnLPercent).replace('%', '%25')}-${totalNetPnLPercent >= 0 ? '16a34a' : 'dc2626'}?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
 
 > **מערכת חכמה לניהול ומעקב תיק השקעות בזמן אמת המשולבת במודל חיזוי סדרות עתיות Google Research TimesFM.** 
 > כוללת חישובי מס רווחי הון (25%), המרות מט"ח, יומן דיבידנדים היסטורי, מנוע זיהוי אנומליות וחיזוי מבוסס AI.
@@ -936,11 +956,11 @@ async function fetchAndUpdatePrices() {
 ## 📊 תמונת מצב (Executive Snapshot)
 
 * **שווי תיק נוכחי:** \`₪${Math.round(totalCurrentILS).toLocaleString('en-US')}\` (\`$${Math.round(totalCurrentUSD).toLocaleString('en-US')}\`)
-* **רווח כולל נטו (לאחר 25% מס):** \`${totalNetPnLILS >= 0 ? '+' : ''}₪${Math.round(totalNetPnLILS).toLocaleString('en-US')}\` (**${formatPercent(totalNetPnLPercent)}**)
-* **שינוי יומי:** \`${dailyPnLILS >= 0 ? '+' : ''}₪${Math.round(dailyPnLILS).toLocaleString('en-US')}\` (**${formatPercent(dailyChangePercent)}**)
-* **הכנסה פאסיבית חודשית ממוצעת (YTD):** \`+₪${Math.round(ytdNetMonthlyAvgILS).toLocaleString('en-US')}/חודש\` נטו
+* **רווח כולל נטו (לאחר 25% מס ללא קיזוז הפסדים):** \`${formatSignedILS(totalNetPnLILS)}\` (**${formatPercent(totalNetPnLPercent)}**)
+* **שינוי יומי:** \`${formatSignedILS(dailyPnLILS)}\` (**${formatPercent(dailyChangePercent)}**)
+* **תוספת חודשית ממוצעת (YTD):** \`${formatSignedILS(ytdNetMonthlyAvgILS)}/חודש\` נטו
 * **סך דיבידנדים (12M):** \`₪${Math.round(l12mReceivedGrossUSD * 0.75 * brokerRate).toLocaleString('en-US')}\` נטו
-* **מועד עדכון אחרון:** \`${formattedDate}\` (שער רציף: \`₪${usdIlsRate.toFixed(3)}\`)
+* **מועד עדכון אחרון:** \`${formattedDate}\` (שער ברוקר: \`₪${usdIlsRate.toFixed(3)}\`)
 
 ---
 

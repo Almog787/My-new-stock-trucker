@@ -500,7 +500,7 @@ function App() {
 
     // Daily Grouping of Full History
     const dailyMap = new Map();
-    const allMonthEndMap = new Map<string, number>();
+    const allMonthEndMap = new Map<string, { totalUSD: number; prices: { [t: string]: number } }>();
 
     history.forEach(point => {
       const d = new Date(point.timestamp);
@@ -510,12 +510,14 @@ function App() {
       
       let pointTotal = 0;
       const assetValues: { [t: string]: number } = {};
+      const assetPricesAtPoint: { [t: string]: number } = {};
 
       Object.entries(portfolio).forEach(([ticker, data]) => {
         const price = point.prices[ticker] || data.avg_price;
         const val = price * data.amount;
         pointTotal += val;
         assetValues[ticker] = val;
+        assetPricesAtPoint[ticker] = price;
       });
 
       const historicalRate = point.exchangeRate || usdToIls;
@@ -534,7 +536,7 @@ function App() {
         ...assetValues
       });
 
-      allMonthEndMap.set(monthKey, pointTotal);
+      allMonthEndMap.set(monthKey, { totalUSD: pointTotal, prices: assetPricesAtPoint });
     });
 
     const fullUnfilteredDailyHistory = Array.from(dailyMap.values());
@@ -660,15 +662,37 @@ function App() {
       new Set(history.map(h => new Date(h.timestamp).getFullYear()))
     ).sort((a, b) => b - a);
 
+    // Helper: 25% Israeli Capital Gains Tax strictly per profitable position (NO loss offsetting)
+    const calcNoOffsetTaxUSD = (basePrices: { [t: string]: number }, endPrices: { [t: string]: number }) => {
+      let tax = 0;
+      Object.entries(portfolio).forEach(([ticker, data]) => {
+        const baseP = basePrices[ticker] ?? data.avg_price;
+        const endP = endPrices[ticker] ?? data.avg_price;
+        const gain = (endP - baseP) * data.amount;
+        if (gain > 0) {
+          tax += gain * 0.25;
+        }
+      });
+      return tax;
+    };
+
+    const costBasisPrices: { [t: string]: number } = {};
+    Object.entries(portfolio).forEach(([ticker, data]) => {
+      costBasisPrices[ticker] = data.avg_price;
+    });
+
     // 1. Standard YTD Baseline (for Top Executive KPI Card)
     const pointsPriorToCurrentYear = history.filter(h => new Date(h.timestamp).getFullYear() < currentYear);
     let startOfYearUSD = costTotalUSD;
+    const startOfYearPrices: { [t: string]: number } = { ...costBasisPrices };
 
     if (pointsPriorToCurrentYear.length > 0) {
       const lastPointPriorYear = pointsPriorToCurrentYear[pointsPriorToCurrentYear.length - 1];
       let val = 0;
       Object.entries(portfolio).forEach(([ticker, data]) => {
-        val += (lastPointPriorYear.prices[ticker] || data.avg_price) * data.amount;
+        const p = lastPointPriorYear.prices[ticker] || data.avg_price;
+        startOfYearPrices[ticker] = p;
+        val += p * data.amount;
       });
       startOfYearUSD = val;
     } else {
@@ -676,7 +700,9 @@ function App() {
       if (firstPointCurrentYear) {
         let val = 0;
         Object.entries(portfolio).forEach(([ticker, data]) => {
-          val += (firstPointCurrentYear.prices[ticker] || data.avg_price) * data.amount;
+          const p = firstPointCurrentYear.prices[ticker] || data.avg_price;
+          startOfYearPrices[ticker] = p;
+          val += p * data.amount;
         });
         startOfYearUSD = val;
       }
@@ -684,10 +710,10 @@ function App() {
 
     const ytdPnLUSD = currentTotalUSD - startOfYearUSD;
     const ytdPnLILS = ytdPnLUSD * usdToIls;
-    const ytdTaxUSD = ytdPnLUSD > 0 ? ytdPnLUSD * 0.25 : 0;
-    const ytdTaxILS = ytdPnLILS > 0 ? ytdPnLILS * 0.25 : 0;
-    const ytdNetPnLUSD = ytdPnLUSD > 0 ? ytdPnLUSD * 0.75 : ytdPnLUSD;
-    const ytdNetPnLILS = ytdPnLILS > 0 ? ytdPnLILS * 0.75 : ytdPnLILS;
+    const ytdTaxUSD = calcNoOffsetTaxUSD(startOfYearPrices, latestPrices);
+    const ytdTaxILS = ytdTaxUSD * usdToIls;
+    const ytdNetPnLUSD = ytdPnLUSD - ytdTaxUSD;
+    const ytdNetPnLILS = ytdPnLILS - ytdTaxILS;
     const ytdReturnPct = startOfYearUSD > 0 ? (ytdPnLUSD / startOfYearUSD) * 100 : 0;
     const ytdNetReturnPct = startOfYearUSD > 0 ? (ytdNetPnLUSD / startOfYearUSD) * 100 : 0;
     const ytdMonthlyAvgUSD = ytdPnLUSD / (currentMonthNumber || 1);
@@ -703,11 +729,13 @@ function App() {
     // 2. Interactive Monthly Breakdown (Dynamic by monthlyPeriod & selectedMonthlyYear)
     let targetMonthSlots: { year: number; monthIndex: number; monthKey: string; monthName: string }[] = [];
     let periodBaselineUSD = costTotalUSD;
+    let periodBaselinePrices: { [t: string]: number } = { ...costBasisPrices };
     let periodTitle = `שנת ${currentYear} (מתחילת השנה - YTD)`;
     let periodSubtitle = `מתחילת שנת ${currentYear} (${currentMonthNumber} חודשים)`;
 
     if (monthlyPeriod === 'YTD') {
       periodBaselineUSD = startOfYearUSD;
+      periodBaselinePrices = { ...startOfYearPrices };
       periodTitle = `שנת ${currentYear} (מתחילת השנה - YTD)`;
       periodSubtitle = `מתחילת שנת ${currentYear} (${currentMonthNumber} חודשים)`;
       for (let m = 1; m <= currentMonthNumber; m++) {
@@ -725,12 +753,17 @@ function App() {
       if (pointsPriorToSelectedYear.length > 0) {
         const lastPt = pointsPriorToSelectedYear[pointsPriorToSelectedYear.length - 1];
         let val = 0;
+        const yrPrices: { [t: string]: number } = {};
         Object.entries(portfolio).forEach(([ticker, data]) => {
-          val += (lastPt.prices[ticker] || data.avg_price) * data.amount;
+          const p = lastPt.prices[ticker] || data.avg_price;
+          yrPrices[ticker] = p;
+          val += p * data.amount;
         });
         periodBaselineUSD = val;
+        periodBaselinePrices = yrPrices;
       } else {
         periodBaselineUSD = costTotalUSD;
+        periodBaselinePrices = { ...costBasisPrices };
       }
 
       const monthsInThatYear = history
@@ -757,9 +790,12 @@ function App() {
       const firstKey = last12Keys[0];
       const priorKeys = allUniqueKeys.filter(k => k < firstKey);
       if (priorKeys.length > 0) {
-        periodBaselineUSD = allMonthEndMap.get(priorKeys[priorKeys.length - 1]) || costTotalUSD;
+        const priorData = allMonthEndMap.get(priorKeys[priorKeys.length - 1]);
+        periodBaselineUSD = priorData?.totalUSD ?? costTotalUSD;
+        periodBaselinePrices = priorData?.prices ?? { ...costBasisPrices };
       } else {
         periodBaselineUSD = costTotalUSD;
+        periodBaselinePrices = { ...costBasisPrices };
       }
 
       periodTitle = '12 חודשים אחרונים (L12M)';
@@ -779,6 +815,7 @@ function App() {
     } else if (monthlyPeriod === 'ALL') {
       const allUniqueKeys = Array.from(allMonthEndMap.keys()).sort();
       periodBaselineUSD = costTotalUSD;
+      periodBaselinePrices = { ...costBasisPrices };
       periodTitle = 'כל הזמנים (מתחילת הפעילות)';
       periodSubtitle = `כל ${allUniqueKeys.length} החודשים הקלנדריים`;
 
@@ -796,26 +833,34 @@ function App() {
     }
 
     let prevMonthValUSD = periodBaselineUSD;
+    let prevMonthPrices: { [t: string]: number } = { ...periodBaselinePrices };
+    let lastPeriodPrices: { [t: string]: number } = { ...periodBaselinePrices };
     let cumulativeGainUSD = 0;
     const calendarMonthlyList: CalendarMonthItem[] = [];
 
     targetMonthSlots.forEach((slot, idx) => {
       const isCurrent = slot.year === currentYear && slot.monthIndex === currentMonthNumber;
+      const monthSnap = allMonthEndMap.get(slot.monthKey);
       const endValUSD = isCurrent
         ? currentTotalUSD
-        : (allMonthEndMap.get(slot.monthKey) ?? prevMonthValUSD);
+        : (monthSnap?.totalUSD ?? prevMonthValUSD);
+      const endPrices = isCurrent
+        ? latestPrices
+        : (monthSnap?.prices ?? prevMonthPrices);
 
       const monthGainUSD = endValUSD - prevMonthValUSD;
       const monthGainILS = monthGainUSD * usdToIls;
-      const monthTaxUSD = Math.max(0, monthGainUSD) * 0.25;
-      const monthTaxILS = Math.max(0, monthGainILS) * 0.25;
-      const monthNetGainUSD = monthGainUSD > 0 ? monthGainUSD * 0.75 : monthGainUSD;
-      const monthNetGainILS = monthGainILS > 0 ? monthGainILS * 0.75 : monthGainILS;
+      const monthTaxUSD = calcNoOffsetTaxUSD(prevMonthPrices, endPrices);
+      const monthTaxILS = monthTaxUSD * usdToIls;
+      const monthNetGainUSD = monthGainUSD - monthTaxUSD;
+      const monthNetGainILS = monthGainILS - monthTaxILS;
 
       cumulativeGainUSD += monthGainUSD;
       const cumulativeGainILS = cumulativeGainUSD * usdToIls;
-      const cumulativeNetYTDUSD = cumulativeGainUSD > 0 ? cumulativeGainUSD * 0.75 : cumulativeGainUSD;
-      const cumulativeNetYTDILS = cumulativeGainILS > 0 ? cumulativeGainILS * 0.75 : cumulativeGainILS;
+      const cumulativeTaxUSD = calcNoOffsetTaxUSD(periodBaselinePrices, endPrices);
+      const cumulativeTaxILS = cumulativeTaxUSD * usdToIls;
+      const cumulativeNetYTDUSD = cumulativeGainUSD - cumulativeTaxUSD;
+      const cumulativeNetYTDILS = cumulativeGainILS - cumulativeTaxILS;
 
       const runningMonthlyAvgUSD = cumulativeGainUSD / (idx + 1);
       const runningMonthlyAvgILS = cumulativeGainILS / (idx + 1);
@@ -851,15 +896,17 @@ function App() {
       });
 
       prevMonthValUSD = endValUSD;
+      prevMonthPrices = endPrices;
+      lastPeriodPrices = endPrices;
     });
 
     const activePeriodMonthsCount = calendarMonthlyList.length || 1;
     const activePeriodTotalGainUSD = cumulativeGainUSD;
     const activePeriodTotalGainILS = cumulativeGainUSD * usdToIls;
-    const activePeriodTaxUSD = Math.max(0, activePeriodTotalGainUSD) * 0.25;
-    const activePeriodTaxILS = Math.max(0, activePeriodTotalGainILS) * 0.25;
-    const activePeriodNetTotalGainUSD = activePeriodTotalGainUSD > 0 ? activePeriodTotalGainUSD * 0.75 : activePeriodTotalGainUSD;
-    const activePeriodNetTotalGainILS = activePeriodTotalGainILS > 0 ? activePeriodTotalGainILS * 0.75 : activePeriodTotalGainILS;
+    const activePeriodTaxUSD = targetMonthSlots.length > 0 ? calcNoOffsetTaxUSD(periodBaselinePrices, lastPeriodPrices) : 0;
+    const activePeriodTaxILS = activePeriodTaxUSD * usdToIls;
+    const activePeriodNetTotalGainUSD = activePeriodTotalGainUSD - activePeriodTaxUSD;
+    const activePeriodNetTotalGainILS = activePeriodTotalGainILS - activePeriodTaxILS;
     const activePeriodMonthlyAvgUSD = activePeriodTotalGainUSD / activePeriodMonthsCount;
     const activePeriodMonthlyAvgILS = activePeriodTotalGainILS / activePeriodMonthsCount;
     const activePeriodNetMonthlyAvgUSD = activePeriodNetTotalGainUSD / activePeriodMonthsCount;
@@ -889,10 +936,11 @@ function App() {
     const netPortfolioTotalILS = (currentTotalUSD * usdToIls) - totalTaxILS;
     const totalNetReturnPct = costTotalUSD > 0 ? (totalNetPnLUSD / costTotalUSD) * 100 : 0;
 
-    const dailyTaxUSD = Math.max(0, dailyPnLUSD) * 0.25;
-    const dailyTaxILS = Math.max(0, dailyPnLILS) * 0.25;
-    const dailyNetPnLUSD = dailyPnLUSD > 0 ? dailyPnLUSD * 0.75 : dailyPnLUSD;
-    const dailyNetPnLILS = dailyPnLILS > 0 ? dailyPnLILS * 0.75 : dailyPnLILS;
+    // Daily tax calculated strictly per gaining stock today without offsetting losing stocks
+    const dailyTaxUSD = holdingsList.reduce((acc, item) => acc + (item.dailyPnLUSD > 0 ? item.dailyPnLUSD * 0.25 : 0), 0);
+    const dailyTaxILS = dailyTaxUSD * usdToIls;
+    const dailyNetPnLUSD = dailyPnLUSD - dailyTaxUSD;
+    const dailyNetPnLILS = dailyPnLILS - dailyTaxILS;
 
     // Actual trailing & received dividends from collected data
     const l12mDividendGrossUSD = dividendsData?.summary?.l12mReceivedGrossUSD ?? totalAnnualDividendGrossUSD;
@@ -1346,31 +1394,31 @@ function App() {
                 {taxMode === 'BOTH' ? (
                   <>
                     <div className={`text-2xl font-bold tracking-tight ${analytics.totalNetPnLUSD >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                      {analytics.totalNetPnLUSD >= 0 ? '+' : ''}${analytics.totalNetPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {analytics.totalNetPnLUSD >= 0 ? '+' : '-'}${Math.abs(analytics.totalNetPnLUSD).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       <span className="text-xs font-medium text-slate-500 dark:text-slate-400 mr-1.5">
-                        ({analytics.totalNetPnLILS >= 0 ? '+' : ''}₪{analytics.totalNetPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })} נטו)
+                        ({analytics.totalNetPnLILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.totalNetPnLILS)).toLocaleString()} נטו)
                       </span>
                     </div>
                     <div className="text-xs font-medium text-slate-500 dark:text-slate-400" dir="ltr">
-                      ברוטו: +${analytics.totalPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (+₪{analytics.totalPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })})
+                      ברוטו: {analytics.totalPnLUSD >= 0 ? '+' : '-'}${Math.abs(analytics.totalPnLUSD).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ({analytics.totalPnLILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.totalPnLILS)).toLocaleString()})
                     </div>
                   </>
                 ) : taxMode === 'GROSS' ? (
                   <>
                     <div className={`text-2xl font-bold tracking-tight ${analytics.totalPnLUSD >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                      {analytics.totalPnLUSD >= 0 ? '+' : ''}${analytics.totalPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {analytics.totalPnLUSD >= 0 ? '+' : '-'}${Math.abs(analytics.totalPnLUSD).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                     <div className={`text-sm font-medium ${analytics.totalPnLUSD >= 0 ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-rose-600/80 dark:text-rose-400/80'}`} dir="ltr">
-                      {analytics.totalPnLILS >= 0 ? '+' : ''}₪{analytics.totalPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      {analytics.totalPnLILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.totalPnLILS)).toLocaleString()}
                     </div>
                   </>
                 ) : (
                   <>
                     <div className={`text-2xl font-bold tracking-tight ${analytics.totalNetPnLUSD >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                      {analytics.totalNetPnLUSD >= 0 ? '+' : ''}${analytics.totalNetPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {analytics.totalNetPnLUSD >= 0 ? '+' : '-'}${Math.abs(analytics.totalNetPnLUSD).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </div>
                     <div className={`text-sm font-medium ${analytics.totalNetPnLUSD >= 0 ? 'text-emerald-600/80 dark:text-emerald-400/80' : 'text-rose-600/80 dark:text-rose-400/80'}`} dir="ltr">
-                      {analytics.totalNetPnLILS >= 0 ? '+' : ''}₪{analytics.totalNetPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      {analytics.totalNetPnLILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.totalNetPnLILS)).toLocaleString()}
                     </div>
                   </>
                 )}
@@ -1504,21 +1552,21 @@ function App() {
                 {taxMode === 'BOTH' ? (
                   <>
                     <div className={`text-2xl font-bold tracking-tight ${analytics.ytdNetMonthlyAvgILS >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                      {analytics.ytdNetMonthlyAvgILS >= 0 ? '+' : ''}₪{Math.round(analytics.ytdNetMonthlyAvgILS).toLocaleString()}
+                      {analytics.ytdNetMonthlyAvgILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.ytdNetMonthlyAvgILS)).toLocaleString()}
                       <span className="text-xs font-normal text-slate-500 dark:text-slate-400 mr-1">/חודש נטו</span>
                     </div>
                     <div className="text-xs font-medium text-slate-500 dark:text-slate-400" dir="ltr">
-                      ברוטו: +₪{Math.round(analytics.ytdMonthlyAvgILS).toLocaleString()}/חודש (+${Math.round(analytics.ytdMonthlyAvgUSD).toLocaleString()}/mo)
+                      ברוטו: {analytics.ytdMonthlyAvgILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.ytdMonthlyAvgILS)).toLocaleString()}/חודש ({analytics.ytdMonthlyAvgUSD >= 0 ? '+' : '-'}${Math.abs(Math.round(analytics.ytdMonthlyAvgUSD)).toLocaleString()}/mo)
                     </div>
                   </>
                 ) : (
                   <>
                     <div className={`text-2xl font-bold tracking-tight ${(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgILS : analytics.ytdNetMonthlyAvgILS) >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                      {(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgILS : analytics.ytdNetMonthlyAvgILS) >= 0 ? '+' : ''}₪{Math.round(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgILS : analytics.ytdNetMonthlyAvgILS).toLocaleString()}
+                      {(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgILS : analytics.ytdNetMonthlyAvgILS) >= 0 ? '+' : '-'}₪{Math.abs(Math.round(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgILS : analytics.ytdNetMonthlyAvgILS)).toLocaleString()}
                       <span className="text-xs font-normal text-slate-500 dark:text-slate-400 mr-1">/חודש</span>
                     </div>
                     <div className="text-sm font-medium text-slate-500 dark:text-slate-400" dir="ltr">
-                      {(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgUSD : analytics.ytdNetMonthlyAvgUSD) >= 0 ? '+' : ''}${Math.round(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgUSD : analytics.ytdNetMonthlyAvgUSD).toLocaleString()}/mo
+                      {(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgUSD : analytics.ytdNetMonthlyAvgUSD) >= 0 ? '+' : '-'}${Math.abs(Math.round(taxMode === 'GROSS' ? analytics.ytdMonthlyAvgUSD : analytics.ytdNetMonthlyAvgUSD)).toLocaleString()}/mo
                     </div>
                   </>
                 )}
@@ -1526,8 +1574,8 @@ function App() {
             </div>
             <div className="mt-3 pt-3 border-t border-indigo-100 dark:border-indigo-900/40 flex items-center justify-between text-xs">
               <span className="text-slate-500">רווח נטו השנה:</span>
-              <span className="font-bold text-indigo-600 dark:text-indigo-300" dir="ltr">
-                ₪{Math.round(analytics.ytdNetPnLILS).toLocaleString()}
+              <span className={`font-bold ${analytics.ytdNetPnLILS >= 0 ? 'text-indigo-600 dark:text-indigo-300' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                {analytics.ytdNetPnLILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.ytdNetPnLILS)).toLocaleString()}
               </span>
             </div>
           </div>
@@ -1624,16 +1672,16 @@ function App() {
               <div className="bg-white/5 hover:bg-white/10 transition-colors p-4 rounded-2xl border border-white/10">
                 <div className="text-xs text-slate-400 mb-1 font-medium">רווח הון ברוטו (לפני מס)</div>
                 <div className={`text-xl font-bold ${analytics.totalPnLUSD >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} dir="ltr">
-                  {analytics.totalPnLUSD >= 0 ? '+' : ''}${analytics.totalPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  {analytics.totalPnLUSD >= 0 ? '+' : '-'}${Math.abs(analytics.totalPnLUSD).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
                 <div className="text-xs text-slate-400 mt-0.5" dir="ltr">
-                  ₪{analytics.totalPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })} | תשואה: {analytics.totalReturnPct >= 0 ? '+' : ''}{analytics.totalReturnPct.toFixed(2)}%
+                  {analytics.totalPnLILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.totalPnLILS)).toLocaleString()} | תשואה: {analytics.totalReturnPct >= 0 ? '+' : ''}{analytics.totalReturnPct.toFixed(2)}%
                 </div>
               </div>
 
               {/* Tax Deduction 25% */}
               <div className="bg-white/5 hover:bg-white/10 transition-colors p-4 rounded-2xl border border-rose-500/20">
-                <div className="text-xs text-rose-300/80 mb-1 font-medium">ניכוי מס רווחי הון (25%)</div>
+                <div className="text-xs text-rose-300/80 mb-1 font-medium">ניכוי מס רווחי הון (25% ללא קיזוז הפסדים)</div>
                 <div className="text-xl font-bold text-rose-400" dir="ltr">
                   -${analytics.totalTaxUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
@@ -1645,11 +1693,11 @@ function App() {
               {/* Net Profit to Pocket */}
               <div className="bg-emerald-950/40 hover:bg-emerald-950/60 transition-colors p-4 rounded-2xl border border-emerald-500/30">
                 <div className="text-xs text-emerald-300 mb-1 font-medium">רווח הון נקי ביד (נטו)</div>
-                <div className="text-xl font-bold text-emerald-400" dir="ltr">
-                  {analytics.totalNetPnLUSD >= 0 ? '+' : ''}${analytics.totalNetPnLUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <div className={`text-xl font-bold ${analytics.totalNetPnLUSD >= 0 ? 'text-emerald-400' : 'text-rose-400'}`} dir="ltr">
+                  {analytics.totalNetPnLUSD >= 0 ? '+' : '-'}${Math.abs(analytics.totalNetPnLUSD).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
                 <div className="text-xs text-emerald-300/80 mt-0.5" dir="ltr">
-                  +₪{analytics.totalNetPnLILS.toLocaleString(undefined, { maximumFractionDigits: 0 })} | תשואה נטו: +{analytics.totalNetReturnPct.toFixed(2)}%
+                  {analytics.totalNetPnLILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.totalNetPnLILS)).toLocaleString()} | תשואה נטו: {analytics.totalNetReturnPct >= 0 ? '+' : ''}{analytics.totalNetReturnPct.toFixed(2)}%
                 </div>
               </div>
 
@@ -1669,10 +1717,10 @@ function App() {
             {/* Bottom Income Tip */}
             <div className="pt-2 text-xs text-indigo-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div>
-                💡 <strong>תוספת חודשית נטו למשק הבית:</strong> התיק מייצר בממוצע <span className="text-emerald-300 font-bold">₪{Math.round(analytics.ytdNetMonthlyAvgILS).toLocaleString()} נקי בכל חודש</span> שנכנס ישירות לתקציב המשפחה (לאחר תשלום ₪{Math.round(analytics.ytdMonthlyAvgILS - analytics.ytdNetMonthlyAvgILS).toLocaleString()} מס חודשי משוער).
+                💡 <strong>תוספת חודשית נטו למשק הבית:</strong> התיק מייצר בממוצע <span className={`font-bold ${analytics.ytdNetMonthlyAvgILS >= 0 ? 'text-emerald-300' : 'text-rose-300'}`}>{analytics.ytdNetMonthlyAvgILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.ytdNetMonthlyAvgILS)).toLocaleString()} נקי בכל חודש</span> שנכנס ישירות לתקציב המשפחה (לאחר ₪{Math.round(analytics.ytdTaxILS / (analytics.currentMonthNumber || 1)).toLocaleString()} מס חודשי משוער על רווחים).
               </div>
               <div className="text-[11px] text-indigo-300/70 whitespace-nowrap">
-                * החישוב מבוסס על מס נומינלי בשיעור 25% לפי פקודת מס הכנסה בישראל
+                * החישוב מבוסס על 25% מס על פוזיציות מרוויחות בלבד (ללא קיזוז הפסדים)
               </div>
             </div>
 
@@ -2124,8 +2172,8 @@ function App() {
                   <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
                     {taxMode === 'GROSS' ? 'ממוצע ברוטו:' : 'ממוצע נטו לכיס:'}
                   </div>
-                  <div className="text-base font-bold text-indigo-600 dark:text-indigo-400" dir="ltr">
-                    +₪{Math.round(taxMode === 'GROSS' ? analytics.activePeriodMonthlyAvgILS : analytics.activePeriodNetMonthlyAvgILS).toLocaleString()} <span className="text-[10px] font-normal text-slate-400">/חודש</span>
+                  <div className={`text-base font-bold ${(taxMode === 'GROSS' ? analytics.activePeriodMonthlyAvgILS : analytics.activePeriodNetMonthlyAvgILS) >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                    {(taxMode === 'GROSS' ? analytics.activePeriodMonthlyAvgILS : analytics.activePeriodNetMonthlyAvgILS) >= 0 ? '+' : '-'}₪{Math.abs(Math.round(taxMode === 'GROSS' ? analytics.activePeriodMonthlyAvgILS : analytics.activePeriodNetMonthlyAvgILS)).toLocaleString()} <span className="text-[10px] font-normal text-slate-400">/חודש</span>
                   </div>
                 </div>
                 <div className="h-7 w-px bg-indigo-200 dark:bg-indigo-800/60" />
@@ -2134,7 +2182,7 @@ function App() {
                     {taxMode === 'GROSS' ? 'סה"כ רווח ברוטו:' : 'סה"כ רווח נטו:'}
                   </div>
                   <div className={`text-base font-bold ${(taxMode === 'GROSS' ? analytics.activePeriodTotalGainILS : analytics.activePeriodNetTotalGainILS) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                    {(taxMode === 'GROSS' ? analytics.activePeriodTotalGainILS : analytics.activePeriodNetTotalGainILS) >= 0 ? '+' : ''}₪{Math.round(taxMode === 'GROSS' ? analytics.activePeriodTotalGainILS : analytics.activePeriodNetTotalGainILS).toLocaleString()}
+                    {(taxMode === 'GROSS' ? analytics.activePeriodTotalGainILS : analytics.activePeriodNetTotalGainILS) >= 0 ? '+' : '-'}₪{Math.abs(Math.round(taxMode === 'GROSS' ? analytics.activePeriodTotalGainILS : analytics.activePeriodNetTotalGainILS)).toLocaleString()}
                   </div>
                 </div>
               </div>
@@ -2149,10 +2197,10 @@ function App() {
               <div>
                 <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">תוספת חודשית נטו (מס 25%)</span>
                 <span className={`text-xl font-bold ${analytics.activePeriodNetMonthlyAvgILS >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                  {analytics.activePeriodNetMonthlyAvgILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodNetMonthlyAvgILS).toLocaleString()}
+                  {analytics.activePeriodNetMonthlyAvgILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.activePeriodNetMonthlyAvgILS)).toLocaleString()}
                 </span>
                 <span className="text-[11px] text-slate-400 block" dir="ltr">
-                  (ברוטו: ₪{Math.round(analytics.activePeriodMonthlyAvgILS).toLocaleString()}/חודש)
+                  (ברוטו: {analytics.activePeriodMonthlyAvgILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.activePeriodMonthlyAvgILS)).toLocaleString()}/חודש)
                 </span>
               </div>
               <div className="p-2.5 bg-indigo-100 dark:bg-indigo-900/60 rounded-xl text-indigo-600 dark:text-indigo-300">
@@ -2164,7 +2212,7 @@ function App() {
               <div>
                 <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">רווח נקי שנצבר ({analytics.activePeriodMonthsCount} חודשים)</span>
                 <span className={`text-xl font-bold ${analytics.activePeriodNetTotalGainILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                  {analytics.activePeriodNetTotalGainILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodNetTotalGainILS).toLocaleString()}
+                  {analytics.activePeriodNetTotalGainILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.activePeriodNetTotalGainILS)).toLocaleString()}
                 </span>
                 <span className="text-[11px] text-rose-500 dark:text-rose-400 block font-medium" dir="ltr">
                   (מס: -₪{Math.round(analytics.activePeriodTaxILS).toLocaleString()})
@@ -2182,7 +2230,7 @@ function App() {
                   {analytics.bestMonthYTD ? `${analytics.bestMonthYTD.monthName} ${analytics.bestMonthYTD.year}` : '–'}
                 </span>
                 <span className="text-[11px] text-emerald-600 dark:text-emerald-400 block font-semibold" dir="ltr">
-                  נטו: +₪{Math.round(analytics.bestMonthYTD?.monthNetGainILS || 0).toLocaleString()} (ברוטו: +₪{Math.round(analytics.bestMonthYTD?.monthGainILS || 0).toLocaleString()})
+                  נטו: {(analytics.bestMonthYTD?.monthNetGainILS || 0) >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.bestMonthYTD?.monthNetGainILS || 0)).toLocaleString()} (ברוטו: {(analytics.bestMonthYTD?.monthGainILS || 0) >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.bestMonthYTD?.monthGainILS || 0)).toLocaleString()})
                 </span>
               </div>
               <div className="p-2.5 bg-amber-100 dark:bg-amber-900/60 rounded-xl text-amber-600 dark:text-amber-300">
@@ -2246,18 +2294,18 @@ function App() {
                     <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                       <span>תוספת נטו (מס 25%):</span>
                       <span className="text-[10px] font-medium text-slate-400">
-                        {month.isPositive ? `מס: -₪${Math.round(month.monthTaxILS).toLocaleString()}` : 'ללא מס'}
+                        {month.monthTaxILS > 0 ? `מס: -₪${Math.round(month.monthTaxILS).toLocaleString()}` : 'ללא מס'}
                       </span>
                     </div>
-                    <div className={`text-xl font-extrabold tracking-tight ${month.isPositive ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                      {month.isPositive ? '+' : '-'}₪{Math.abs(Math.round(taxMode === 'GROSS' ? month.monthGainILS : month.monthNetGainILS)).toLocaleString()}
+                    <div className={`text-xl font-extrabold tracking-tight ${(taxMode === 'GROSS' ? month.monthGainILS : month.monthNetGainILS) >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
+                      {(taxMode === 'GROSS' ? month.monthGainILS : month.monthNetGainILS) >= 0 ? '+' : '-'}₪{Math.abs(Math.round(taxMode === 'GROSS' ? month.monthGainILS : month.monthNetGainILS)).toLocaleString()}
                       <span className="text-xs font-medium text-slate-400 ml-1.5">
-                        ({month.isPositive ? '+' : '-'}${Math.abs(Math.round(taxMode === 'GROSS' ? month.monthGainUSD : month.monthNetGainUSD)).toLocaleString()})
+                        ({(taxMode === 'GROSS' ? month.monthGainUSD : month.monthNetGainUSD) >= 0 ? '+' : '-'}${Math.abs(Math.round(taxMode === 'GROSS' ? month.monthGainUSD : month.monthNetGainUSD)).toLocaleString()})
                       </span>
                     </div>
                     <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between" dir="ltr">
-                      <span>ברוטו: {month.isPositive ? '+' : '-'}₪{Math.abs(Math.round(month.monthGainILS)).toLocaleString()}</span>
-                      <span>נטו: {month.isPositive ? '+' : '-'}₪{Math.abs(Math.round(month.monthNetGainILS)).toLocaleString()}</span>
+                      <span>ברוטו: {month.monthGainILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(month.monthGainILS)).toLocaleString()}</span>
+                      <span>נטו: {month.monthNetGainILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(month.monthNetGainILS)).toLocaleString()}</span>
                     </div>
                   </div>
 
@@ -2276,13 +2324,13 @@ function App() {
                     <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
                       <span>מצטבר נטו לתקופה:</span>
                       <span className={`font-semibold ${month.cumulativeNetYTDILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`} dir="ltr">
-                        {month.cumulativeNetYTDILS >= 0 ? '+' : ''}₪{Math.round(month.cumulativeNetYTDILS).toLocaleString()}
+                        {month.cumulativeNetYTDILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(month.cumulativeNetYTDILS)).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
                       <span>ממוצע נטו עד חודש זה:</span>
                       <span className={`font-bold ${month.runningNetMonthlyAvgILS >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-500'}`} dir="ltr">
-                        {month.runningNetMonthlyAvgILS >= 0 ? '+' : ''}₪{Math.round(month.runningNetMonthlyAvgILS).toLocaleString()}/חודש
+                        {month.runningNetMonthlyAvgILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(month.runningNetMonthlyAvgILS)).toLocaleString()}/חודש
                       </span>
                     </div>
                   </div>
@@ -2298,7 +2346,7 @@ function App() {
               <Coins size={16} />
             </div>
             <div className="leading-relaxed">
-              <strong>הסבר חישוב תוספת להכנסה חודשית נטו למשק הבית:</strong> עבור <strong>{analytics.activePeriodSubtitle}</strong>, תיק ההשקעות ייצר רווח הון ברוטו של <span className={`font-bold ${analytics.activePeriodTotalGainILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{analytics.activePeriodTotalGainILS >= 0 ? '+' : ''}₪{Math.round(analytics.activePeriodTotalGainILS).toLocaleString()}</span>. לאחר ניכוי <strong>25% מס רווחי הון בישראל (₪{Math.round(analytics.activePeriodTaxILS).toLocaleString()})</strong>, נותר רווח נקי של <span className="font-bold text-emerald-600 dark:text-emerald-400">₪{Math.round(analytics.activePeriodNetTotalGainILS).toLocaleString()}</span>. בחלוקה ל-<strong>{analytics.activePeriodMonthsCount} חודשים</strong>, התיק מוסיף בממוצע <span className="font-bold text-indigo-600 dark:text-indigo-400">₪{Math.round(analytics.activePeriodNetMonthlyAvgILS).toLocaleString()} נטו בכל חודש</span> ישירות לחשבון הבנק.
+              <strong>הסבר חישוב תוספת להכנסה חודשית נטו למשק הבית:</strong> עבור <strong>{analytics.activePeriodSubtitle}</strong>, תיק ההשקעות ייצר רווח הון ברוטו של <span className={`font-bold ${analytics.activePeriodTotalGainILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{analytics.activePeriodTotalGainILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.activePeriodTotalGainILS)).toLocaleString()}</span>. לאחר ניכוי <strong>25% מס רווחי הון על פוזיציות מרוויחות ללא קיזוז הפסדים (₪{Math.round(analytics.activePeriodTaxILS).toLocaleString()})</strong>, נותר רווח נקי של <span className={`font-bold ${analytics.activePeriodNetTotalGainILS >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>{analytics.activePeriodNetTotalGainILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.activePeriodNetTotalGainILS)).toLocaleString()}</span>. בחלוקה ל-<strong>{analytics.activePeriodMonthsCount} חודשים</strong>, הממוצע החודשי הוא <span className={`font-bold ${analytics.activePeriodNetMonthlyAvgILS >= 0 ? 'text-indigo-600 dark:text-indigo-400' : 'text-rose-600 dark:text-rose-400'}`}>{analytics.activePeriodNetMonthlyAvgILS >= 0 ? '+' : '-'}₪{Math.abs(Math.round(analytics.activePeriodNetMonthlyAvgILS)).toLocaleString()} נטו בכל חודש</span>.
             </div>
           </div>
 

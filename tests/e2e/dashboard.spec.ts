@@ -33,7 +33,7 @@ test.describe('Stock Tracker PRO - Dashboard & Analytics', () => {
     await expect(page.locator('body')).toContainText('₪');
 
     // Switch to DUAL
-    const dualBtn = page.locator('button:has-text("משולב")').first();
+    const dualBtn = page.getByRole('button', { name: 'משולב', exact: true });
     await dualBtn.click();
     await expect(page.locator('body')).toContainText('$');
     await expect(page.locator('body')).toContainText('₪');
@@ -58,18 +58,17 @@ test.describe('Stock Tracker PRO - Dashboard & Analytics', () => {
     if (await searchInput.isVisible()) {
       await searchInput.fill('NVDA');
       await expect(page.locator('text=NVDA').first()).toBeVisible();
-      // Other assets shouldn't dominate or should be filtered
       await searchInput.clear();
     }
   });
 
   test('toggles dark mode theme', async ({ page }) => {
+    const html = page.locator('html');
+    const beforeDark = await html.evaluate(el => el.classList.contains('dark'));
     const themeBtn = page.locator('button[aria-label="Toggle Dark Mode"]');
     await expect(themeBtn).toBeVisible();
     await themeBtn.click();
-    // Verify dark class on html element
-    const html = page.locator('html');
-    const isDark = await html.evaluate(el => el.classList.contains('dark'));
-    expect(typeof isDark).toBe('boolean');
+    const afterDark = await html.evaluate(el => el.classList.contains('dark'));
+    expect(afterDark).toBe(!beforeDark);
   });
 });

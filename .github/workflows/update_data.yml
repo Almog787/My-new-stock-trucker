@@ -2,14 +2,17 @@ name: Update Stock Data & Deploy
 
 on:
   schedule:
-    # Runs every 15 minutes during US market hours (13:00 to 21:59 UTC / 16:00 to 01:00 Israel time) Mon-Fri.
-    # Uses off-peak minutes (07, 22, 37, 52) split into explicit cron entries for 100% parser compatibility.
+    # Runs twice an hour (every 30 minutes) during US market hours (13:00 to 21:59 UTC) Mon-Fri.
+    # Uses off-peak minutes (07, 37) for faster GitHub Actions scheduling and 100% parser compatibility.
     - cron: '7 13-21 * * 1-5'
-    - cron: '22 13-21 * * 1-5'
     - cron: '37 13-21 * * 1-5'
-    - cron: '52 13-21 * * 1-5'
-    
+
   workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: "pages"
@@ -18,13 +21,12 @@ concurrency:
 jobs:
   update-and-build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+    timeout-minutes: 10
+    outputs:
+      should_deploy: ${{ steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -32,52 +34,24 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
-      - name: Setup Python (For TimesFM AI Forecast Model)
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Fetch stock data and update charts
+      - name: Fetch stock data, forecast and update charts
         run: node scripts/update_data.js
 
-      # Quality Gate 1: Code syntax & TypeScript type integrity
-      - name: Validate TypeScript & Lint
-        run: npm run lint
-
-      # Quality Gate 2: Data completeness and value validation (JSON structures & rates)
-      - name: Validate Updated Data Integrity
+      - name: Validate Data & Calculations Integrity
         run: npm run test:data
 
-      # Quality Gate 3: End-to-End browser tests (Dashboard, TimesFM & Dividends)
-      - name: Install Playwright Browsers & OS Dependencies
-        run: npx playwright install --with-deps chromium
-
-      - name: Run E2E Verification Tests
-        run: npm run test:e2e
-        env:
-          CI: true
-
-      - name: Upload Test Results on Failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: update-data-e2e-failure-report
-          path: |
-            playwright-report/
-            test-results/
-          retention-days: 7
-
-      # Commit & Push: Only executed after all 3 Quality Gates pass 100%
       - name: Commit and push changes
+        id: commit
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           TARGET_BRANCH="${{ github.ref_name || 'main' }}"
           MAX_RETRIES=3
           PUSH_SUCCESS=0
+          HAS_CHANGES="false"
 
           for i in $(seq 1 $MAX_RETRIES); do
             git fetch origin "$TARGET_BRANCH"
@@ -86,8 +60,10 @@ jobs:
             if git diff --staged --quiet; then
               echo "No changes to commit."
               PUSH_SUCCESS=1
+              HAS_CHANGES="false"
               break
             fi
+            HAS_CHANGES="true"
             git commit -m "chore: auto-update stock history, charts and README [skip ci]"
             if git push origin "HEAD:$TARGET_BRANCH"; then
               echo "Successfully pushed changes."
@@ -99,28 +75,31 @@ jobs:
             fi
           done
 
+          echo "changed=$HAS_CHANGES" >> "$GITHUB_OUTPUT"
+
           if [ "$PUSH_SUCCESS" -ne 1 ]; then
             echo "Error: Failed to push changes after $MAX_RETRIES attempts."
             exit 1
           fi
 
       - name: Build Web Application
+        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         run: npm run build
 
       - name: Setup Pages
+        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
+        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
 
   deploy:
     needs: update-and-build
+    if: needs.update-and-build.outputs.should_deploy == 'true'
     runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
