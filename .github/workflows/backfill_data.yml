@@ -57,7 +57,7 @@ jobs:
               PUSH_SUCCESS=1
               break
             fi
-            git commit -m "chore: manual backfill of missing stock history & forecast [skip ci]"
+            git commit -m "chore: manual backfill of missing stock history [skip ci]"
             if git push origin "HEAD:$TARGET_BRANCH"; then
               echo "Successfully pushed changes."
               PUSH_SUCCESS=1

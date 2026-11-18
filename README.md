@@ -1,24 +1,23 @@
 # 📈 Stock Tracker & Portfolio Analytics | מעקב תיק השקעות
 
 [![Interactive Web Dashboard](https://img.shields.io/badge/Live_Dashboard-Open_App-4f46e5?style=for-the-badge&logo=google-chrome&logoColor=white)](https://almog787.github.io/My-new-stock-trucker/)
-[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪172%2C450-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
-[![TimesFM Forecast](https://img.shields.io/badge/TimesFM_30d_Target-₪168%2C179-8b5cf6?style=for-the-badge&logo=google)](https://almog787.github.io/My-new-stock-trucker/)
-[![Net Profit](https://img.shields.io/badge/Net_Profit-+15.34%25-16a34a?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
+[![Total Portfolio Value](https://img.shields.io/badge/Portfolio_Value-₪172%2C216-0284c7?style=for-the-badge&logo=cashapp)](https://almog787.github.io/My-new-stock-trucker/)
+[![Net Profit](https://img.shields.io/badge/Net_Profit-+15.08%25-16a34a?style=for-the-badge)](https://almog787.github.io/My-new-stock-trucker/)
 
-> **מערכת חכמה לניהול ומעקב תיק השקעות בזמן אמת המשולבת במודל חיזוי סדרות עתיות Google Research TimesFM.** 
-> כוללת חישובי מס רווחי הון (25%), המרות מט"ח, יומן דיבידנדים היסטורי, מנוע זיהוי אנומליות וחיזוי מבוסס AI.
+> **מערכת חכמה לניהול ומעקב תיק השקעות בזמן אמת.**
+> כוללת חישובי מס רווחי הון (25% ללא קיזוז הפסדים), המרות מט"ח דינמיות, יומן דיבידנדים היסטורי וניתוח ביצועים מתקדם.
 > 👉 **[למעבר לדשבורד המלא והאינטראקטיבי לחץ כאן](https://almog787.github.io/My-new-stock-trucker/)**
 
 ---
 
 ## 📊 תמונת מצב (Executive Snapshot)
 
-* **שווי תיק נוכחי:** `₪172,450` (`$52,580`)
-* **רווח כולל נטו (לאחר 25% מס ללא קיזוז הפסדים):** `+₪21,814` (**+15.34%**)
-* **שינוי יומי:** `+₪599` (**+0.35%**)
-* **תוספת חודשית ממוצעת (YTD):** `-₪837/חודש` נטו
-* **סך דיבידנדים (12M):** `₪729` נטו
-* **מועד עדכון אחרון:** `18/11/2026 14:37` (שער ברוקר: `₪3.280`)
+* **שווי תיק נוכחי:** `₪172,216` (`$52,441`)
+* **רווח כולל נטו (לאחר 25% מס ללא קיזוז הפסדים):** `+₪21,471` (**+15.08%**)
+* **שינוי יומי:** `+₪143` (**+0.08%**)
+* **תוספת חודשית ממוצעת (YTD):** `-₪875/חודש` נטו
+* **סך דיבידנדים (12M):** `₪730` נטו
+* **מועד עדכון אחרון:** `18/11/2026 14:41` (שער ברוקר: `₪3.284`)
 
 ---
 
@@ -26,33 +25,12 @@
 
 | נכס (Asset) | כמות | שער נוכחי | שווי שוק | שינוי יומי (Daily Change) | שינוי מהכניסה לתיק (Total Return) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
-| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $281.87 | ₪44,374 <br><sub>($13,530)</sub> | 🟢 +0.60% <br><sub>+₪263</sub> | 🟢 +49.94% <br><sub>+₪14,779</sub> |
-| **ASML** <br><sub>ASML Holding</sub> | 4 | $1384.58 | ₪18,164 <br><sub>($5,538)</sub> | 🟢 +0.11% <br><sub>+₪19</sub> | 🟢 +48.16% <br><sub>+₪5,904</sub> |
-| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $164.00 | ₪1,076 <br><sub>($328)</sub> | 🔴 -1.93% <br><sub>-₪21</sub> | 🟢 +30.07% <br><sub>+₪249</sub> |
-| **NVDA** <br><sub>NVIDIA Corp</sub> | 60 | $156.51 | ₪30,799 <br><sub>($9,391)</sub> | 🟢 +0.68% <br><sub>+₪207</sub> | 🟢 +4.93% <br><sub>+₪1,446</sub> |
-| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $382.04 | ₪25,060 <br><sub>($7,641)</sub> | 🟢 +0.51% <br><sub>+₪127</sub> | 🔴 -12.47% <br><sub>-₪3,569</sub> |
-| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $673.03 | ₪52,977 <br><sub>($16,153)</sub> | 🟢 +0.01% <br><sub>+₪5</sub> | 🟢 +27.62% <br><sub>+₪11,465</sub> |
-
----
-
-## 🔮 תחזיות מודל Google Research TimesFM (AI Forecasting & Analytics)
-
-
-* **יעד שווי תיק צפוי בעוד 30 יום (P50):** `₪168,179` (`$50,809`)
-* **טווח הסתברותי (P10 - P90):** `₪134,838` עד `₪209,144`
-* **תשואת תיק צפויה (30d Expected Return):** `-3.37%` (תנודתיות שנתית חזויה: `29.1%`)
-* **תחזית שער דולר/שקל (30 יום):** `₪3.310` (טווח: `₪3.130 - ₪3.490`)
-
-### 🎯 מטריצת תחזיות ואותות למניות התיק:
-| מניה (Asset) | שער נוכחי | יעד צפוי 30 יום (P50) | טווח ביטחון (P10 - P90) | תשואה חזויה | אות מודל (AI Signal) |
-| :--- | :---: | :---: | :---: | :---: | :---: |
-| **GOOGL** | `$281.87` | `$268.39` | `$215.92 - $333.61` | **-4.78%** | 🔴 תיקון יורד (Bearish) |
-| **ASML** | `$1384.58` | `$1332.66` | `$1014.75 - $1750.16` | **-3.75%** | 🔴 תיקון יורד (Bearish) |
-| **XOM** | `$164.00` | `$164.12` | `$141.33 - $190.59` | **+0.08%** | 🟢 דשדוש / ניטרלי |
-| **NVDA** | `$156.51` | `$144.48` | `$109.85 - $190.02` | **-7.69%** | 🔴 תיקון יורד (Bearish) |
-| **TSLA** | `$382.04` | `$386.04` | `$290.26 - $513.42` | **+1.05%** | 🟢 מגמה חיובית מתונה |
-| **VOO** | `$673.03` | `$666.67` | `$603.51 - $736.45` | **-0.95%** | 🔴 דשדוש / ניטרלי |
-
+| **GOOGL** <br><sub>Alphabet (Google)</sub> | 48 | $281.96 | ₪44,446 <br><sub>($13,534)</sub> | 🟢 +0.63% <br><sub>+₪277</sub> | 🟢 +49.99% <br><sub>+₪14,813</sub> |
+| **ASML** <br><sub>ASML Holding</sub> | 4 | $1380.42 | ₪18,133 <br><sub>($5,522)</sub> | 🔴 -0.19% <br><sub>-₪35</sub> | 🟢 +47.72% <br><sub>+₪5,857</sub> |
+| **XOM** <br><sub>Exxon Mobil</sub> | 2 | $163.84 | ₪1,076 <br><sub>($328)</sub> | 🔴 -2.02% <br><sub>-₪22</sub> | 🟢 +29.95% <br><sub>+₪248</sub> |
+| **NVDA** <br><sub>NVIDIA Corp</sub> | 60 | $155.63 | ₪30,665 <br><sub>($9,338)</sub> | 🟢 +0.11% <br><sub>+₪33</sub> | 🟢 +4.34% <br><sub>+₪1,275</sub> |
+| **TSLA** <br><sub>Tesla Inc</sub> | 20 | $380.31 | ₪24,979 <br><sub>($7,606)</sub> | 🟢 +0.05% <br><sub>+₪13</sub> | 🔴 -12.86% <br><sub>-₪3,687</sub> |
+| **VOO** <br><sub>Vanguard S&P 500</sub> | 24 | $671.40 | ₪52,917 <br><sub>($16,114)</sub> | 🔴 -0.23% <br><sub>-₪124</sub> | 🟢 +27.31% <br><sub>+₪11,351</sub> |
 
 ---
 
@@ -71,12 +49,10 @@
 
 </div>
 
-### 🔮 תחזית ביצועים והקצאת נכסים
+### 📊 ביצועי תיק והקצאת נכסים (30 יום)
 
 <div align="center">
 
-<img src="data_hub/timesfm_forecast.png" alt="Google TimesFM Portfolio Forecast" width="98%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 1%;" />
-<br/>
 <img src="data_hub/portfolio_performance.png" alt="Portfolio Performance (30 Days)" width="48%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 1%;" />
 <img src="data_hub/asset_allocation.png" alt="Asset Allocation" width="48%" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); margin: 1%;" />
 
@@ -84,7 +60,7 @@
 
 <br/>
 
-> 💡 *לפירוט החזקות מלא, סימולטור תרחישים, זיהוי אנומליות וגרפים אינטראקטיביים, יש להיכנס ל-[דשבורד המערכת](https://almog787.github.io/My-new-stock-trucker/).*
+> 💡 *לפירוט החזקות מלא, ניתוח תשואות חודשי, יומן דיבידנדים וגרפים אינטראקטיביים, יש להיכנס ל-[דשבורד המערכת](https://almog787.github.io/My-new-stock-trucker/).*
 
 ---
-📂 *Portfolio Tracker Engine & TimesFM AI Analytics by Almog787*
+📂 *Portfolio Tracker & Analytics Engine by Almog787*

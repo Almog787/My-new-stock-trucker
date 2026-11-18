@@ -37,7 +37,7 @@ jobs:
       - name: Verify TypeScript & Lint
         run: npm run lint
 
-      - name: Validate Stock & Forecast Data Integrity
+      - name: Validate Stock Data Integrity
         run: npm run test:data
 
       - name: Build Application

@@ -9,3 +9,5 @@ dist-ssr
 .DS_Store
 __pycache__
 *.pyc
+playwright-report
+test-results

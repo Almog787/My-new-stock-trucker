@@ -71,4 +71,22 @@ test.describe('Stock Tracker PRO - Dashboard & Analytics', () => {
     const afterDark = await html.evaluate(el => el.classList.contains('dark'));
     expect(afterDark).toBe(!beforeDark);
   });
+
+  test('opens and closes Dividend Calendar Modal', async ({ page }) => {
+    const dividendBtn = page.locator('button:has-text("יומן דיבידנדים")');
+    await expect(dividendBtn).toBeVisible();
+    await dividendBtn.click();
+
+    await expect(page.locator('text=יומן חלוקות דיבידנדים בפועל')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('text=סך נטו שהתקבל')).toBeVisible();
+
+    const closeBtn = page.locator('button[title="סגור חלון"]');
+    if (await closeBtn.isVisible()) {
+      await closeBtn.click();
+    } else {
+      await page.keyboard.press('Escape');
+    }
+
+    await expect(page.locator('text=יומן חלוקות דיבידנדים בפועל')).toHaveCount(0);
+  });
 });

@@ -192,8 +192,8 @@ async function backfillHistory() {
   fs.writeFileSync(historyPath, JSON.stringify(cleanHistory, null, 2), 'utf8');
   console.log('Successfully saved updated history to public/data/stock_history.json.');
 
-  // 6. Re-run data update script & AI TimesFM forecast to update meta.json, README & charts
-  console.log('\n=== Re-calculating Portfolio Stats, Charts & AI Forecast ===');
+  // 6. Re-run data update script to update meta.json, README & charts
+  console.log('\n=== Re-calculating Portfolio Stats, Charts & README ===');
   try {
     execSync('node scripts/update_data.js', { stdio: 'inherit' });
     console.log('Successfully updated portfolio analytics, README and charts.');

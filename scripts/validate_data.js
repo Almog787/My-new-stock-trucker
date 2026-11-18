@@ -128,21 +128,7 @@ if (fs.existsSync(dividendsPath)) {
   console.warn('  ⚠️ dividends.json not present (optional)');
 }
 
-// 6. Validate forecast.json
-console.log('\n🤖 Checking forecast.json (TimesFM)...');
-const forecastPath = path.join(dataDir, 'forecast.json');
-if (fs.existsSync(forecastPath)) {
-  const forecast = JSON.parse(fs.readFileSync(forecastPath, 'utf8'));
-  assert(typeof forecast.modelInfo === 'object' && forecast.modelInfo !== null, 'Forecast modelInfo metadata exists');
-  assert(typeof forecast.portfolio === 'object', 'Forecast portfolio predictions exist');
-  assert(typeof forecast.portfolio.forecast30dUSD_P50 === 'number' && Number.isFinite(forecast.portfolio.forecast30dUSD_P50), `30d P50 forecast: $${forecast.portfolio.forecast30dUSD_P50}`);
-  assert(forecast.portfolio.forecast30dUSD_P10 <= forecast.portfolio.forecast30dUSD_P50 && forecast.portfolio.forecast30dUSD_P50 <= forecast.portfolio.forecast30dUSD_P90, 'Forecast quantile ordering P10 <= P50 <= P90 holds');
-  assert(Array.isArray(forecast.portfolio.timeline) && forecast.portfolio.timeline.length > 0, `Forecast timeline contains ${forecast.portfolio.timeline.length} days`);
-} else {
-  console.warn('  ⚠️ forecast.json not present (optional)');
-}
-
-// 7. Validate README formatting (no broken minus signs like ₪- or +₪-)
+// 6. Validate README formatting (no broken minus signs like ₪- or +₪-)
 console.log('\n📝 Checking README.md formatting...');
 const readmePath = path.join(rootDir, 'README.md');
 if (fs.existsSync(readmePath)) {
