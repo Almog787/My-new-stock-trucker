@@ -1,27 +1,27 @@
 {
-  "lastUpdate": "2026-11-18T14:41:01.538Z",
-  "exchangeRate": 3.28398,
+  "lastUpdate": "2026-11-18T14:45:41.317Z",
+  "exchangeRate": 3.2816,
   "summary": {
     "totalReceivedGrossUSD": 905.4159999999998,
-    "totalReceivedGrossILS": 2973.3680356799996,
+    "totalReceivedGrossILS": 2971.2131455999993,
     "totalReceivedTaxUSD": 226.35399999999996,
-    "totalReceivedTaxILS": 743.3420089199999,
+    "totalReceivedTaxILS": 742.8032863999998,
     "totalReceivedNetUSD": 679.0619999999999,
-    "totalReceivedNetILS": 2230.0260267599997,
+    "totalReceivedNetILS": 2228.4098591999996,
     "l12mReceivedGrossUSD": 296.248,
-    "l12mReceivedGrossILS": 972.87250704,
+    "l12mReceivedGrossILS": 972.1674368,
     "l12mReceivedTaxUSD": 74.062,
-    "l12mReceivedTaxILS": 243.21812676,
+    "l12mReceivedTaxILS": 243.0418592,
     "l12mReceivedNetUSD": 222.18599999999998,
-    "l12mReceivedNetILS": 729.6543802799999,
+    "l12mReceivedNetILS": 729.1255775999999,
     "ytdReceivedGrossUSD": 243.06400000000002,
-    "ytdReceivedGrossILS": 798.2173147200001,
+    "ytdReceivedGrossILS": 797.6388224000001,
     "ytdReceivedTaxUSD": 60.766000000000005,
-    "ytdReceivedTaxILS": 199.55432868000003,
+    "ytdReceivedTaxILS": 199.40970560000002,
     "ytdReceivedNetUSD": 182.298,
-    "ytdReceivedNetILS": 598.6629860400001,
-    "trailingPortfolioYieldPct": 0.5649153373354691,
-    "trailingPortfolioNetYieldPct": 0.42368650300160177,
+    "ytdReceivedNetILS": 598.2291168,
+    "trailingPortfolioYieldPct": 0.5661249920694191,
+    "trailingPortfolioNetYieldPct": 0.42459374405206435,
     "eventsCount": 72
   },
   "byTicker": {
@@ -30,13 +30,13 @@
       "shares": 48,
       "eventsCount": 10,
       "totalGrossUSD": 99.84,
-      "totalGrossILS": 327.8725632,
+      "totalGrossILS": 327.634944,
       "totalNetUSD": 74.88,
-      "totalNetILS": 245.9044224,
+      "totalNetILS": 245.72620799999999,
       "l12mGrossUSD": 41.28,
-      "l12mGrossILS": 135.5626944,
+      "l12mGrossILS": 135.464448,
       "l12mNetUSD": 30.96,
-      "l12mNetILS": 101.67202080000001,
+      "l12mNetILS": 101.598336,
       "declaredRate": 0.88,
       "declaredYield": 0.31,
       "exDividendDate": null
@@ -46,13 +46,13 @@
       "shares": 4,
       "eventsCount": 16,
       "totalGrossUSD": 119.32800000000002,
-      "totalGrossILS": 391.87076544000007,
+      "totalGrossILS": 391.5867648000001,
       "totalNetUSD": 89.49600000000001,
-      "totalNetILS": 293.90307408000007,
+      "totalNetILS": 293.69007360000006,
       "l12mGrossUSD": 37.176,
-      "l12mGrossILS": 122.08524048000001,
+      "l12mGrossILS": 121.99676160000001,
       "l12mNetUSD": 27.882,
-      "l12mNetILS": 91.56393036000001,
+      "l12mNetILS": 91.49757120000001,
       "declaredRate": 9.31,
       "declaredYield": 0.67,
       "exDividendDate": null
@@ -62,13 +62,13 @@
       "shares": 2,
       "eventsCount": 16,
       "totalGrossUSD": 31.359999999999996,
-      "totalGrossILS": 102.98561279999998,
+      "totalGrossILS": 102.91097599999999,
       "totalNetUSD": 23.519999999999996,
-      "totalNetILS": 77.2392096,
+      "totalNetILS": 77.18323199999999,
       "l12mGrossUSD": 8.32,
-      "l12mGrossILS": 27.322713600000004,
+      "l12mGrossILS": 27.302912000000003,
       "l12mNetUSD": 6.24,
-      "l12mNetILS": 20.4920352,
+      "l12mNetILS": 20.477184,
       "declaredRate": 4.28,
       "declaredYield": 2.56,
       "exDividendDate": null
@@ -78,13 +78,13 @@
       "shares": 60,
       "eventsCount": 15,
       "totalGrossUSD": 36,
-      "totalGrossILS": 118.22328,
+      "totalGrossILS": 118.1376,
       "totalNetUSD": 27,
-      "totalNetILS": 88.66746,
+      "totalNetILS": 88.6032,
       "l12mGrossUSD": 31.2,
-      "l12mGrossILS": 102.460176,
+      "l12mGrossILS": 102.38592,
       "l12mNetUSD": 23.4,
-      "l12mNetILS": 76.84513199999999,
+      "l12mNetILS": 76.78944,
       "declaredRate": 1,
       "declaredYield": 0.64,
       "exDividendDate": null
@@ -110,14 +110,14 @@
       "shares": 24,
       "eventsCount": 15,
       "totalGrossUSD": 618.8879999999999,
-      "totalGrossILS": 2032.41581424,
+      "totalGrossILS": 2030.9428607999998,
       "totalNetUSD": 464.16599999999994,
-      "totalNetILS": 1524.3118606799999,
+      "totalNetILS": 1523.2071455999999,
       "l12mGrossUSD": 178.272,
-      "l12mGrossILS": 585.44168256,
+      "l12mGrossILS": 585.0173952,
       "l12mNetUSD": 133.704,
-      "l12mNetILS": 439.08126192000003,
-      "declaredRate": 5.437,
+      "l12mNetILS": 438.7630464,
+      "declaredRate": 7.428,
       "declaredYield": 1.07,
       "exDividendDate": null
     }
@@ -130,11 +130,11 @@
       "dividendPerShare": 1.07,
       "shares": 2,
       "grossUSD": 2.14,
-      "grossILS": 7.0277172000000006,
+      "grossILS": 7.022624,
       "taxUSD": 0.535,
-      "taxILS": 1.7569293000000001,
+      "taxILS": 1.755656,
       "netUSD": 1.605,
-      "netILS": 5.2707879
+      "netILS": 5.266968
     },
     {
       "id": "ASML-2026-10-27",
@@ -143,11 +143,11 @@
       "dividendPerShare": 2.096,
       "shares": 4,
       "grossUSD": 8.384,
-      "grossILS": 27.53288832,
+      "grossILS": 27.512934400000002,
       "taxUSD": 2.096,
-      "taxILS": 6.88322208,
+      "taxILS": 6.878233600000001,
       "netUSD": 6.288,
-      "netILS": 20.649666240000002
+      "netILS": 20.6347008
     },
     {
       "id": "VOO-2026-09-28",
@@ -156,11 +156,11 @@
       "dividendPerShare": 1.823,
       "shares": 24,
       "grossUSD": 43.751999999999995,
-      "grossILS": 143.68069296,
+      "grossILS": 143.57656319999998,
       "taxUSD": 10.937999999999999,
-      "taxILS": 35.92017324,
+      "taxILS": 35.894140799999995,
       "netUSD": 32.81399999999999,
-      "netILS": 107.76051971999999
+      "netILS": 107.68242239999998
     },
     {
       "id": "NVDA-2026-09-10",
@@ -169,11 +169,11 @@
       "dividendPerShare": 0.25,
       "shares": 60,
       "grossUSD": 15,
-      "grossILS": 49.2597,
+      "grossILS": 49.224000000000004,
       "taxUSD": 3.75,
-      "taxILS": 12.314925,
+      "taxILS": 12.306000000000001,
       "netUSD": 11.25,
-      "netILS": 36.944775
+      "netILS": 36.918000000000006
     },
     {
       "id": "GOOGL-2026-09-04",
@@ -182,11 +182,11 @@
       "dividendPerShare": 0.22,
       "shares": 48,
       "grossUSD": 10.56,
-      "grossILS": 34.678828800000005,
+      "grossILS": 34.653696000000004,
       "taxUSD": 2.64,
-      "taxILS": 8.669707200000001,
+      "taxILS": 8.663424000000001,
       "netUSD": 7.92,
-      "netILS": 26.009121600000004
+      "netILS": 25.990272000000004
     },
     {
       "id": "XOM-2026-08-17",
@@ -195,11 +195,11 @@
       "dividendPerShare": 1.03,
       "shares": 2,
       "grossUSD": 2.06,
-      "grossILS": 6.764998800000001,
+      "grossILS": 6.760096,
       "taxUSD": 0.515,
-      "taxILS": 1.6912497000000002,
+      "taxILS": 1.690024,
       "netUSD": 1.545,
-      "netILS": 5.073749100000001
+      "netILS": 5.070072
     },
     {
       "id": "ASML-2026-07-28",
@@ -208,11 +208,11 @@
       "dividendPerShare": 2.138,
       "shares": 4,
       "grossUSD": 8.552,
-      "grossILS": 28.08459696,
+      "grossILS": 28.0642432,
       "taxUSD": 2.138,
-      "taxILS": 7.02114924,
+      "taxILS": 7.0160608,
       "netUSD": 6.414,
-      "netILS": 21.06344772
+      "netILS": 21.0481824
     },
     {
       "id": "VOO-2026-06-26",
@@ -221,11 +221,11 @@
       "dividendPerShare": 1.962,
       "shares": 24,
       "grossUSD": 47.088,
-      "grossILS": 154.63605024,
+      "grossILS": 154.5239808,
       "taxUSD": 11.772,
-      "taxILS": 38.65901256,
+      "taxILS": 38.6309952,
       "netUSD": 35.316,
-      "netILS": 115.97703768
+      "netILS": 115.8929856
     },
     {
       "id": "GOOGL-2026-06-08",
@@ -234,11 +234,11 @@
       "dividendPerShare": 0.22,
       "shares": 48,
       "grossUSD": 10.56,
-      "grossILS": 34.678828800000005,
+      "grossILS": 34.653696000000004,
       "taxUSD": 2.64,
-      "taxILS": 8.669707200000001,
+      "taxILS": 8.663424000000001,
       "netUSD": 7.92,
-      "netILS": 26.009121600000004
+      "netILS": 25.990272000000004
     },
     {
       "id": "NVDA-2026-06-04",
@@ -247,11 +247,11 @@
       "dividendPerShare": 0.25,
       "shares": 60,
       "grossUSD": 15,
-      "grossILS": 49.2597,
+      "grossILS": 49.224000000000004,
       "taxUSD": 3.75,
-      "taxILS": 12.314925,
+      "taxILS": 12.306000000000001,
       "netUSD": 11.25,
-      "netILS": 36.944775
+      "netILS": 36.918000000000006
     },
     {
       "id": "XOM-2026-05-15",
@@ -260,11 +260,11 @@
       "dividendPerShare": 1.03,
       "shares": 2,
       "grossUSD": 2.06,
-      "grossILS": 6.764998800000001,
+      "grossILS": 6.760096,
       "taxUSD": 0.515,
-      "taxILS": 1.6912497000000002,
+      "taxILS": 1.690024,
       "netUSD": 1.545,
-      "netILS": 5.073749100000001
+      "netILS": 5.070072
     },
     {
       "id": "ASML-2026-04-27",
@@ -273,11 +273,11 @@
       "dividendPerShare": 3.177,
       "shares": 4,
       "grossUSD": 12.708,
-      "grossILS": 41.73281784,
+      "grossILS": 41.7025728,
       "taxUSD": 3.177,
-      "taxILS": 10.43320446,
+      "taxILS": 10.4256432,
       "netUSD": 9.531,
-      "netILS": 31.299613380000004
+      "netILS": 31.2769296
     },
     {
       "id": "VOO-2026-03-27",
@@ -286,11 +286,11 @@
       "dividendPerShare": 1.872,
       "shares": 24,
       "grossUSD": 44.928000000000004,
-      "grossILS": 147.54265344,
+      "grossILS": 147.43572480000003,
       "taxUSD": 11.232000000000001,
-      "taxILS": 36.88566336,
+      "taxILS": 36.85893120000001,
       "netUSD": 33.696000000000005,
-      "netILS": 110.65699008000001
+      "netILS": 110.57679360000003
     },
     {
       "id": "NVDA-2026-03-11",
@@ -299,11 +299,11 @@
       "dividendPerShare": 0.01,
       "shares": 60,
       "grossUSD": 0.6,
-      "grossILS": 1.970388,
+      "grossILS": 1.96896,
       "taxUSD": 0.15,
-      "taxILS": 0.492597,
+      "taxILS": 0.49224,
       "netUSD": 0.44999999999999996,
-      "netILS": 1.477791
+      "netILS": 1.47672
     },
     {
       "id": "GOOGL-2026-03-09",
@@ -312,11 +312,11 @@
       "dividendPerShare": 0.21,
       "shares": 48,
       "grossUSD": 10.08,
-      "grossILS": 33.1025184,
+      "grossILS": 33.078528,
       "taxUSD": 2.52,
-      "taxILS": 8.2756296,
+      "taxILS": 8.269632,
       "netUSD": 7.5600000000000005,
-      "netILS": 24.8268888
+      "netILS": 24.808895999999997
     },
     {
       "id": "XOM-2026-02-12",
@@ -325,11 +325,11 @@
       "dividendPerShare": 1.03,
       "shares": 2,
       "grossUSD": 2.06,
-      "grossILS": 6.764998800000001,
+      "grossILS": 6.760096,
       "taxUSD": 0.515,
-      "taxILS": 1.6912497000000002,
+      "taxILS": 1.690024,
       "netUSD": 1.545,
-      "netILS": 5.073749100000001
+      "netILS": 5.070072
     },
     {
       "id": "ASML-2026-02-10",
@@ -338,11 +338,11 @@
       "dividendPerShare": 1.883,
       "shares": 4,
       "grossUSD": 7.532,
-      "grossILS": 24.73493736,
+      "grossILS": 24.7170112,
       "taxUSD": 1.883,
-      "taxILS": 6.18373434,
+      "taxILS": 6.1792528,
       "netUSD": 5.649,
-      "netILS": 18.55120302
+      "netILS": 18.5377584
     },
     {
       "id": "VOO-2025-12-22",
@@ -351,11 +351,11 @@
       "dividendPerShare": 1.771,
       "shares": 24,
       "grossUSD": 42.504,
-      "grossILS": 139.58228592,
+      "grossILS": 139.4811264,
       "taxUSD": 10.626,
-      "taxILS": 34.89557148,
+      "taxILS": 34.8702816,
       "netUSD": 31.878,
-      "netILS": 104.68671444
+      "netILS": 104.6108448
     },
     {
       "id": "GOOGL-2025-12-08",
@@ -364,11 +364,11 @@
       "dividendPerShare": 0.21,
       "shares": 48,
       "grossUSD": 10.08,
-      "grossILS": 33.1025184,
+      "grossILS": 33.078528,
       "taxUSD": 2.52,
-      "taxILS": 8.2756296,
+      "taxILS": 8.269632,
       "netUSD": 7.5600000000000005,
-      "netILS": 24.8268888
+      "netILS": 24.808895999999997
     },
     {
       "id": "NVDA-2025-12-04",
@@ -377,11 +377,11 @@
       "dividendPerShare": 0.01,
       "shares": 60,
       "grossUSD": 0.6,
-      "grossILS": 1.970388,
+      "grossILS": 1.96896,
       "taxUSD": 0.15,
-      "taxILS": 0.492597,
+      "taxILS": 0.49224,
       "netUSD": 0.44999999999999996,
-      "netILS": 1.477791
+      "netILS": 1.47672
     },
     {
       "id": "XOM-2025-11-14",
@@ -390,11 +390,11 @@
       "dividendPerShare": 1.03,
       "shares": 2,
       "grossUSD": 2.06,
-      "grossILS": 6.764998800000001,
+      "grossILS": 6.760096,
       "taxUSD": 0.515,
-      "taxILS": 1.6912497000000002,
+      "taxILS": 1.690024,
       "netUSD": 1.545,
-      "netILS": 5.073749100000001
+      "netILS": 5.070072
     },
     {
       "id": "ASML-2025-10-29",
@@ -403,11 +403,11 @@
       "dividendPerShare": 1.864,
       "shares": 4,
       "grossUSD": 7.456,
-      "grossILS": 24.485354880000003,
+      "grossILS": 24.467609600000003,
       "taxUSD": 1.864,
-      "taxILS": 6.121338720000001,
+      "taxILS": 6.116902400000001,
       "netUSD": 5.5920000000000005,
-      "netILS": 18.364016160000002
+      "netILS": 18.350707200000002
     },
     {
       "id": "VOO-2025-09-29",
@@ -416,11 +416,11 @@
       "dividendPerShare": 1.74,
       "shares": 24,
       "grossUSD": 41.76,
-      "grossILS": 137.1390048,
+      "grossILS": 137.039616,
       "taxUSD": 10.44,
-      "taxILS": 34.2847512,
+      "taxILS": 34.259904,
       "netUSD": 31.32,
-      "netILS": 102.8542536
+      "netILS": 102.77971199999999
     },
     {
       "id": "NVDA-2025-09-11",
@@ -429,11 +429,11 @@
       "dividendPerShare": 0.01,
       "shares": 60,
       "grossUSD": 0.6,
-      "grossILS": 1.970388,
+      "grossILS": 1.96896,
       "taxUSD": 0.15,
-      "taxILS": 0.492597,
+      "taxILS": 0.49224,
       "netUSD": 0.44999999999999996,
-      "netILS": 1.477791
+      "netILS": 1.47672
     },
     {
       "id": "GOOGL-2025-09-08",
@@ -442,11 +442,11 @@
       "dividendPerShare": 0.21,
       "shares": 48,
       "grossUSD": 10.08,
-      "grossILS": 33.1025184,
+      "grossILS": 33.078528,
       "taxUSD": 2.52,
-      "taxILS": 8.2756296,
+      "taxILS": 8.269632,
       "netUSD": 7.5600000000000005,
-      "netILS": 24.8268888
+      "netILS": 24.808895999999997
     },
     {
       "id": "XOM-2025-08-15",
@@ -455,11 +455,11 @@
       "dividendPerShare": 0.99,
       "shares": 2,
       "grossUSD": 1.98,
-      "grossILS": 6.5022804,
+      "grossILS": 6.497568,
       "taxUSD": 0.495,
-      "taxILS": 1.6255701,
+      "taxILS": 1.624392,
       "netUSD": 1.4849999999999999,
-      "netILS": 4.8767103
+      "netILS": 4.873176
     },
     {
       "id": "ASML-2025-07-29",
@@ -468,11 +468,11 @@
       "dividendPerShare": 1.847,
       "shares": 4,
       "grossUSD": 7.388,
-      "grossILS": 24.26204424,
+      "grossILS": 24.2444608,
       "taxUSD": 1.847,
-      "taxILS": 6.06551106,
+      "taxILS": 6.0611152,
       "netUSD": 5.541,
-      "netILS": 18.196533180000003
+      "netILS": 18.1833456
     },
     {
       "id": "VOO-2025-06-30",
@@ -481,11 +481,11 @@
       "dividendPerShare": 1.745,
       "shares": 24,
       "grossUSD": 41.88,
-      "grossILS": 137.5330824,
+      "grossILS": 137.43340800000001,
       "taxUSD": 10.47,
-      "taxILS": 34.3832706,
+      "taxILS": 34.358352000000004,
       "netUSD": 31.410000000000004,
-      "netILS": 103.14981180000001
+      "netILS": 103.07505600000002
     },
     {
       "id": "NVDA-2025-06-11",
@@ -494,11 +494,11 @@
       "dividendPerShare": 0.01,
       "shares": 60,
       "grossUSD": 0.6,
-      "grossILS": 1.970388,
+      "grossILS": 1.96896,
       "taxUSD": 0.15,
-      "taxILS": 0.492597,
+      "taxILS": 0.49224,
       "netUSD": 0.44999999999999996,
-      "netILS": 1.477791
+      "netILS": 1.47672
     },
     {
       "id": "GOOGL-2025-06-09",
@@ -507,11 +507,11 @@
       "dividendPerShare": 0.21,
       "shares": 48,
       "grossUSD": 10.08,
-      "grossILS": 33.1025184,
+      "grossILS": 33.078528,
       "taxUSD": 2.52,
-      "taxILS": 8.2756296,
+      "taxILS": 8.269632,
       "netUSD": 7.5600000000000005,
-      "netILS": 24.8268888
+      "netILS": 24.808895999999997
     },
     {
       "id": "XOM-2025-05-15",
@@ -520,11 +520,11 @@
       "dividendPerShare": 0.99,
       "shares": 2,
       "grossUSD": 1.98,
-      "grossILS": 6.5022804,
+      "grossILS": 6.497568,
       "taxUSD": 0.495,
-      "taxILS": 1.6255701,
+      "taxILS": 1.624392,
       "netUSD": 1.4849999999999999,
-      "netILS": 4.8767103
+      "netILS": 4.873176
     },
     {
       "id": "ASML-2025-04-28",
@@ -533,11 +533,11 @@
       "dividendPerShare": 2.091,
       "shares": 4,
       "grossUSD": 8.364,
-      "grossILS": 27.467208720000002,
+      "grossILS": 27.4473024,
       "taxUSD": 2.091,
-      "taxILS": 6.8668021800000005,
+      "taxILS": 6.8618256,
       "netUSD": 6.273000000000001,
-      "netILS": 20.60040654
+      "netILS": 20.585476800000002
     },
     {
       "id": "VOO-2025-03-27",
@@ -546,11 +546,11 @@
       "dividendPerShare": 1.812,
       "shares": 24,
       "grossUSD": 43.488,
-      "grossILS": 142.81372224,
+      "grossILS": 142.7102208,
       "taxUSD": 10.872,
-      "taxILS": 35.70343056,
+      "taxILS": 35.6775552,
       "netUSD": 32.616,
-      "netILS": 107.11029168
+      "netILS": 107.0326656
     },
     {
       "id": "NVDA-2025-03-12",
@@ -559,11 +559,11 @@
       "dividendPerShare": 0.01,
       "shares": 60,
       "grossUSD": 0.6,
-      "grossILS": 1.970388,
+      "grossILS": 1.96896,
       "taxUSD": 0.15,
-      "taxILS": 0.492597,
+      "taxILS": 0.49224,
       "netUSD": 0.44999999999999996,
-      "netILS": 1.477791
+      "netILS": 1.47672
     },
     {
       "id": "GOOGL-2025-03-10",
@@ -572,11 +572,11 @@
       "dividendPerShare": 0.2,
       "shares": 48,
       "grossUSD": 9.600000000000001,
-      "grossILS": 31.526208000000008,
+      "grossILS": 31.503360000000004,
       "taxUSD": 2.4000000000000004,
-      "taxILS": 7.881552000000002,
+      "taxILS": 7.875840000000001,
       "netUSD": 7.200000000000001,
-      "netILS": 23.644656000000005
+      "netILS": 23.627520000000004
     },
     {
       "id": "XOM-2025-02-12",
@@ -585,11 +585,11 @@
       "dividendPerShare": 0.99,
       "shares": 2,
       "grossUSD": 1.98,
-      "grossILS": 6.5022804,
+      "grossILS": 6.497568,
       "taxUSD": 0.495,
-      "taxILS": 1.6255701,
+      "taxILS": 1.624392,
       "netUSD": 1.4849999999999999,
-      "netILS": 4.8767103
+      "netILS": 4.873176
     },
     {
       "id": "ASML-2025-02-11",
@@ -598,11 +598,11 @@
       "dividendPerShare": 1.57,
       "shares": 4,
       "grossUSD": 6.28,
-      "grossILS": 20.623394400000002,
+      "grossILS": 20.608448000000003,
       "taxUSD": 1.57,
-      "taxILS": 5.155848600000001,
+      "taxILS": 5.152112000000001,
       "netUSD": 4.71,
-      "netILS": 15.467545800000002
+      "netILS": 15.456336000000002
     },
     {
       "id": "VOO-2024-12-23",
@@ -611,11 +611,11 @@
       "dividendPerShare": 1.739,
       "shares": 24,
       "grossUSD": 41.736000000000004,
-      "grossILS": 137.06018928000003,
+      "grossILS": 136.96085760000003,
       "taxUSD": 10.434000000000001,
-      "taxILS": 34.26504732000001,
+      "taxILS": 34.240214400000006,
       "netUSD": 31.302000000000003,
-      "netILS": 102.79514196000002
+      "netILS": 102.72064320000001
     },
     {
       "id": "GOOGL-2024-12-09",
@@ -624,11 +624,11 @@
       "dividendPerShare": 0.2,
       "shares": 48,
       "grossUSD": 9.600000000000001,
-      "grossILS": 31.526208000000008,
+      "grossILS": 31.503360000000004,
       "taxUSD": 2.4000000000000004,
-      "taxILS": 7.881552000000002,
+      "taxILS": 7.875840000000001,
       "netUSD": 7.200000000000001,
-      "netILS": 23.644656000000005
+      "netILS": 23.627520000000004
     },
     {
       "id": "NVDA-2024-12-05",
@@ -637,11 +637,11 @@
       "dividendPerShare": 0.01,
       "shares": 60,
       "grossUSD": 0.6,
-      "grossILS": 1.970388,
+      "grossILS": 1.96896,
       "taxUSD": 0.15,
-      "taxILS": 0.492597,
+      "taxILS": 0.49224,
       "netUSD": 0.44999999999999996,
-      "netILS": 1.477791
+      "netILS": 1.47672
     },
     {
       "id": "XOM-2024-11-14",
@@ -650,11 +650,11 @@
       "dividendPerShare": 0.99,
       "shares": 2,
       "grossUSD": 1.98,
-      "grossILS": 6.5022804,
+      "grossILS": 6.497568,
       "taxUSD": 0.495,
-      "taxILS": 1.6255701,
+      "taxILS": 1.624392,
       "netUSD": 1.4849999999999999,
-      "netILS": 4.8767103
+      "netILS": 4.873176
     },
     {
       "id": "ASML-2024-10-29",
@@ -663,11 +663,11 @@
       "dividendPerShare": 1.641,
       "shares": 4,
       "grossUSD": 6.564,
-      "grossILS": 21.556044720000003,
+      "grossILS": 21.5404224,
       "taxUSD": 1.641,
-      "taxILS": 5.389011180000001,
+      "taxILS": 5.3851056,
       "netUSD": 4.923,
-      "netILS": 16.167033540000002
+      "netILS": 16.1553168
     },
     {
       "id": "VOO-2024-09-27",
@@ -676,11 +676,11 @@
       "dividendPerShare": 1.639,
       "shares": 24,
       "grossUSD": 39.336,
-      "grossILS": 129.17863728,
+      "grossILS": 129.0850176,
       "taxUSD": 9.834,
-      "taxILS": 32.29465932,
+      "taxILS": 32.2712544,
       "netUSD": 29.502,
-      "netILS": 96.88397796000001
+      "netILS": 96.81376319999998
     },
     {
       "id": "NVDA-2024-09-12",
@@ -689,11 +689,11 @@
       "dividendPerShare": 0.01,
       "shares": 60,
       "grossUSD": 0.6,
-      "grossILS": 1.970388,
+      "grossILS": 1.96896,
       "taxUSD": 0.15,
-      "taxILS": 0.492597,
+      "taxILS": 0.49224,
       "netUSD": 0.44999999999999996,
-      "netILS": 1.477791
+      "netILS": 1.47672
     },
     {
       "id": "GOOGL-2024-09-09",
@@ -702,11 +702,11 @@
       "dividendPerShare": 0.2,
       "shares": 48,
       "grossUSD": 9.600000000000001,
-      "grossILS": 31.526208000000008,
+      "grossILS": 31.503360000000004,
       "taxUSD": 2.4000000000000004,
-      "taxILS": 7.881552000000002,
+      "taxILS": 7.875840000000001,
       "netUSD": 7.200000000000001,
-      "netILS": 23.644656000000005
+      "netILS": 23.627520000000004
     },
     {
       "id": "XOM-2024-08-15",
@@ -715,11 +715,11 @@
       "dividendPerShare": 0.95,
       "shares": 2,
       "grossUSD": 1.9,
-      "grossILS": 6.239562,
+      "grossILS": 6.23504,
       "taxUSD": 0.475,
-      "taxILS": 1.5598905,
+      "taxILS": 1.55876,
       "netUSD": 1.4249999999999998,
-      "netILS": 4.6796715
+      "netILS": 4.67628
     },
     {
       "id": "ASML-2024-07-29",
@@ -728,11 +728,11 @@
       "dividendPerShare": 1.643,
       "shares": 4,
       "grossUSD": 6.572,
-      "grossILS": 21.582316560000002,
+      "grossILS": 21.566675200000002,
       "taxUSD": 1.643,
-      "taxILS": 5.395579140000001,
+      "taxILS": 5.391668800000001,
       "netUSD": 4.929,
-      "netILS": 16.18673742
+      "netILS": 16.1750064
     },
     {
       "id": "VOO-2024-06-28",
@@ -741,11 +741,11 @@
       "dividendPerShare": 1.784,
       "shares": 24,
       "grossUSD": 42.816,
-      "grossILS": 140.60688768,
+      "grossILS": 140.5049856,
       "taxUSD": 10.704,
-      "taxILS": 35.15172192,
+      "taxILS": 35.1262464,
       "netUSD": 32.112,
-      "netILS": 105.45516576
+      "netILS": 105.3787392
     },
     {
       "id": "NVDA-2024-06-11",
@@ -754,11 +754,11 @@
       "dividendPerShare": 0.01,
       "shares": 60,
       "grossUSD": 0.6,
-      "grossILS": 1.970388,
+      "grossILS": 1.96896,
       "taxUSD": 0.15,
-      "taxILS": 0.492597,
+      "taxILS": 0.49224,
       "netUSD": 0.44999999999999996,
-      "netILS": 1.477791
+      "netILS": 1.47672
     },
     {
       "id": "GOOGL-2024-06-10",
@@ -767,11 +767,11 @@
       "dividendPerShare": 0.2,
       "shares": 48,
       "grossUSD": 9.600000000000001,
-      "grossILS": 31.526208000000008,
+      "grossILS": 31.503360000000004,
       "taxUSD": 2.4000000000000004,
-      "taxILS": 7.881552000000002,
+      "taxILS": 7.875840000000001,
       "netUSD": 7.200000000000001,
-      "netILS": 23.644656000000005
+      "netILS": 23.627520000000004
     },
     {
       "id": "XOM-2024-05-14",
@@ -780,11 +780,11 @@
       "dividendPerShare": 0.95,
       "shares": 2,
       "grossUSD": 1.9,
-      "grossILS": 6.239562,
+      "grossILS": 6.23504,
       "taxUSD": 0.475,
-      "taxILS": 1.5598905,
+      "taxILS": 1.55876,
       "netUSD": 1.4249999999999998,
-      "netILS": 4.6796715
+      "netILS": 4.67628
     },
     {
       "id": "ASML-2024-04-26",
@@ -793,11 +793,11 @@
       "dividendPerShare": 1.873,
       "shares": 4,
       "grossUSD": 7.492,
-      "grossILS": 24.60357816,
+      "grossILS": 24.5857472,
       "taxUSD": 1.873,
-      "taxILS": 6.15089454,
+      "taxILS": 6.1464368,
       "netUSD": 5.619,
-      "netILS": 18.452683620000002
+      "netILS": 18.4393104
     },
     {
       "id": "VOO-2024-03-22",
@@ -806,11 +806,11 @@
       "dividendPerShare": 1.543,
       "shares": 24,
       "grossUSD": 37.032,
-      "grossILS": 121.61234735999999,
+      "grossILS": 121.5242112,
       "taxUSD": 9.258,
-      "taxILS": 30.403086839999997,
+      "taxILS": 30.3810528,
       "netUSD": 27.773999999999997,
-      "netILS": 91.20926051999999
+      "netILS": 91.1431584
     },
     {
       "id": "NVDA-2024-03-05",
@@ -819,11 +819,11 @@
       "dividendPerShare": 0.004,
       "shares": 60,
       "grossUSD": 0.24,
-      "grossILS": 0.7881552,
+      "grossILS": 0.787584,
       "taxUSD": 0.06,
-      "taxILS": 0.1970388,
+      "taxILS": 0.196896,
       "netUSD": 0.18,
-      "netILS": 0.5911164
+      "netILS": 0.590688
     },
     {
       "id": "XOM-2024-02-13",
@@ -832,11 +832,11 @@
       "dividendPerShare": 0.95,
       "shares": 2,
       "grossUSD": 1.9,
-      "grossILS": 6.239562,
+      "grossILS": 6.23504,
       "taxUSD": 0.475,
-      "taxILS": 1.5598905,
+      "taxILS": 1.55876,
       "netUSD": 1.4249999999999998,
-      "netILS": 4.6796715
+      "netILS": 4.67628
     },
     {
       "id": "ASML-2024-02-05",
@@ -845,11 +845,11 @@
       "dividendPerShare": 1.556,
       "shares": 4,
       "grossUSD": 6.224,
-      "grossILS": 20.43949152,
+      "grossILS": 20.4246784,
       "taxUSD": 1.556,
-      "taxILS": 5.10987288,
+      "taxILS": 5.1061696,
       "netUSD": 4.668,
-      "netILS": 15.32961864
+      "netILS": 15.3185088
     },
     {
       "id": "VOO-2023-12-20",
@@ -858,11 +858,11 @@
       "dividendPerShare": 1.801,
       "shares": 24,
       "grossUSD": 43.224,
-      "grossILS": 141.94675152,
+      "grossILS": 141.8438784,
       "taxUSD": 10.806,
-      "taxILS": 35.48668788,
+      "taxILS": 35.4609696,
       "netUSD": 32.418,
-      "netILS": 106.46006363999999
+      "netILS": 106.3829088
     },
     {
       "id": "NVDA-2023-12-05",
@@ -871,11 +871,11 @@
       "dividendPerShare": 0.004,
       "shares": 60,
       "grossUSD": 0.24,
-      "grossILS": 0.7881552,
+      "grossILS": 0.787584,
       "taxUSD": 0.06,
-      "taxILS": 0.1970388,
+      "taxILS": 0.196896,
       "netUSD": 0.18,
-      "netILS": 0.5911164
+      "netILS": 0.590688
     },
     {
       "id": "XOM-2023-11-14",
@@ -884,11 +884,11 @@
       "dividendPerShare": 0.95,
       "shares": 2,
       "grossUSD": 1.9,
-      "grossILS": 6.239562,
+      "grossILS": 6.23504,
       "taxUSD": 0.475,
-      "taxILS": 1.5598905,
+      "taxILS": 1.55876,
       "netUSD": 1.4249999999999998,
-      "netILS": 4.6796715
+      "netILS": 4.67628
     },
     {
       "id": "ASML-2023-11-01",
@@ -897,11 +897,11 @@
       "dividendPerShare": 1.53,
       "shares": 4,
       "grossUSD": 6.12,
-      "grossILS": 20.0979576,
+      "grossILS": 20.083392,
       "taxUSD": 1.53,
-      "taxILS": 5.0244894,
+      "taxILS": 5.020848,
       "netUSD": 4.59,
-      "netILS": 15.0734682
+      "netILS": 15.062543999999999
     },
     {
       "id": "VOO-2023-09-28",
@@ -910,11 +910,11 @@
       "dividendPerShare": 1.493,
       "shares": 24,
       "grossUSD": 35.832,
-      "grossILS": 117.67157136,
+      "grossILS": 117.5862912,
       "taxUSD": 8.958,
-      "taxILS": 29.41789284,
+      "taxILS": 29.3965728,
       "netUSD": 26.874000000000002,
-      "netILS": 88.25367852
+      "netILS": 88.1897184
     },
     {
       "id": "NVDA-2023-09-06",
@@ -923,11 +923,11 @@
       "dividendPerShare": 0.004,
       "shares": 60,
       "grossUSD": 0.24,
-      "grossILS": 0.7881552,
+      "grossILS": 0.787584,
       "taxUSD": 0.06,
-      "taxILS": 0.1970388,
+      "taxILS": 0.196896,
       "netUSD": 0.18,
-      "netILS": 0.5911164
+      "netILS": 0.590688
     },
     {
       "id": "XOM-2023-08-15",
@@ -936,11 +936,11 @@
       "dividendPerShare": 0.91,
       "shares": 2,
       "grossUSD": 1.82,
-      "grossILS": 5.9768436000000005,
+      "grossILS": 5.972512,
       "taxUSD": 0.455,
-      "taxILS": 1.4942109000000001,
+      "taxILS": 1.493128,
       "netUSD": 1.365,
-      "netILS": 4.4826327
+      "netILS": 4.479384
     },
     {
       "id": "ASML-2023-08-01",
@@ -949,11 +949,11 @@
       "dividendPerShare": 1.593,
       "shares": 4,
       "grossUSD": 6.372,
-      "grossILS": 20.92552056,
+      "grossILS": 20.9103552,
       "taxUSD": 1.593,
-      "taxILS": 5.23138014,
+      "taxILS": 5.2275888,
       "netUSD": 4.779,
-      "netILS": 15.69414042
+      "netILS": 15.682766400000002
     },
     {
       "id": "VOO-2023-06-29",
@@ -962,11 +962,11 @@
       "dividendPerShare": 1.576,
       "shares": 24,
       "grossUSD": 37.824,
-      "grossILS": 124.21325952,
+      "grossILS": 124.12323839999999,
       "taxUSD": 9.456,
-      "taxILS": 31.05331488,
+      "taxILS": 31.030809599999998,
       "netUSD": 28.368,
-      "netILS": 93.15994463999999
+      "netILS": 93.0924288
     },
     {
       "id": "NVDA-2023-06-07",
@@ -975,11 +975,11 @@
       "dividendPerShare": 0.004,
       "shares": 60,
       "grossUSD": 0.24,
-      "grossILS": 0.7881552,
+      "grossILS": 0.787584,
       "taxUSD": 0.06,
-      "taxILS": 0.1970388,
+      "taxILS": 0.196896,
       "netUSD": 0.18,
-      "netILS": 0.5911164
+      "netILS": 0.590688
     },
     {
       "id": "XOM-2023-05-15",
@@ -988,11 +988,11 @@
       "dividendPerShare": 0.91,
       "shares": 2,
       "grossUSD": 1.82,
-      "grossILS": 5.9768436000000005,
+      "grossILS": 5.972512,
       "taxUSD": 0.455,
-      "taxILS": 1.4942109000000001,
+      "taxILS": 1.493128,
       "netUSD": 1.365,
-      "netILS": 4.4826327
+      "netILS": 4.479384
     },
     {
       "id": "ASML-2023-05-01",
@@ -1001,11 +1001,11 @@
       "dividendPerShare": 1.858,
       "shares": 4,
       "grossUSD": 7.432,
-      "grossILS": 24.406539360000004,
+      "grossILS": 24.3888512,
       "taxUSD": 1.858,
-      "taxILS": 6.101634840000001,
+      "taxILS": 6.0972128,
       "netUSD": 5.574,
-      "netILS": 18.30490452
+      "netILS": 18.2916384
     },
     {
       "id": "VOO-2023-03-24",
@@ -1014,11 +1014,11 @@
       "dividendPerShare": 1.487,
       "shares": 24,
       "grossUSD": 35.688,
-      "grossILS": 117.19867824,
+      "grossILS": 117.11374080000002,
       "taxUSD": 8.922,
-      "taxILS": 29.29966956,
+      "taxILS": 29.278435200000004,
       "netUSD": 26.766000000000002,
-      "netILS": 87.89900868000001
+      "netILS": 87.83530560000001
     },
     {
       "id": "NVDA-2023-03-07",
@@ -1027,11 +1027,11 @@
       "dividendPerShare": 0.004,
       "shares": 60,
       "grossUSD": 0.24,
-      "grossILS": 0.7881552,
+      "grossILS": 0.787584,
       "taxUSD": 0.06,
-      "taxILS": 0.1970388,
+      "taxILS": 0.196896,
       "netUSD": 0.18,
-      "netILS": 0.5911164
+      "netILS": 0.590688
     },
     {
       "id": "XOM-2023-02-13",
@@ -1040,11 +1040,11 @@
       "dividendPerShare": 0.91,
       "shares": 2,
       "grossUSD": 1.82,
-      "grossILS": 5.9768436000000005,
+      "grossILS": 5.972512,
       "taxUSD": 0.455,
-      "taxILS": 1.4942109000000001,
+      "taxILS": 1.493128,
       "netUSD": 1.365,
-      "netILS": 4.4826327
+      "netILS": 4.479384
     },
     {
       "id": "ASML-2023-02-06",
@@ -1053,11 +1053,11 @@
       "dividendPerShare": 1.472,
       "shares": 4,
       "grossUSD": 5.888,
-      "grossILS": 19.336074240000002,
+      "grossILS": 19.3220608,
       "taxUSD": 1.472,
-      "taxILS": 4.8340185600000005,
+      "taxILS": 4.8305152,
       "netUSD": 4.416,
-      "netILS": 14.502055680000002
+      "netILS": 14.491545599999998
     }
   ]
 }
