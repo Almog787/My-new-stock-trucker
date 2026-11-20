@@ -248,7 +248,7 @@ function App() {
     loadData();
 
     // רענון אוטומטי של הנתונים כל 10 דקות (600000 מילישניות)
-    // כך שאם המשתמש משאיר את החלונית פתוחה, היא תמשוך את העדכונים הרציפים מ-GitHub Actions (כל 15 דקות)
+    // כך שאם המשתמש משאיר את החלונית פתוחה, היא תמשוך את העדכונים מ-GitHub Actions (כל 30 דקות בשעות המסחר)
     const intervalId = setInterval(loadData, 600000);
     return () => clearInterval(intervalId);
   }, []);

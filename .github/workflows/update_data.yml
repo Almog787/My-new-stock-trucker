@@ -2,10 +2,10 @@ name: Update Stock Data & Deploy
 
 on:
   schedule:
-    # Runs twice an hour (every 30 minutes) during US market hours (13:00 to 21:59 UTC) Mon-Fri.
-    # Uses off-peak minutes (07, 37) for faster GitHub Actions scheduling and 100% parser compatibility.
-    - cron: '7 13-21 * * 1-5'
-    - cron: '37 13-21 * * 1-5'
+    # Runs every 30 minutes (:05 and :35) across potential US trading UTC hours (13:00-21:59 UTC) Mon-Fri.
+    # Uses off-peak minutes (:05, :35) to avoid GitHub Actions :00/:30 queue congestion.
+    # Exact 09:30-16:30 ET window (handling EST/EDT automatically) is enforced in the market_window step.
+    - cron: '5,35 13-21 * * 1-5'
 
   workflow_dispatch:
 
@@ -23,27 +23,58 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
-      should_deploy: ${{ steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch' }}
+      should_deploy: ${{ steps.market_window.outputs.is_open == 'true' && (steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch') }}
     steps:
+      - name: Check US trading hours (09:30-16:30 ET)
+        id: market_window
+        run: |
+          if [ "${{ github.event_name }}" != "schedule" ]; then
+            echo "is_open=true" >> "$GITHUB_OUTPUT"
+            echo "Manual trigger — proceeding with update."
+            exit 0
+          fi
+
+          DOW=$(TZ=America/New_York date +%u)
+          HH=$(TZ=America/New_York date +%H)
+          MM=$(TZ=America/New_York date +%M)
+          MINS=$((10#$HH * 60 + 10#$MM))
+
+          echo "New York time: $(TZ=America/New_York date '+%Y-%m-%d %H:%M %Z') (day=$DOW, mins=$MINS)"
+
+          # Regular US trading hours: Mon-Fri, 09:30 (570) to 16:30 (990) ET (includes closing bell capture)
+          if [ "$DOW" -ge 1 ] && [ "$DOW" -le 5 ] && [ "$MINS" -ge 570 ] && [ "$MINS" -le 990 ]; then
+            echo "is_open=true" >> "$GITHUB_OUTPUT"
+            echo "US trading hours active — running half-hourly update."
+          else
+            echo "is_open=false" >> "$GITHUB_OUTPUT"
+            echo "Outside US trading hours (09:30-16:30 ET) — skipping scheduled update."
+          fi
+
       - name: Checkout repository
+        if: steps.market_window.outputs.is_open == 'true'
         uses: actions/checkout@v4
 
       - name: Setup Node.js
+        if: steps.market_window.outputs.is_open == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
+        if: steps.market_window.outputs.is_open == 'true'
         run: npm ci
 
       - name: Fetch stock data and update charts
+        if: steps.market_window.outputs.is_open == 'true'
         run: node scripts/update_data.js
 
       - name: Validate Data & Calculations Integrity
+        if: steps.market_window.outputs.is_open == 'true'
         run: npm run test:data
 
       - name: Commit and push changes
+        if: steps.market_window.outputs.is_open == 'true'
         id: commit
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
@@ -83,15 +114,15 @@ jobs:
           fi
 
       - name: Build Web Application
-        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        if: steps.market_window.outputs.is_open == 'true' && (steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch')
         run: npm run build
 
       - name: Setup Pages
-        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        if: steps.market_window.outputs.is_open == 'true' && (steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch')
         uses: actions/configure-pages@v4
 
       - name: Upload artifact
-        if: steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch'
+        if: steps.market_window.outputs.is_open == 'true' && (steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch')
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist'
