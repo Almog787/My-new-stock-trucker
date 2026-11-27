@@ -3,8 +3,8 @@ name: Update Stock Data & Deploy
 on:
   schedule:
     # Runs every 30 minutes (:05 and :35) across potential US trading UTC hours (13:00-21:59 UTC) Mon-Fri.
+    # Covers both EDT (UTC-4: 13:30-20:00 UTC) and EST (UTC-5: 14:30-21:00 UTC), plus post-close buffer.
     # Uses off-peak minutes (:05, :35) to avoid GitHub Actions :00/:30 queue congestion.
-    # Exact 09:30-16:30 ET window (handling EST/EDT automatically) is enforced in the market_window step.
     - cron: '5,35 13-21 * * 1-5'
 
   workflow_dispatch:
@@ -25,7 +25,7 @@ jobs:
     outputs:
       should_deploy: ${{ steps.market_window.outputs.is_open == 'true' && (steps.commit.outputs.changed == 'true' || github.event_name == 'workflow_dispatch') }}
     steps:
-      - name: Check US trading hours (09:30-16:30 ET)
+      - name: Check US trading hours (09:30-16:45 ET)
         id: market_window
         run: |
           if [ "${{ github.event_name }}" != "schedule" ]; then
@@ -39,15 +39,17 @@ jobs:
           MM=$(TZ=America/New_York date +%M)
           MINS=$((10#$HH * 60 + 10#$MM))
 
+          echo "UTC time:      $(date -u '+%Y-%m-%d %H:%M UTC')"
           echo "New York time: $(TZ=America/New_York date '+%Y-%m-%d %H:%M %Z') (day=$DOW, mins=$MINS)"
 
-          # Regular US trading hours: Mon-Fri, 09:30 (570) to 16:30 (990) ET (includes closing bell capture)
-          if [ "$DOW" -ge 1 ] && [ "$DOW" -le 5 ] && [ "$MINS" -ge 570 ] && [ "$MINS" -le 990 ]; then
+          # Regular US trading hours: Mon-Fri, 09:30 (570) to 16:00 (960) ET.
+          # Extended check to 16:45 (1005) ET ensures the 16:35 ET run captures final closing prices.
+          if [ "$DOW" -ge 1 ] && [ "$DOW" -le 5 ] && [ "$MINS" -ge 570 ] && [ "$MINS" -le 1005 ]; then
             echo "is_open=true" >> "$GITHUB_OUTPUT"
             echo "US trading hours active — running half-hourly update."
           else
             echo "is_open=false" >> "$GITHUB_OUTPUT"
-            echo "Outside US trading hours (09:30-16:30 ET) — skipping scheduled update."
+            echo "Outside US trading hours (09:30-16:45 ET) — skipping scheduled update."
           fi
 
       - name: Checkout repository
@@ -84,25 +86,34 @@ jobs:
           PUSH_SUCCESS=0
           HAS_CHANGES="false"
 
+          # Stage generated files once before commit loop
+          git add -A public/data/ data_hub/ README.md
+          if git diff --staged --quiet; then
+            echo "No changes to commit."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          HAS_CHANGES="true"
+          git commit -m "chore: auto-update stock history, charts and README [skip ci]"
+
           for i in $(seq 1 $MAX_RETRIES); do
-            git fetch origin "$TARGET_BRANCH"
-            git reset "origin/$TARGET_BRANCH"
-            git add -A public/data/ data_hub/ README.md
-            if git diff --staged --quiet; then
-              echo "No changes to commit."
-              PUSH_SUCCESS=1
-              HAS_CHANGES="false"
-              break
-            fi
-            HAS_CHANGES="true"
-            git commit -m "chore: auto-update stock history, charts and README [skip ci]"
             if git push origin "HEAD:$TARGET_BRANCH"; then
               echo "Successfully pushed changes."
               PUSH_SUCCESS=1
               break
             else
-              echo "Push failed (concurrent push detected), retrying ($i/$MAX_RETRIES)..."
+              echo "Push failed (concurrent push detected), rebasing and retrying ($i/$MAX_RETRIES)..."
               sleep 3
+              git fetch origin "$TARGET_BRANCH"
+              git rebase "origin/$TARGET_BRANCH" || {
+                echo "Rebase conflict — resetting to remote and regenerating data..."
+                git rebase --abort || true
+                git reset --hard "origin/$TARGET_BRANCH"
+                node scripts/update_data.js
+                git add -A public/data/ data_hub/ README.md
+                git commit -m "chore: auto-update stock history, charts and README [skip ci]"
+              }
             fi
           done
 
